@@ -1,0 +1,2 @@
+H:/Flutter/curemate/android/app/.cxx/Debug/2n6s6a1f/x86_64/CMakeFiles/edit_cache.dir
+H:/Flutter/curemate/android/app/.cxx/Debug/2n6s6a1f/x86_64/CMakeFiles/rebuild_cache.dir
