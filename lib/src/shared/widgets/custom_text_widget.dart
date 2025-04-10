@@ -6,6 +6,7 @@ class CustomTextWidget extends StatelessWidget {
   final List<Color>? strokeColors;
   final double? strokeWidth;
   final Color? borderColor;
+  final Color? shadowColor;
   final List<Color>? gradientColors;
   final bool applyGradient;
   final bool applyShadow;
@@ -19,6 +20,7 @@ class CustomTextWidget extends StatelessWidget {
     this.strokeColors,
     this.strokeWidth,
     this.borderColor,
+    this.shadowColor,
     this.gradientColors,
     this.applyGradient = false,
     this.applyShadow = false,
@@ -42,7 +44,7 @@ class CustomTextWidget extends StatelessWidget {
           ).createShader(const Rect.fromLTWH(0, 0, 200, 50)))
             : null,
         color: (applyGradient && gradientColors != null) ? null : baseStyle.color,
-        shadows: applyShadow ? (shadows ?? [const Shadow(offset: Offset(2, 2), blurRadius: 4, color: Colors.black)]) : null,
+        shadows: applyShadow ? (shadows ?? [Shadow(offset: const Offset(2, 2), blurRadius: 4, color:shadowColor?? Colors.black)]) : null,
       ),
     );
 

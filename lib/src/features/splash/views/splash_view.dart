@@ -1,103 +1,102 @@
-import 'package:curemate/assets/app_assets.dart';
-import 'package:curemate/src/features/signin/views/login_view.dart';
-import 'package:curemate/src/router/nav.dart';
-import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
-import 'package:curemate/src/utils/delay_utils.dart';
-import 'package:curemate/src/utils/screen_utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:curemate/extentions/widget_extension.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../assets/app_icons.dart';
+import '../../../../const/app_fonts.dart';
+import '../../../../const/app_strings.dart';
+import '../../../../const/font_sizes.dart';
+import '../../../shared/widgets/custom_svg_picture_widget.dart';
+import '../../../shared/widgets/custom_text_widget.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/screen_utils.dart';
+import '../providers/splash_provider.dart';
+import '../widgets/loading_progress_bar.dart';
 
-import '../../../const/app_strings.dart';
-import '../../doctor/home/views/doctor_home_view.dart';
-import '../../patient/home/views/patient_home_view.dart';
-
-class SplashView extends StatefulWidget {
+class SplashView extends ConsumerWidget {
   const SplashView({super.key});
 
   @override
-  State<SplashView> createState() => _SplashViewState();
-}
-
-class _SplashViewState extends State<SplashView> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
-
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthUser();
-  }
-
-  Future<void> _checkAuthUser() async {
-    User? user = _auth.currentUser;
-    if (user == null) {
-      await wait(const Duration(seconds: 3));
-      AppNavigation.push(SignInView());
-    } else {
-      DatabaseReference userRef = _database.child("Doctor").child(user.uid);
-      DataSnapshot snapshot = await userRef.get();
-      if (snapshot.exists) {
-        await wait(const Duration(seconds: 3));
-        AppNavigation.push(const DoctorHomeView());
-      } else {
-        userRef = _database.child("Patient").child(user.uid);
-        DataSnapshot snapshot = await userRef.get();
-        if (snapshot.exists) {
-          await wait(const Duration(seconds: 3));
-          AppNavigation.push(const PatientHomeView());
-        } else {
-          await wait(const Duration(seconds: 3));
-          AppNavigation.push(SignInView());
-        }
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) {
+    final splashState = ref.watch(splashProvider);
     return WillPopScope(
-      onWillPop:()async=>false,
+      onWillPop: () async => false,
       child: Scaffold(
         body: Container(
           width: ScreenUtil.baseWidth,
           height: ScreenUtil.baseHeight,
-          color: Color(0xff0064FA),
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundLinearGradient,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
                 padding: EdgeInsets.only(
-                  top: ScreenUtil.scaleHeight(context, 100),
-                  right: ScreenUtil.scaleWidth(context, 10),
+                  top: ScreenUtil.scaleHeight(context, 120),
                 ),
                 child: CustomTextWidget(
                   text: AppStrings.appName,
+                  applyShadow: true,
                   textStyle: TextStyle(
-                    fontSize: 48,
-                    fontFamily: GoogleFonts.bangers.toString(),
+                    fontSize: FontSizes(context).size60,
+                    fontFamily: AppFonts.rubik,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.gradientWhite.withOpacity(0.9),
                   ),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(
-                  top: ScreenUtil.scaleHeight(context, 10),
+                  top: ScreenUtil.scaleHeight(context, 5),
                 ),
                 child: CustomTextWidget(
-                  text: 'A Smart Health\n      Solution',
+                  text: 'A Smart Health Solution',
                   textStyle: TextStyle(
-                    fontSize: 20,
-                    fontFamily: GoogleFonts.poppins.toString(),
+                    fontSize: FontSizes(context).size18,
+                    fontFamily: AppFonts.bangers,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                    color: AppColors.black,
                   ),
                 ),
               ),
-              SizedBox(height: ScreenUtil.scaleHeight(context, 150),),
-              Image.asset(AppAssets.dnaImage),
+              SizedBox(height: ScreenUtil.scaleHeight(context, 120)),
+              CustomSvgPictureWidget(
+                icon: AppIcons.appSplashBlackIc,
+                width: ScreenUtil.scaleWidth(context, 100),
+                height: ScreenUtil.scaleHeight(context, 150),
+              ),
+              200.height,
+              Padding(
+                padding: EdgeInsets.only(
+                  right: ScreenUtil.scaleWidth(context, 220),
+                  bottom: ScreenUtil.scaleHeight(context, 2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CupertinoActivityIndicator(
+                      color: AppColors.black,
+                    ),
+                    3.width,
+                    CustomTextWidget(
+                      text: 'Loading...',
+                      textStyle: TextStyle(
+                        fontSize: FontSizes(context).size20,
+                        fontFamily: AppFonts.bangers,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: LoadingProgressBar(progress: splashState.progress),
+              ),
+              10.height,
+              // Image.asset(AppAssets.dnaImage),
             ],
           ),
         ),

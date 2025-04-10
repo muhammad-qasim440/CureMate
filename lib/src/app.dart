@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'const/app_strings.dart';
+import '../const/app_strings.dart';
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class App extends ConsumerStatefulWidget {
   const App._();
@@ -24,7 +24,6 @@ class App extends ConsumerStatefulWidget {
 class _AppState extends ConsumerState<App> {
   @override
   Widget build(BuildContext context) {
-    // Initialize ScreenUtil after MaterialApp is built
     ScreenUtil.init(context);
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
