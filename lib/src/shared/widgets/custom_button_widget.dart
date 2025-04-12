@@ -57,7 +57,7 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
       width: widget.width,
       height: widget.height,
       decoration: BoxDecoration(
-        color: widget.gradient == null ? widget.backgroundColor : null, // Apply background color if no gradient
+        color: widget.gradient == null ? widget.backgroundColor : null,
         gradient: widget.gradient,
         borderRadius: BorderRadius.circular(widget.borderRadius ?? 8),
         boxShadow: [
@@ -71,7 +71,7 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
       child: ElevatedButton(
         onPressed: widget.isEnabled ? widget.onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent, // Keep transparent since Container handles color/gradient
+          backgroundColor: Colors.transparent,
           foregroundColor: widget.textColor ?? Colors.white,
           padding: widget.padding ?? EdgeInsets.zero,
           shape: RoundedRectangleBorder(
@@ -106,9 +106,6 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
                 Flexible(
                   child: CustomTextWidget(
                     text: widget.text!,
-                    applyShadow: true,
-                    strokeColors: const [Colors.black],
-                    borderColor: Colors.black,
                     textStyle: TextStyle(
                       fontSize: widget.fontSize ?? 16,
                       fontWeight: widget.fontWeight ?? FontWeight.w500,

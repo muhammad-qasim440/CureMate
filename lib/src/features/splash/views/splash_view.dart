@@ -51,7 +51,7 @@ class SplashView extends ConsumerWidget {
                   top: ScreenUtil.scaleHeight(context, 5),
                 ),
                 child: CustomTextWidget(
-                  text: 'A Smart Health Solution',
+                  text: AppStrings.aSmartHealthSolution,
                   textStyle: TextStyle(
                     fontSize: FontSizes(context).size18,
                     fontFamily: AppFonts.bangers,
@@ -62,7 +62,7 @@ class SplashView extends ConsumerWidget {
               ),
               SizedBox(height: ScreenUtil.scaleHeight(context, 120)),
               CustomSvgPictureWidget(
-                icon: AppIcons.appSplashBlackIc,
+                icon: AppIcons.appSplashIc,
                 width: ScreenUtil.scaleWidth(context, 100),
                 height: ScreenUtil.scaleHeight(context, 150),
               ),
@@ -80,7 +80,7 @@ class SplashView extends ConsumerWidget {
                     ),
                     3.width,
                     CustomTextWidget(
-                      text: 'Loading...',
+                      text: AppStrings.loading,
                       textStyle: TextStyle(
                         fontSize: FontSizes(context).size20,
                         fontFamily: AppFonts.bangers,

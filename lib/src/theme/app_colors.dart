@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color black = Colors.black;
+  static const grey = Color(0xff4B5563);
+  static const subtextcolor = Color(0xFF9D9D9D);
+
 
   static const Color gradientGreen = Color(0xFF0EBE7E);
   static const Color gradientBlue = Color(0xFF61CEFF);
@@ -9,9 +12,14 @@ class AppColors {
   static const Color gradientEmeraldGreen = Color(0xFF0EBE7E);
   static const Color gradientTurquoiseGreen = Color(0xFF07D9AD);
 
+  /// on boarding view colors
+  static const Color detailsTextColor = Color(0xFF677294);
+  static const Color btnBgColor = Color(0xFF0EBE7F);
+
   static const LinearGradient backgroundLinearGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [AppColors.gradientEmeraldGreen, AppColors.gradientTurquoiseGreen],
   );
+
 }

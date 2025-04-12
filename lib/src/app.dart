@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../const/app_strings.dart';
+import '../databases/local/hive/initialize_and_open_hive_db.dart';
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class App extends ConsumerStatefulWidget {
   const App._();
@@ -13,6 +14,8 @@ class App extends ConsumerStatefulWidget {
   static void initilizationAndRun() async {
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
+   await initializeHiveDB();
+    await openBoxShowOnBoardingViewsDb();
     runApp(const ProviderScope(overrides: [
     ], child: App._()));
   }
