@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
 class CustomTextFormFieldWidget extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String? label;
   final TextStyle? labelStyle;
   final TextStyle? textStyle;
@@ -34,7 +34,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
    final FocusNode? focusNode;
   const CustomTextFormFieldWidget({
     super.key,
-    required this.controller,
+     this.controller,
     this.label,
     this.labelStyle,
     this.textStyle,

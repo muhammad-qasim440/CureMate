@@ -3,7 +3,6 @@ import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/extentions/widget_extension.dart';
 import 'package:curemate/src/features/home/views/home_view.dart';
 import 'package:curemate/src/features/reset_password/views/reset_password_view.dart';
-import 'package:curemate/src/features/signup/signup-view.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/widgets/custom_text_form_field_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
@@ -17,6 +16,7 @@ import '../../../shared/soft_corner_glow_container_widget.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_cloudy_color_effect_widget.dart';
 import '../../../theme/app_colors.dart';
+import '../../signup/signup_view.dart';
 import '../providers/auth-provider.dart';
 
 final hidePasswordProvider = StateProvider<bool>((ref) => true);
@@ -50,8 +50,8 @@ class _SignInViewState extends ConsumerState<SignInView> {
     final isPasswordHidden = ref.watch(hidePasswordProvider);
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    return WillPopScope(
-      onWillPop: ()async=>false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         // resizeToAvoidBottomInset: true,
         backgroundColor: AppColors.gradientWhite,
@@ -191,10 +191,12 @@ class _SignInViewState extends ConsumerState<SignInView> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return AppStrings.enterValidPassword;
+                            } else if(value.length<6){
+                              return AppStrings.passwordLengthMessage;
                             }
                             return null;
                           },
-                          keyboardType: TextInputType.visiblePassword,
+                          keyboardType: TextInputType.text,
                           textStyle: TextStyle(
                             fontFamily: AppFonts.rubik,
                             fontWeight: FontWeight.w400,
@@ -301,7 +303,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                         143.height,
                         TextButton(
                           onPressed: () {
-                            AppNavigation.pushReplacement(SignUpScreen());
+                            AppNavigation.pushReplacement(const SignUpView());
                           },
                           child:  CustomTextWidget(
                             text: AppStrings.doNotHaveAccount,

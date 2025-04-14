@@ -1,4 +1,4 @@
-import 'package:curemate/src/features/signin/views/login_view.dart';
+import 'package:curemate/src/features/signin/views/signin_view.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

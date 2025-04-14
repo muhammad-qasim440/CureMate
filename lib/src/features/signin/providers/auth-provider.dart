@@ -1,87 +1,96 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:curemate/const/app_strings.dart';
+import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
+import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../signup/helpers/upload_profile_image_to_cloudinary.dart';
 
-// Firebase Providers
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
-final firestoreProvider = Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
+final firebaseAuthProvider = Provider<FirebaseAuth>(
+  (ref) => FirebaseAuth.instance,
+);
+final firebaseDatabaseProvider = Provider<DatabaseReference>(
+  (ref) => FirebaseDatabase.instance.ref(),
+);
+final fireStoreProvider = Provider<FirebaseFirestore>(
+  (ref) => FirebaseFirestore.instance,
+);
 
-// Auth Service Provider
 final authProvider = Provider<AuthService>((ref) {
   return AuthService(ref);
 });
 
 class AuthService {
-  final Ref _ref;
-  AuthService(this._ref);
-
-  // 📌 Sign Up Function (Creates Firestore User Document)
-  Future<void> signUp({
-    required String email,
-    required String password,
-    required String role,
-    required String name,
-    required String phone,
-    File? profileImage, // Add this parameter
-    String? specialization,
-    String? experience,
-    String? hospital,
-    List<Map<String, String>>? availability,
-    int? fees,
-    int? age,
-    String? gender,
-    List<String>? medicalHistory,
-  }) async {
+  Future<User?> signUp() async {
     final auth = _ref.read(firebaseAuthProvider);
-    final firestore = _ref.read(firestoreProvider);
-    // 🔹 Create user in Firebase Authentication
+    final fireStore = _ref.read(fireStoreProvider);
+    final database = _ref.read(firebaseDatabaseProvider);
+    final userType = _ref.read(customDropDownProvider(AppStrings.userTypes));
+    final profileImage = _ref.read(userProfileProvider);
+    final email = _ref.read(emailProvider);
+    final password = _ref.read(passwordProvider);
+    final fullName = _ref.read(fullNameProvider);
+    final phoneNumber = _ref.read(phoneNumberProvider);
+    final dateOfBirth = _ref.read(dateOfBirthProvider);
+    final city = _ref.read(customDropDownProvider(AppStrings.cities));
+    final latitude = _ref.read(locationLatitudeProvider);
+    final longitude = _ref.read(locationLongitudeProvider);
+    final docCategory = _ref.read(docCategoryProvider);
+    final docQualification = _ref.read(docQualificationProvider);
+    final docExperience = _ref.read(docYearsOfExperienceProvider);
+
     UserCredential userCredential = await auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+    User? user = userCredential.user;
+    String uid = userCredential.user!.uid;
+    String? profileImageUrl = '';
+    if (user != null) {
+      String userTypePath =
+          userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
 
-    String uid = userCredential.user!.uid;  // Get user UID from Firebase Auth
-// Upload profile image if provided
-    String? profileImageUrl;
+      Map<String, dynamic> userData = {
+        'uid': uid,
+        'email': email,
+        'fullName': fullName,
+        'phoneNumber': phoneNumber,
+        'profileImageUrl': profileImageUrl,
+        'dob': dateOfBirth,
+        'city': city,
+        'latitude': latitude,
+        'longitude': longitude,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
 
-    // 🔹 Create User Data Map
-    Map<String, dynamic> userData = {
-      'uid': uid,
-      'email': email,
-      'role': role,
-      'name': name,
-      'phone': phone,
-      'profileImageUrl': profileImageUrl, // Add this field
-      'createdAt': FieldValue.serverTimestamp(),
-    };
+      if (userType.selected == 'Doctor') {
+        userData.addAll({
+          'qualification': docQualification,
+          'category': docCategory,
+          'yearsOfExperience': docExperience,
+          'totalReviews': 0,
+          'averageRatings': 0.0,
+          'numberOfReviews': 0,
+        });
+      }
+      await database.child(userTypePath).child(user.uid).set(userData);
+      if (profileImage != null) {
+        String? cloudinaryImageUrl = await uploadImageToCloudinary(File(profileImage.path));
+        if (cloudinaryImageUrl != null) {
+          await database.child(userTypePath).child(user.uid).update({
+            'profileImageUrl': cloudinaryImageUrl,
+          });
+        }
+      }
 
-    // 🔹 Add extra fields if user is a Doctor
-    if (role == 'doctor') {
-      userData.addAll({
-        'specialization': specialization,
-        'experience': experience,
-        'hospital': hospital,
-        'availability': availability ?? [],
-        'fees': fees,
-      });
     }
-
-    // 🔹 Add extra fields if user is a Patient
-    if (role == 'patient') {
-      userData.addAll({
-        'age': age,
-        'gender': gender,
-        'medicalHistory': medicalHistory ?? [],
-      });
-    }
-
-    // 🔹 Store user data in Firestore (UID as Document ID)
-    await firestore.collection('users').doc(uid).set(userData);
+    return userCredential.user;
   }
-
-  // 📌 Sign In Function
+  final Ref _ref;
+  AuthService(this._ref);
   Future<User?> signIn({
     required String email,
     required String password,
@@ -89,16 +98,12 @@ class AuthService {
     final auth = _ref.read(firebaseAuthProvider);
 
     try {
-      // 🔹 Sign in with email and password
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
-      // 🔹 Return the signed-in user
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      // 🔹 Handle specific Firebase Auth errors
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
       } else if (e.code == 'wrong-password') {
@@ -107,27 +112,22 @@ class AuthService {
         throw Exception('Authentication error: ${e.message}');
       }
     } catch (e) {
-      // 🔹 Handle any other errors
       throw Exception('An error occurred during sign-in: $e');
     }
   }
 
-  // 📌 Reset Password Function
   Future<void> resetPassword({required String email}) async {
     final auth = _ref.read(firebaseAuthProvider);
 
     try {
-      // 🔹 Send password reset email
       await auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      // 🔹 Handle specific Firebase Auth errors
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
       } else {
         throw Exception('Password reset error: ${e.message}');
       }
     } catch (e) {
-      // 🔹 Handle any other errors
       throw Exception('An error occurred during password reset: $e');
     }
   }
