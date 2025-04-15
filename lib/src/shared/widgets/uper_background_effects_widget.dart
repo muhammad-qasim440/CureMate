@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../shared/soft_corner_glow_container_widget.dart';
-import '../../../theme/app_colors.dart';
-import '../../../utils/screen_utils.dart';
+import '../soft_corner_glow_container_widget.dart';
+import '../../theme/app_colors.dart';
+import '../../utils/screen_utils.dart';
 
 
 class UpperBackgroundEffectsWidgets extends StatelessWidget {

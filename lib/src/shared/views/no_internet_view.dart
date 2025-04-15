@@ -10,13 +10,13 @@ import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 
 class NoInternetView extends StatelessWidget {
-  final VoidCallback onTryAgain;
+  final VoidCallback? onTryAgain;
   final String title;
   final String subtitle;
 
   const NoInternetView({
     Key? key,
-    required this.onTryAgain,
+    this.onTryAgain,
     this.title = "No Internet Connection",
     this.subtitle = "Please check your connection and try again",
   }) : super(key: key);
@@ -28,6 +28,7 @@ class NoInternetView extends StatelessWidget {
       body: Stack(
         clipBehavior: Clip.none,
         children: [
+          // Decorations
           CustomLinearGradientContainerWidget(
             width: ScreenUtil.scaleWidth(context, 200),
             height: ScreenUtil.scaleHeight(context, 200),
@@ -48,7 +49,6 @@ class NoInternetView extends StatelessWidget {
               AppColors.gradientTurquoiseGreen,
             ],
           ),
-
           CustomCloudyColorEffectWidget.bottomRight(
             color: AppColors.gradientGreen,
             size: 100,
@@ -69,7 +69,6 @@ class NoInternetView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // No Internet Icon
                   Container(
                     width: ScreenUtil.scaleWidth(context, 120),
                     height: ScreenUtil.scaleWidth(context, 120),
@@ -92,7 +91,6 @@ class NoInternetView extends StatelessWidget {
                   ),
                   30.height,
 
-                  // Title
                   CustomTextWidget(
                     text: title,
                     textStyle: TextStyle(
@@ -103,8 +101,6 @@ class NoInternetView extends StatelessWidget {
                     ),
                   ),
                   15.height,
-
-                  // Subtitle
                   CustomTextWidget(
                     text: subtitle,
                     textStyle: TextStyle(
@@ -114,18 +110,19 @@ class NoInternetView extends StatelessWidget {
                       color: AppColors.detailsTextColor,
                     ),
                   ),
-                  60.height,
-                  // Try Again Button
-                  CustomButtonWidget(
-                    text: "Try Again",
-                    height: ScreenUtil.scaleHeight(context, 54),
-                    backgroundColor: AppColors.btnBgColor,
-                    fontFamily: AppFonts.rubik,
-                    fontSize: FontSizes(context).size18,
-                    fontWeight: FontWeight.w900,
-                    textColor: AppColors.gradientWhite,
-                    onPressed: onTryAgain,
-                  ),
+                  if (onTryAgain != null) ...[
+                    60.height,
+                    CustomButtonWidget(
+                      text: "Try Again",
+                      height: ScreenUtil.scaleHeight(context, 54),
+                      backgroundColor: AppColors.btnBgColor,
+                      fontFamily: AppFonts.rubik,
+                      fontSize: FontSizes(context).size18,
+                      fontWeight: FontWeight.w900,
+                      textColor: AppColors.gradientWhite,
+                      onPressed: onTryAgain!,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -136,31 +133,3 @@ class NoInternetView extends StatelessWidget {
   }
 }
 
-// Example usage:
-// void checkConnectivity() async {
-//   try {
-//     final result = await InternetAddress.lookup('google.com');
-//     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-//       // Connected to internet
-//       setState(() {
-//         isConnected = true;
-//       });
-//     }
-//   } on SocketException catch (_) {
-//     // Not connected to internet
-//     setState(() {
-//       isConnected = false;
-//     });
-//   }
-// }
-//
-// @override
-// Widget build(BuildContext context) {
-//   return isConnected
-//       ? YourMainApp()
-//       : NoInternetView(
-//           onTryAgain: () {
-//             checkConnectivity();
-//           },
-//         );
-// }

@@ -2,12 +2,20 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curemate/const/app_strings.dart';
+import 'package:curemate/src/features/doctor/home/views/doctor_home_view.dart';
 import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../shared/widgets/custom_snackbar_widget.dart';
+import '../../../theme/app_colors.dart';
+import '../../patient/home/views/patient_home_view.dart';
 import '../../signup/helpers/upload_profile_image_to_cloudinary.dart';
+import '../../splash/providers/splash_provider.dart';
+import '../views/signin_view.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
@@ -126,17 +134,70 @@ class AuthService {
         email: email,
         password: password,
       );
+
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
       } else if (e.code == 'wrong-password') {
-        throw Exception('Wrong password provided.');
+        throw Exception('Incorrect password.');
       } else {
         throw Exception('Authentication error: ${e.message}');
       }
     } catch (e) {
-      throw Exception('An error occurred during sign-in: $e');
+      throw Exception('An error occurred: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> handleSignIn(
+      BuildContext context,
+      WidgetRef ref, {
+        required String email,
+        required String password,
+      }) async {
+    final authService = ref.read(authProvider);
+    String message = '';
+
+    try {
+      User? user = await authService.signIn(email: email, password: password);
+
+      if (user == null) {
+        return {
+          'success': false,
+          'message': 'Failed to sign in. Please try again.'
+        };
+      }
+
+      final dbRef = ref.read(firebaseDatabaseProvider);
+      String uid = user.uid;
+
+      final doctorSnapshot = await dbRef.child('Doctors').child(uid).get();
+      final patientSnapshot = await dbRef.child('Patients').child(uid).get();
+
+      if (doctorSnapshot.exists) {
+        return {
+          'success': true,
+          'userType': 'doctor',
+          'message': 'Signed in successfully'
+        };
+      } else if (patientSnapshot.exists) {
+        return {
+          'success': true,
+          'userType': 'patient',
+          'message': 'Signed in successfully'
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'User not found'
+        };
+      }
+    } catch (e) {
+      message = e.toString().replaceAll('Exception: ', '');
+      return {
+        'success': false,
+        'message': message
+      };
     }
   }
 
@@ -153,6 +214,35 @@ class AuthService {
       }
     } catch (e) {
       throw Exception('An error occurred during password reset: $e');
+    }
+  }
+
+  Future<void> logout(BuildContext context) async {
+    final auth = _ref.read(firebaseAuthProvider);
+
+    try {
+      await auth.signOut();
+
+      if (auth.currentUser == null) {
+        CustomSnackBarWidget.show(
+          backgroundColor: AppColors.gradientGreen,
+          context: context,
+          text: 'You have been logged out successfully.',
+        );
+        _ref.read(splashProvider.notifier).checkAuthUser();
+      } else {
+        CustomSnackBarWidget.show(
+          backgroundColor: Colors.red,
+          context: context,
+          text: 'Logout failed. You are still signed in.',
+        );
+      }
+    } catch (e) {
+      CustomSnackBarWidget.show(
+        backgroundColor: Colors.red,
+        context: context,
+        text: 'Failed to log out. Please try again.',
+      );
     }
   }
 }

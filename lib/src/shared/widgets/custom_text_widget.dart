@@ -12,6 +12,8 @@ class CustomTextWidget extends StatelessWidget {
   final bool applyShadow;
   final bool applySkew;
   final List<Shadow>? shadows;
+  final int? maxLines;
+  final TextAlign? textAlignment;
 
   const CustomTextWidget({
     super.key,
@@ -26,25 +28,46 @@ class CustomTextWidget extends StatelessWidget {
     this.applyShadow = false,
     this.applySkew = false,
     this.shadows,
+    this.maxLines,
+    this.textAlignment,
   });
 
   @override
   Widget build(BuildContext context) {
-    TextStyle baseStyle = textStyle ?? const TextStyle(fontSize: 20, color: Colors.black);
+    TextStyle baseStyle =
+        textStyle ?? const TextStyle(fontSize: 20, color: Colors.black);
 
     Widget textWidget = Text(
       text,
+      maxLines: maxLines,
+      textAlign: textAlignment,
+      overflow:
+          maxLines != null
+              ? TextOverflow.ellipsis
+              : null, // Optional: to ellipsize long text
       style: baseStyle.copyWith(
-        foreground: (applyGradient && gradientColors != null)
-            ? (Paint()
-          ..shader = LinearGradient(
-            colors: gradientColors!,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ).createShader(const Rect.fromLTWH(0, 0, 200, 50)))
-            : null,
-        color: (applyGradient && gradientColors != null) ? null : baseStyle.color,
-        shadows: applyShadow ? (shadows ?? [Shadow(offset: const Offset(2, 2), blurRadius: 4, color:shadowColor?? Colors.black)]) : null,
+        foreground:
+            (applyGradient && gradientColors != null)
+                ? (Paint()
+                  ..shader = LinearGradient(
+                    colors: gradientColors!,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(const Rect.fromLTWH(0, 0, 200, 50)))
+                : null,
+        color:
+            (applyGradient && gradientColors != null) ? null : baseStyle.color,
+        shadows:
+            applyShadow
+                ? (shadows ??
+                    [
+                      Shadow(
+                        offset: const Offset(2, 2),
+                        blurRadius: 4,
+                        color: shadowColor ?? Colors.black,
+                      ),
+                    ])
+                : null,
       ),
     );
 
@@ -53,18 +76,27 @@ class CustomTextWidget extends StatelessWidget {
         children: [
           Text(
             text,
+            textAlign: textAlignment,
+
+            maxLines: maxLines,
+            overflow: maxLines != null ? TextOverflow.ellipsis : null,
             style: baseStyle.copyWith(
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = strokeWidth ?? 3.0
-                ..color = borderColor ?? Colors.deepPurple,
+              foreground:
+                  Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = strokeWidth ?? 3.0
+                    ..color = borderColor ?? Colors.deepPurple,
             ),
           ),
-          applySkew ? Transform(transform: Matrix4.skewX(-0.1), child: textWidget) : textWidget,
+          applySkew
+              ? Transform(transform: Matrix4.skewX(-0.1), child: textWidget)
+              : textWidget,
         ],
       );
     } else {
-      return applySkew ? Transform(transform: Matrix4.skewX(-0.1), child: textWidget) : textWidget;
+      return applySkew
+          ? Transform(transform: Matrix4.skewX(-0.1), child: textWidget)
+          : textWidget;
     }
   }
 }

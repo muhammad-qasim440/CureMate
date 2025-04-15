@@ -4,20 +4,28 @@ import 'package:curemate/extentions/widget_extension.dart';
 import 'package:curemate/src/features/home/views/home_view.dart';
 import 'package:curemate/src/features/reset_password/views/reset_password_view.dart';
 import 'package:curemate/src/router/nav.dart';
+import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_form_field_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
+import 'package:curemate/src/shared/widgets/uper_background_effects_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../const/app_strings.dart';
+import '../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../shared/soft_corner_glow_container_widget.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_cloudy_color_effect_widget.dart';
 import '../../../theme/app_colors.dart';
+import '../../doctor/home/views/doctor_home_view.dart';
+import '../../patient/home/views/patient_home_view.dart';
 import '../../signup/signup_view.dart';
 import '../providers/auth-provider.dart';
+import '../providers/signin_form_providers.dart';
+import '../widgets/signing_in_dialog_widget.dart';
 
 final hidePasswordProvider = StateProvider<bool>((ref) => true);
 
@@ -47,6 +55,24 @@ class _SignInViewState extends ConsumerState<SignInView> {
 
   @override
   Widget build(BuildContext context) {
+    final isSigningIn = ref.watch(isSigningInProvider);
+    if (isSigningIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) =>
+                  SigningInDialogWidget(email: emailController.text.trim()),
+        );
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      });
+    }
     final isPasswordHidden = ref.watch(hidePasswordProvider);
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
@@ -60,27 +86,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              CustomLinearGradientContainerWidget(
-                width: ScreenUtil.scaleWidth(context, 200),
-                height: ScreenUtil.scaleHeight(context, 200),
-                left: ScreenUtil.scaleHeight(context, -100),
-                top: ScreenUtil.scaleHeight(context, -150),
-                colors: const [
-                  AppColors.gradientGreen,
-                  AppColors.gradientTurquoiseGreen,
-                ],
-              ),
-              CustomLinearGradientContainerWidget(
-                width: ScreenUtil.scaleWidth(context, 200),
-                height: ScreenUtil.scaleHeight(context, 200),
-                right: ScreenUtil.scaleHeight(context, -100),
-                bottom: ScreenUtil.scaleHeight(context, -150),
-                colors: const [
-                  AppColors.gradientGreen,
-                  AppColors.gradientTurquoiseGreen,
-                ],
-              ),
-      
+              const LowerBackgroundEffectsWidgets(),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 200),
                 top:
@@ -123,21 +129,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                   ),
                 ),
               ),
-      
-              // Background effects
-              CustomCloudyColorEffectWidget.bottomRight(
-                color: AppColors.gradientGreen,
-                size: 100,
-                intensity: 1,
-                spreadRadius: 1,
-              ),
-              CustomCloudyColorEffectWidget.topLeft(
-                color: AppColors.gradientGreen,
-                size: 100,
-                intensity: 1,
-                spreadRadius: 1,
-              ),
-      
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: LayoutBuilder(
@@ -191,7 +183,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return AppStrings.enterValidPassword;
-                            } else if(value.length<6){
+                            } else if (value.length < 6) {
                               return AppStrings.passwordLengthMessage;
                             }
                             return null;
@@ -257,32 +249,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                           fontSize: FontSizes(context).size18,
                           fontWeight: FontWeight.w900,
                           textColor: AppColors.gradientWhite,
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              try {
-                                User? user = await ref
-                                    .read(authProvider)
-                                    .signIn(
-                                      email: emailController.text.trim(),
-                                      password: passwordController.text.trim(),
-                                    );
-                                if (user != null && context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Sign In Successful!'),
-                                    ),
-                                  );
-                                  AppNavigation.push(const HomeView());
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
-                              }
-                            }
-                          },
+                          onPressed: _signIn,
                         ),
                         20.height,
                         TextButton(
@@ -296,7 +263,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                             textStyle: TextStyle(
                               fontFamily: AppFonts.rubik,
                               fontSize: FontSizes(context).size14,
-                              color: AppColors.gradientGreen
+                              color: AppColors.gradientGreen,
                             ),
                           ),
                         ),
@@ -305,12 +272,12 @@ class _SignInViewState extends ConsumerState<SignInView> {
                           onPressed: () {
                             AppNavigation.pushReplacement(const SignUpView());
                           },
-                          child:  CustomTextWidget(
+                          child: CustomTextWidget(
                             text: AppStrings.doNotHaveAccount,
                             textStyle: TextStyle(
-                                fontFamily: AppFonts.rubik,
-                                fontSize: FontSizes(context).size14,
-                                color: AppColors.gradientGreen
+                              fontFamily: AppFonts.rubik,
+                              fontSize: FontSizes(context).size14,
+                              color: AppColors.gradientGreen,
                             ),
                           ),
                         ),
@@ -319,10 +286,88 @@ class _SignInViewState extends ConsumerState<SignInView> {
                   },
                 ),
               ),
+              const UpperBackgroundEffectsWidgets(),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _signIn() async {
+    if (_formKey.currentState!.validate()) {
+      final isNetworkAvailable = ref.read(checkInternetConnectionProvider);
+      final isConnected =
+          await isNetworkAvailable.whenData((value) => value).value ?? false;
+
+      if (!isConnected) {
+        CustomSnackBarWidget.show(
+          context: context,
+          backgroundColor: AppColors.gradientGreen,
+          text: "No Internet Connection",
+        );
+        return;
+      }
+
+      try {
+        ref.read(isSigningInProvider.notifier).state = true;
+
+        final authService = ref.read(authProvider);
+
+        User? user = await authService.signIn(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        if (!mounted) return;
+
+        if (user == null) {
+          CustomSnackBarWidget.show(
+            context: context,
+            backgroundColor: AppColors.gradientGreen,
+            text: 'Failed to sign in. Please try again.',
+          );
+          return;
+        }
+
+        // Get user type directly here
+        final dbRef = ref.read(firebaseDatabaseProvider);
+        String uid = user.uid;
+
+        final doctorSnapshot = await dbRef.child('Doctors').child(uid).get();
+        final patientSnapshot = await dbRef.child('Patients').child(uid).get();
+
+        if (!mounted) return;
+
+        // Use direct Navigator instead of AppNavigation
+        if (doctorSnapshot.exists) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const DoctorHomeView())
+          );
+        } else if (patientSnapshot.exists) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const PatientHomeView())
+          );
+        } else {
+          CustomSnackBarWidget.show(
+            context: context,
+            backgroundColor: AppColors.gradientGreen,
+            text: 'User not found',
+          );
+        }
+
+      } catch (e) {
+        if (mounted) {
+          CustomSnackBarWidget.show(
+              context: context,
+              text: "${e.toString().replaceAll('Exception: ', '')}"
+          );
+        }
+      } finally {
+        if (mounted) {
+          ref.read(isSigningInProvider.notifier).state = false;
+        }
+      }
+    }
   }
 }

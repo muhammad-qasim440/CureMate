@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/custom_cloudy_color_effect_widget.dart';
-import '../../../theme/app_colors.dart';
+import 'custom_cloudy_color_effect_widget.dart';
+import '../../theme/app_colors.dart';
 
 
 class LowerBackgroundEffectsWidgets extends StatelessWidget {

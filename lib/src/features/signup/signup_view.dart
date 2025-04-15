@@ -1,6 +1,6 @@
 import 'package:curemate/extentions/widget_extension.dart';
 import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
-import 'package:curemate/src/features/signup/widgets/lower_background_effects_widgets.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/features/signup/widgets/credentials_form_section.dart';
 import 'package:curemate/src/features/signup/widgets/header_widget.dart';
 import 'package:curemate/src/features/signup/widgets/personal_info_section.dart';
@@ -8,7 +8,7 @@ import 'package:curemate/src/features/signup/widgets/profile_image_section.dart'
 import 'package:curemate/src/features/signup/widgets/signin_link_section.dart';
 import 'package:curemate/src/features/signup/widgets/signing_up_dialog_widget.dart';
 import 'package:curemate/src/features/signup/widgets/signup_button_section.dart';
-import 'package:curemate/src/features/signup/widgets/uper_background_effects_widget.dart';
+import 'package:curemate/src/shared/widgets/uper_background_effects_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +19,7 @@ import '../../router/nav.dart';
 import '../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import '../../shared/widgets/custom_button_widget.dart';
+import '../../shared/widgets/custom_snackbar_widget.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/screen_utils.dart';
 import '../doctor/home/views/doctor_home_view.dart';
@@ -98,7 +99,6 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
                               final isNetworkAvailable = ref.read(checkInternetConnectionProvider);
                               final userType = ref.read(customDropDownProvider(AppStrings.userTypes));
                               final user = userType.selected;
-
                               if (profileImage == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Please upload a profile image')),
@@ -109,8 +109,10 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
                               final isConnected = await isNetworkAvailable.whenData((value) => value).value ?? false;
 
                               if (!isConnected) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('No internet connection')),
+                                CustomSnackBarWidget.show(
+                                  context: context,
+                                  backgroundColor: AppColors.gradientGreen,
+                                  text: "No Internet Connection",
                                 );
                                 return;
                               }
@@ -131,15 +133,19 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
                               if (!mounted) return;
 
                               if (result == 'Account created successfully!') {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Sign Up Successful!')),
+                                CustomSnackBarWidget.show(
+                                  context: context,
+                                  backgroundColor: AppColors.gradientGreen,
+                                  text: "Sign Up Successful!",
                                 );
                                 AppNavigation.pushReplacement(
                                   user == 'Doctor' ? const DoctorHomeView() : const PatientHomeView(),
                                 );
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(result)),
+                                CustomSnackBarWidget.show(
+                                  context: context,
+                                  backgroundColor: AppColors.gradientGreen,
+                                  text: result,
                                 );
                               }
                             }

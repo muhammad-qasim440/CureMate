@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:curemate/const/app_routes.dart';
 import 'package:curemate/src/features/on_boarding/views/on_boarding_first_view.dart';
+import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
+import 'package:curemate/src/shared/views/no_internet_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +23,8 @@ class SplashNotifier extends StateNotifier<SplashState> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   Timer? _progressTimer;
   void _startProgressTimer() {
+
+
     _progressTimer = Timer.periodic(const Duration(milliseconds: 20), (
       timer,
     ) async {
@@ -38,7 +42,19 @@ class SplashNotifier extends StateNotifier<SplashState> {
           );
           return;
         } else {
+          final isConnected = await _ref.read(checkInternetConnectionProvider.future);
+          // final isConnected = internetState.whenData((value) => value).value ?? false;
+          if (!isConnected) {
+            AppNavigation.pushReplacement(
+              NoInternetView(
+                onTryAgain: () {
+                  checkAuthUser();
+                },
+              ),
+            );
+          } else {
             checkAuthUser();
+          }
         }
       }
     });

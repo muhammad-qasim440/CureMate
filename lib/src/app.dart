@@ -38,9 +38,10 @@ class _AppState extends ConsumerState<App> {
         debugShowCheckedModeBanner: false,
         navigatorObservers: [routeObserver],
         navigatorKey: AppNavigation.navigatorKey,
-        home: const AppWithConnectionCheck(
-          child: SplashView(),
-        ),
+        home:const SplashView(),
+        // home: const AppWithConnectionCheck(
+        //   child: SplashView(),
+        // ),
       ),
     );
   }

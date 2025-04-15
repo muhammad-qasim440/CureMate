@@ -78,11 +78,13 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
         // Phone Number
         CustomTextFormFieldWidget(
           label: 'Phone Number',
-          hintText: 'Enter your phone number',
+          hintText: '03XXXXXXXXX',
           focusNode: phoneFocus,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter a phone number';
+            } else if(value.length<11){
+              return 'Phone number should be of 11 digits';
             }
             return null;
           },
