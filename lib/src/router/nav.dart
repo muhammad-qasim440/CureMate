@@ -5,26 +5,36 @@ class AppNavigation {
 
   static bool canPop() => navigatorKey.currentState!.canPop();
 
-  static Future<dynamic> push(Widget page) async {
+  static Future<dynamic> push(Widget page, {String? routeName}) async {
     return await navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (context) => page),
+      MaterialPageRoute(
+        builder: (context) => page,
+        settings: RouteSettings(name: routeName),
+      ),
     );
   }
 
-  static Future<dynamic> pushReplacement(Widget page) async {
-
-      return await navigatorKey.currentState!.pushReplacement(
-        MaterialPageRoute(builder: (context) => page),
-      );
-
+  static Future<dynamic> pushReplacement(Widget page, {String? routeName}) async {
+    return await navigatorKey.currentState!.pushReplacement(
+      MaterialPageRoute(
+        settings: RouteSettings(name: routeName),
+        builder: (context) => page,
+      ),
+    );
   }
 
-  static Future<dynamic> pushAndRemoveUntil(Widget page,
-      {String? screenName}) async {
+  static Future<dynamic> pushAndRemoveUntil(
+    Widget page, {
+    String? screenName,
+  String? routeName,
+  }) async {
     _logScreenView(screenName ?? _getScreenName(page));
     return await navigatorKey.currentState!.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => page),
-          (route) => false,
+      MaterialPageRoute(
+        builder: (context) => page,
+        settings: RouteSettings(name: routeName),
+      ),
+      (route) => false,
     );
   }
 
@@ -46,6 +56,3 @@ class AppNavigation {
     return page.runtimeType.toString().toLowerCase();
   }
 }
-
-
-

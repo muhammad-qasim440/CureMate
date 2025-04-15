@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:curemate/const/app_routes.dart';
 import 'package:curemate/src/features/on_boarding/views/on_boarding_first_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -19,22 +20,25 @@ class SplashNotifier extends StateNotifier<SplashState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   Timer? _progressTimer;
-
   void _startProgressTimer() {
-    _progressTimer = Timer.periodic(const Duration(milliseconds: 20), (timer) async {
+    _progressTimer = Timer.periodic(const Duration(milliseconds: 20), (
+      timer,
+    ) async {
       if (state.progress < 1.0) {
         state = state.copyWith(progress: state.progress + 0.01);
       } else {
         timer.cancel();
         await wait(const Duration(milliseconds: 100));
-        final hasSeenOnboarding =
-        _ref.read(onBoardingViewsProvider);
+        final hasSeenOnboarding = _ref.read(onBoardingViewsProvider);
 
         if (hasSeenOnboarding == false) {
-          AppNavigation.pushReplacement(const OnBoardingFirstView());
+          AppNavigation.pushReplacement(
+            const OnBoardingFirstView(),
+            routeName: AppRoutes.onBoardingFirstView,
+          );
           return;
-        }else {
-          checkAuthUser();
+        } else {
+            checkAuthUser();
         }
       }
     });
@@ -43,19 +47,27 @@ class SplashNotifier extends StateNotifier<SplashState> {
   Future<void> checkAuthUser() async {
     User? user = _auth.currentUser;
     if (user == null) {
-      AppNavigation.pushReplacement(SignInView());
+      AppNavigation.pushReplacement(SignInView(),
+        routeName: AppRoutes.signInView,
+      );
     } else {
-      DatabaseReference userRef = _database.child('Doctor').child(user.uid);
+      DatabaseReference userRef = _database.child('Doctors').child(user.uid);
       DataSnapshot snapshot = await userRef.get();
       if (snapshot.exists) {
-        AppNavigation.pushReplacement(const DoctorHomeView());
+        AppNavigation.pushReplacement(const DoctorHomeView(),
+          routeName: AppRoutes.doctorHomeView,
+        );
       } else {
-        userRef = _database.child('Patient').child(user.uid);
+        userRef = _database.child('Patients').child(user.uid);
         DataSnapshot snapshot = await userRef.get();
         if (snapshot.exists) {
-          AppNavigation.pushReplacement(const PatientHomeView());
+          AppNavigation.pushReplacement(const PatientHomeView(),
+            routeName: AppRoutes.patientHomeView,
+          );
         } else {
-          AppNavigation.pushReplacement(SignInView());
+          AppNavigation.pushReplacement(SignInView(),
+            routeName: AppRoutes.signInView,
+          );
         }
       }
     }
@@ -76,7 +88,8 @@ class SplashState {
   }
 }
 
-final splashProvider =
-StateNotifierProvider<SplashNotifier, SplashState>((ref) {
+final splashProvider = StateNotifierProvider<SplashNotifier, SplashState>((
+  ref,
+) {
   return SplashNotifier(ref);
 });

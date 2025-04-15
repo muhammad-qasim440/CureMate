@@ -78,7 +78,7 @@ class ProfileImagePickerWidget extends ConsumerWidget {
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  notifier.pickImage(source: ImageSource.gallery);
+                  notifier.pickImage(ref:ref,source: ImageSource.gallery);
                 },
               ),
               ListTile(
@@ -86,7 +86,7 @@ class ProfileImagePickerWidget extends ConsumerWidget {
                 title: const Text('Take a Photo'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  notifier.pickImage(source: ImageSource.camera);
+                  notifier.pickImage(ref:ref,source: ImageSource.camera);
                 },
               ),
               if (ref.read(profileImagePickerProvider).croppedImage != null)
@@ -95,7 +95,7 @@ class ProfileImagePickerWidget extends ConsumerWidget {
                   title: const Text('Remove Photo'),
                   onTap: () {
                     Navigator.of(context).pop();
-                    notifier.reset();
+                    notifier.reset(ref);
                   },
                 ),
             ],

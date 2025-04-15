@@ -35,6 +35,7 @@ dependencies:
   location: ^6.0.2
   permission_handler: ^12.0.0+1
   http: ^1.3.0
+  lottie: ^3.3.1
 
 
 dev_dependencies:
@@ -82,6 +83,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/animations/signing_up.json
   fonts:
     - family: Poppins
       fonts:

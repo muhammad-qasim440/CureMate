@@ -122,6 +122,9 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
             }
             return null;
           },
+          onChanged: (value){
+            ref.read(dateOfBirthProvider.notifier).state=value;
+          },
           keyboardType: TextInputType.datetime,
           textStyle: TextStyle(
             fontFamily: AppFonts.rubik,

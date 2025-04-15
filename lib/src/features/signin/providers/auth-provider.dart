@@ -24,71 +24,95 @@ final authProvider = Provider<AuthService>((ref) {
 });
 
 class AuthService {
-  Future<User?> signUp() async {
-    final auth = _ref.read(firebaseAuthProvider);
-    final fireStore = _ref.read(fireStoreProvider);
-    final database = _ref.read(firebaseDatabaseProvider);
-    final userType = _ref.read(customDropDownProvider(AppStrings.userTypes));
-    final profileImage = _ref.read(userProfileProvider);
-    final email = _ref.read(emailProvider);
-    final password = _ref.read(passwordProvider);
-    final fullName = _ref.read(fullNameProvider);
-    final phoneNumber = _ref.read(phoneNumberProvider);
-    final dateOfBirth = _ref.read(dateOfBirthProvider);
-    final city = _ref.read(customDropDownProvider(AppStrings.cities));
-    final latitude = _ref.read(locationLatitudeProvider);
-    final longitude = _ref.read(locationLongitudeProvider);
-    final docCategory = _ref.read(docCategoryProvider);
-    final docQualification = _ref.read(docQualificationProvider);
-    final docExperience = _ref.read(docYearsOfExperienceProvider);
+  Future<String> signUp() async {
+    try {
+      final auth = _ref.read(firebaseAuthProvider);
+      final database = _ref.read(firebaseDatabaseProvider);
+      final userType = _ref.read(customDropDownProvider(AppStrings.userTypes));
+      final profileImage = _ref.read(userProfileProvider);
+      final email = _ref.read(emailProvider);
+      final password = _ref.read(passwordProvider);
+      final fullName = _ref.read(fullNameProvider);
+      final phoneNumber = _ref.read(phoneNumberProvider);
+      final dateOfBirth = _ref.read(dateOfBirthProvider);
+      final city = _ref.read(customDropDownProvider(AppStrings.cities));
+      final latitude = _ref.read(locationLatitudeProvider);
+      final longitude = _ref.read(locationLongitudeProvider);
+      final docCategory = _ref.read(docCategoryProvider);
+      final docQualification = _ref.read(docQualificationProvider);
+      final docExperience = _ref.read(docYearsOfExperienceProvider);
 
-    UserCredential userCredential = await auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    User? user = userCredential.user;
-    String uid = userCredential.user!.uid;
-    String? profileImageUrl = '';
-    if (user != null) {
-      String userTypePath =
-          userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
+      // Create user
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      Map<String, dynamic> userData = {
-        'uid': uid,
-        'email': email,
-        'fullName': fullName,
-        'phoneNumber': phoneNumber,
-        'profileImageUrl': profileImageUrl,
-        'dob': dateOfBirth,
-        'city': city,
-        'latitude': latitude,
-        'longitude': longitude,
-        'createdAt': FieldValue.serverTimestamp(),
-      };
+      User? user = userCredential.user;
+      String uid = user!.uid;
+      String profileImageUrl = '';
 
-      if (userType.selected == 'Doctor') {
-        userData.addAll({
-          'qualification': docQualification,
-          'category': docCategory,
-          'yearsOfExperience': docExperience,
-          'totalReviews': 0,
-          'averageRatings': 0.0,
-          'numberOfReviews': 0,
-        });
-      }
-      await database.child(userTypePath).child(user.uid).set(userData);
-      if (profileImage != null) {
-        String? cloudinaryImageUrl = await uploadImageToCloudinary(File(profileImage.path));
-        if (cloudinaryImageUrl != null) {
-          await database.child(userTypePath).child(user.uid).update({
-            'profileImageUrl': cloudinaryImageUrl,
+      if (user != null) {
+        String userTypePath =
+        userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
+
+        Map<String, dynamic> userData = {
+          'uid': uid,
+          'email': email,
+          'fullName': fullName,
+          'phoneNumber': phoneNumber,
+          'profileImageUrl': profileImageUrl,
+          'dob': dateOfBirth,
+          'city': city.selected,
+          'latitude': latitude,
+          'longitude': longitude,
+          'userType': userType.selected,
+          'createdAt': DateTime.now().toIso8601String(),
+        };
+
+        if (userType.selected == 'Doctor') {
+          userData.addAll({
+            'qualification': docQualification,
+            'category': docCategory,
+            'yearsOfExperience': docExperience,
+            'totalReviews': 0,
+            'averageRatings': 0.0,
+            'numberOfReviews': 0,
           });
         }
+
+        await database.child(userTypePath).child(uid).set(userData);
+
+        if (profileImage != null) {
+          String? cloudinaryImageUrl = await uploadImageToCloudinary(File(profileImage.path));
+          if (cloudinaryImageUrl != null) {
+            await database.child(userTypePath).child(uid).update({
+              'profileImageUrl': cloudinaryImageUrl,
+            });
+          }
+        }
+
+        return 'Account created successfully!';
+      } else {
+        return 'Something went wrong. Please try again.';
       }
 
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase Auth errors
+      if (e.code == 'email-already-in-use') {
+        return 'An account already exists with this email.';
+      } else if (e.code == 'invalid-email') {
+        return 'The email address is not valid.';
+      } else if (e.code == 'weak-password') {
+        return 'The password is too weak.';
+      } else {
+        return 'Authentication failed: ${e.message}';
+      }
+    } catch (e) {
+      return 'An unexpected error occurred: ${e.toString()}';
     }
-    return userCredential.user;
   }
+
   final Ref _ref;
   AuthService(this._ref);
   Future<User?> signIn({

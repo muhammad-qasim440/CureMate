@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../const/app_strings.dart';
 import '../databases/local/hive/initialize_and_open_hive_db.dart';
+import 'app_with_internet_connection_check.dart';
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class App extends ConsumerStatefulWidget {
   const App._();
@@ -37,7 +38,9 @@ class _AppState extends ConsumerState<App> {
         debugShowCheckedModeBanner: false,
         navigatorObservers: [routeObserver],
         navigatorKey: AppNavigation.navigatorKey,
-        home: const SplashView(),
+        home: const AppWithConnectionCheck(
+          child: SplashView(),
+        ),
       ),
     );
   }

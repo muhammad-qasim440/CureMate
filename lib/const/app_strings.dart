@@ -3,6 +3,8 @@ class AppStrings {
    /// splash view texts
   static const aSmartHealthSolution='A Smart Health Solution';
   static const loading='Loading...';
+  static const noInternet='No Internet Connection';
+  static const checkingInternet='Checking Your Internet Connection';
   /// on boarding view texts
   static const findTrustedDoctors = 'Find Trusted Doctors';
   static const chooseBestDoctors = 'Choose Best Doctors';

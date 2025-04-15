@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -40,7 +41,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> pickImage({ImageSource source = ImageSource.gallery}) async {
+  Future<void> pickImage({required WidgetRef ref,ImageSource source = ImageSource.gallery}) async {
     state = state.copyWith(isProcessing: true, errorMessage: null);
 
     try {
@@ -59,10 +60,12 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
 
       if (croppedImage != null) {
         state = state.copyWith(croppedImage: croppedImage, isProcessing: false);
+        ref.read(userProfileProvider.notifier).state = croppedImage;
       } else {
         // If face detection fails, just center crop the image
         final centeredCrop = await _createCenteredSquareCrop(image);
         state = state.copyWith(croppedImage: centeredCrop, isProcessing: false);
+        ref.read(userProfileProvider.notifier).state = centeredCrop;
       }
     } catch (e) {
       state = state.copyWith(
@@ -178,7 +181,6 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
       final dir = await getTemporaryDirectory();
       final path = join(dir.path, 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
       final file = File(path)..writeAsBytesSync(img.encodeJpg(resized, quality: 90));
-
       return XFile(file.path);
     } catch (e) {
       print("Error in face processing: $e");
@@ -186,8 +188,9 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
     }
   }
 
-  void reset() {
+  void reset(WidgetRef ref) {
     state = ProfileImageState();
+    ref.read(userProfileProvider.notifier).state=null;
   }
 }
 

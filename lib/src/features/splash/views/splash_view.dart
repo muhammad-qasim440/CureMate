@@ -1,4 +1,5 @@
 import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,4 +104,12 @@ class SplashView extends ConsumerWidget {
       ),
     );
   }
+}
+
+
+({bool isConnected, bool isLoading}) getConnectionState(AsyncValue<bool> isNetworkAvailable) {
+  return (
+  isConnected: isNetworkAvailable.value ?? false,
+  isLoading: isNetworkAvailable.isLoading,
+  );
 }

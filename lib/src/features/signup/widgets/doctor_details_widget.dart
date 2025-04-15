@@ -34,7 +34,7 @@ class _DoctorDetailsWidgetState extends ConsumerState<DoctorDetailsWidget> {
         CustomTextFormFieldWidget(
           label: 'Category',
           hintText: 'Enter your category',
-          focusNode: qualificationFocus,
+          focusNode: categoryFocus,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter your category';
