@@ -13,14 +13,11 @@ class HeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Using Container with width and height constraints ensures proper sizing
     return Container(
       width: double.infinity,
-      // Optional explicit height if needed
       // height: keyboardHeight > 0 ? 80 : 200,
       child: Stack(
         clipBehavior: Clip.none,
-        // Define a fixed Stack size to avoid rendering issues
         fit: StackFit.expand,
         children: [
           AnimatedPositioned(

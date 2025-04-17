@@ -2,7 +2,6 @@ import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/app_strings.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/extentions/widget_extension.dart';
-import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import 'package:curemate/src/shared/widgets/custom_drop_down_menu_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_form_field_widget.dart';
 import 'package:curemate/src/theme/app_colors.dart';

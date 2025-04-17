@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 
+import '../../theme/app_colors.dart';
+
 class CustomSnackBarWidget {
   static void show({
     required BuildContext context,
@@ -15,15 +17,17 @@ class CustomSnackBarWidget {
       SnackBar(
         content: CustomTextWidget(
           text: text,
-          maxLines: 1,
+          maxLines: 3,
+          softWrap: true,
           textAlignment: TextAlign.center,
           textStyle:const TextStyle(
             fontSize: 12,
             fontFamily: AppFonts.rubik,
             color: Colors.black,
+
           ),
         ),
-        backgroundColor: backgroundColor ?? Colors.black,
+        backgroundColor: backgroundColor ?? AppColors.gradientGreen,
         duration: duration,
         behavior: SnackBarBehavior.floating,
         action: action,

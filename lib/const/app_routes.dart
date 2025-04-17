@@ -6,4 +6,5 @@ class AppRoutes {
   static const signupView = '/signupView';
   static const doctorHomeView = '/doctorHomeView';
   static const patientHomeView = '/patientHomeView';
+  static const patientMainView = '/patientMainView';
 }

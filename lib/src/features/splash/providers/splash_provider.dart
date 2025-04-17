@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:curemate/const/app_routes.dart';
+import 'package:curemate/src/features/home/views/patient_main_view.dart';
 import 'package:curemate/src/features/on_boarding/views/on_boarding_first_view.dart';
 import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
 import 'package:curemate/src/shared/views/no_internet_view.dart';
@@ -77,8 +78,8 @@ class SplashNotifier extends StateNotifier<SplashState> {
         userRef = _database.child('Patients').child(user.uid);
         DataSnapshot snapshot = await userRef.get();
         if (snapshot.exists) {
-          AppNavigation.pushReplacement(const PatientHomeView(),
-            routeName: AppRoutes.patientHomeView,
+          AppNavigation.pushReplacement(PatientMainView(),
+            routeName: AppRoutes.patientMainView,
           );
         } else {
           AppNavigation.pushReplacement(SignInView(),

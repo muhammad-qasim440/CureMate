@@ -11,7 +11,7 @@ import '../../../../assets/app_assets.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
-import '../../../shared/soft_corner_glow_container_widget.dart';
+import '../../../shared/custom_linear_gradient_container_widget.dart';
 import '../../../shared/widgets/custom_cloudy_color_effect_widget.dart';
 import '../../../utils/screen_utils.dart';
 import '../../splash/providers/splash_provider.dart';
@@ -22,9 +22,9 @@ class OnBoardingFirstView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _OnboardingViewsProvider = ref.read(onBoardingViewsProvider.notifier);
-    return WillPopScope(
-      onWillPop: () async => false,
+    final onboardingViewsProvider = ref.read(onBoardingViewsProvider.notifier);
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.gradientWhite,
         body: Stack(
@@ -101,7 +101,7 @@ class OnBoardingFirstView extends ConsumerWidget {
                     textColor: AppColors.detailsTextColor,
                     shadowColor:Colors.transparent,
                     onPressed: () {
-                      _OnboardingViewsProvider.onBoardingViewShownORSkipped();
+                      onboardingViewsProvider.onBoardingViewShownORSkipped();
                       ref.read(splashProvider.notifier).checkAuthUser();
                     },
                   ),

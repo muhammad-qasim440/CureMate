@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../const/app_fonts.dart';
-import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';

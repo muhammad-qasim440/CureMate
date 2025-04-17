@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../soft_corner_glow_container_widget.dart';
+import '../custom_linear_gradient_container_widget.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/screen_utils.dart';
 

@@ -1,4 +1,5 @@
 import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/src/features/home/views/patient_main_view.dart';
 import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/features/signup/widgets/credentials_form_section.dart';
@@ -7,9 +8,7 @@ import 'package:curemate/src/features/signup/widgets/personal_info_section.dart'
 import 'package:curemate/src/features/signup/widgets/profile_image_section.dart';
 import 'package:curemate/src/features/signup/widgets/signin_link_section.dart';
 import 'package:curemate/src/features/signup/widgets/signing_up_dialog_widget.dart';
-import 'package:curemate/src/features/signup/widgets/signup_button_section.dart';
 import 'package:curemate/src/shared/widgets/uper_background_effects_widget.dart';
-import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../const/app_fonts.dart';
@@ -53,8 +52,8 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
     });
 
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.gradientWhite,
         body: Form(
@@ -85,72 +84,69 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
                           const PersonalInfoSection(),
                           50.height,
                           // SignupButtonSection(formKey: _formKey),
-                      CustomButtonWidget(
-                        text: AppStrings.signUp,
-                        height: ScreenUtil.scaleHeight(context, 54),
-                        backgroundColor: AppColors.btnBgColor,
-                        fontFamily: AppFonts.rubik,
-                        fontSize: FontSizes(context).size18,
-                        fontWeight: FontWeight.w900,
-                        textColor: AppColors.gradientWhite,
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              final profileImage = ref.read(userProfileProvider);
-                              final isNetworkAvailable = ref.read(checkInternetConnectionProvider);
-                              final userType = ref.read(customDropDownProvider(AppStrings.userTypes));
-                              final user = userType.selected;
-                              if (profileImage == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please upload a profile image')),
-                                );
-                                return;
-                              }
+                      Padding(
+                        padding: const EdgeInsets.only(left:20.0,right: 20),
+                        child: CustomButtonWidget(
+                          text: AppStrings.signUp,
+                          height: ScreenUtil.scaleHeight(context, 54),
+                          backgroundColor: AppColors.btnBgColor,
+                          fontFamily: AppFonts.rubik,
+                          fontSize: FontSizes(context).size18,
+                          fontWeight: FontWeight.w900,
+                          textColor: AppColors.gradientWhite,
+                            onPressed: () async {
+                              FocusScope.of(context).unfocus();
+                              if (!_formKey.currentState!.validate()) return;
+                                final profileImage = ref.read(userProfileProvider);
+                                final isConnected = await ref.read(checkInternetConnectionProvider.future);
+                                final userType = ref.read(customDropDownProvider(AppStrings.userTypes));
+                                final user = userType.selected;
+                                if (profileImage == null) {
+                                  CustomSnackBarWidget.show(
+                                    context: context,
+                                    text: "Please upload a profile image",
+                                  );
+                                  return;
+                                }
+                                if (!isConnected) {
+                                  CustomSnackBarWidget.show(
+                                    context: context,
+                                    text: "No Internet Connection",
+                                  );
+                                  return;
+                                }
 
-                              final isConnected = await isNetworkAvailable.whenData((value) => value).value ?? false;
+                                ref.read(isSigningUpProvider.notifier).state = true;
 
-                              if (!isConnected) {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  backgroundColor: AppColors.gradientGreen,
-                                  text: "No Internet Connection",
-                                );
-                                return;
-                              }
+                                String result = '';
+                                try {
+                                  result = await ref.read(authProvider).signUp();
+                                } catch (e) {
+                                  result = 'SignUp Error: ${e.toString()}';
+                                } finally {
+                                  if (mounted) {
+                                    ref.read(isSigningUpProvider.notifier).state = false;
+                                  }
+                                }
 
-                              ref.read(isSigningUpProvider.notifier).state = true;
+                                if (!mounted) return;
 
-                              String result = '';
-                              try {
-                                result = await ref.read(authProvider).signUp();
-                              } catch (e) {
-                                result = 'SignUp Error: ${e.toString()}';
-                              } finally {
-                                if (mounted) {
-                                  ref.read(isSigningUpProvider.notifier).state = false;
+                                if (result == 'Account created successfully!') {
+                                  CustomSnackBarWidget.show(
+                                    context: context,
+                                    text: "Sign Up Successful!",
+                                  );
+                                  AppNavigation.pushReplacement(
+                                    user == 'Doctor' ? const DoctorHomeView() : PatientMainView(),
+                                  );
+                                } else {
+                                  CustomSnackBarWidget.show(
+                                    context: context,
+                                    text: result,
+                                  );
                                 }
                               }
-
-                              if (!mounted) return;
-
-                              if (result == 'Account created successfully!') {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  backgroundColor: AppColors.gradientGreen,
-                                  text: "Sign Up Successful!",
-                                );
-                                AppNavigation.pushReplacement(
-                                  user == 'Doctor' ? const DoctorHomeView() : const PatientHomeView(),
-                                );
-                              } else {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  backgroundColor: AppColors.gradientGreen,
-                                  text: result,
-                                );
-                              }
-                            }
-                          }
-
+                        ),
                       ),
                           30.height,
                           const SignInLinkSection(),

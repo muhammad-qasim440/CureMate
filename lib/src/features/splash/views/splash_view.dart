@@ -1,5 +1,4 @@
 import 'package:curemate/extentions/widget_extension.dart';
-import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,8 +19,8 @@ class SplashView extends ConsumerWidget {
   @override
   Widget build(BuildContext context,WidgetRef ref) {
     final splashState = ref.watch(splashProvider);
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: Container(
           width: ScreenUtil.baseWidth,

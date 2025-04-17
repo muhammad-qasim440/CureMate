@@ -3,7 +3,7 @@ import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/extentions/widget_extension.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
-import 'package:curemate/src/shared/soft_corner_glow_container_widget.dart';
+import 'package:curemate/src/shared/custom_linear_gradient_container_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_cloudy_color_effect_widget.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:curemate/src/utils/screen_utils.dart';

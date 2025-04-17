@@ -13,7 +13,6 @@ class SigningUpDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final form = ref.watch(signUpFormProvider);
     final image = ref.watch(userProfileProvider);
     final name = ref.watch(fullNameProvider);
 

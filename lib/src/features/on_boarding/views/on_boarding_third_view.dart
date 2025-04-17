@@ -1,7 +1,4 @@
 import 'package:curemate/extentions/widget_extension.dart';
-import 'package:curemate/src/features/home/views/home_view.dart';
-import 'package:curemate/src/features/on_boarding/views/on_boarding_second_view.dart';
-import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/widgets/custom_asset_image_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
@@ -12,7 +9,7 @@ import '../../../../assets/app_assets.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
-import '../../../shared/soft_corner_glow_container_widget.dart';
+import '../../../shared/custom_linear_gradient_container_widget.dart';
 import '../../../shared/widgets/custom_cloudy_color_effect_widget.dart';
 import '../../../utils/screen_utils.dart';
 import '../../splash/providers/splash_provider.dart';

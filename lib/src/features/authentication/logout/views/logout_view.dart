@@ -10,18 +10,18 @@ import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../../signin/providers/auth-provider.dart';
 
-class DoctorHomeView extends ConsumerWidget {
-  const DoctorHomeView({super.key});
+class LogoutView extends ConsumerWidget {
+  const LogoutView({super.key});
 
   @override
   Widget build(BuildContext context,WidgetRef ref) {
     return Scaffold(
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Centers content vertically
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Doctor screen',
+              'Patient screen',
               style: TextStyle(fontSize: 20),
             ),
             const SizedBox(height: 20),

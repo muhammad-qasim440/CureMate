@@ -14,6 +14,7 @@ class CustomTextWidget extends StatelessWidget {
   final List<Shadow>? shadows;
   final int? maxLines;
   final TextAlign? textAlignment;
+  final bool? softWrap;
 
   const CustomTextWidget({
     super.key,
@@ -30,6 +31,7 @@ class CustomTextWidget extends StatelessWidget {
     this.shadows,
     this.maxLines,
     this.textAlignment,
+    this.softWrap,
   });
 
   @override
@@ -41,6 +43,7 @@ class CustomTextWidget extends StatelessWidget {
       text,
       maxLines: maxLines,
       textAlign: textAlignment,
+      softWrap: softWrap,
       overflow:
           maxLines != null
               ? TextOverflow.ellipsis
@@ -77,7 +80,7 @@ class CustomTextWidget extends StatelessWidget {
           Text(
             text,
             textAlign: textAlignment,
-
+            softWrap: softWrap,
             maxLines: maxLines,
             overflow: maxLines != null ? TextOverflow.ellipsis : null,
             style: baseStyle.copyWith(

@@ -1,7 +1,4 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-
 import '../../theme/app_colors.dart';
 
 class CustomTextFormFieldWidget extends StatelessWidget {
@@ -32,6 +29,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final InputBorder? enabledBorder;
   final InputBorder? errorBorder;
    final FocusNode? focusNode;
+   final TextAlign? textAlign;
   const CustomTextFormFieldWidget({
     super.key,
      this.controller,
@@ -61,6 +59,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
     this.focusNode,
     this.minHeight,
     this.minWidth,
+    this.textAlign,
   });
 
   @override
@@ -73,6 +72,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       validator: validator,
+      textAlign: textAlign??TextAlign.start,
       onChanged: onChanged,
       focusNode: focusNode,
       cursorColor: AppColors.gradientGreen,

@@ -6,13 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 
+import '../../../theme/app_colors.dart';
+
 class SigningInDialogWidget extends ConsumerWidget {
-  String email;
-   SigningInDialogWidget({super.key,required this.email});
+  final String email;
+  const SigningInDialogWidget({super.key, required this.email});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return Stack(
       children: [
         BackdropFilter(
@@ -29,7 +30,11 @@ class SigningInDialogWidget extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.lock_open_rounded, size: 48, color: Colors.deepPurple),
+                  const Icon(
+                    Icons.lock_open_rounded,
+                    size: 48,
+                    color: AppColors.gradientGreen,
+                  ),
                   const SizedBox(height: 12),
                   CustomTextWidget(
                     text: "Welcome back!",
@@ -52,7 +57,7 @@ class SigningInDialogWidget extends ConsumerWidget {
                   SizedBox(
                     height: 120,
                     child: Lottie.asset(
-                      'assets/animations/signing_up.json', // make sure to add this Lottie animation
+                      'assets/animations/signing_up.json',
                       fit: BoxFit.contain,
                     ),
                   ),

@@ -43,7 +43,7 @@ class _DoctorDetailsWidgetState extends ConsumerState<DoctorDetailsWidget> {
           },
           onChanged:
               (value) =>
-          ref.read(docQualificationProvider.notifier).state = value,
+          ref.read(docCategoryProvider.notifier).state = value,
           keyboardType: TextInputType.text,
           textStyle: TextStyle(
             fontFamily: AppFonts.rubik,

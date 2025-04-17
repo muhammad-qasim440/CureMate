@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curemate/const/app_strings.dart';
-import 'package:curemate/src/features/doctor/home/views/doctor_home_view.dart';
 import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
-import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
-import '../../patient/home/views/patient_home_view.dart';
+import '../../home/views/patient_main_view.dart';
+import '../../patient/providers/patient_providers.dart';
+import '../../reset_password/providers/password_reset_providers.dart';
 import '../../signup/helpers/upload_profile_image_to_cloudinary.dart';
 import '../../splash/providers/splash_provider.dart';
-import '../views/signin_view.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
@@ -60,7 +59,6 @@ class AuthService {
       String uid = user!.uid;
       String profileImageUrl = '';
 
-      if (user != null) {
         String userTypePath =
         userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
 
@@ -101,9 +99,7 @@ class AuthService {
         }
 
         return 'Account created successfully!';
-      } else {
-        return 'Something went wrong. Please try again.';
-      }
+
 
     } on FirebaseAuthException catch (e) {
       // Handle Firebase Auth errors
@@ -123,99 +119,124 @@ class AuthService {
 
   final Ref _ref;
   AuthService(this._ref);
-  Future<User?> signIn({
-    required String email,
-    required String password,
-  }) async {
-    final auth = _ref.read(firebaseAuthProvider);
-
+  Future<Map<String, dynamic>> signIn({required String email, required String password}) async {
     try {
+      final auth = _ref.read(firebaseAuthProvider);
+      final database = _ref.read(firebaseDatabaseProvider);
+
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      return userCredential.user;
+      User? user = userCredential.user;
+
+      if (user != null) {
+        String uid = user.uid;
+        String userType = '';
+
+        // Check if user exists in Doctors node
+        final doctorSnapshot = await database.child('Doctors').child(uid).get();
+        if (doctorSnapshot.exists) {
+          userType = 'Doctor';
+        } else {
+          // Check if user exists in Patients node
+          final patientSnapshot = await database.child('Patients').child(uid).get();
+          if (patientSnapshot.exists) {
+            userType = 'Patient';
+          }
+        }
+
+        return {
+          'success': true,
+          'message': 'Signed in successfully!',
+          'userType': userType,
+          'uid': uid
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Failed to sign in. Please try again.',
+          'userType': '',
+          'uid': ''
+        };
+      }
     } on FirebaseAuthException catch (e) {
+      // Handle Firebase Auth errors
+      String errorMessage = 'Authentication failed';
+
       if (e.code == 'user-not-found') {
-        throw Exception('No user found for that email.');
+        errorMessage = 'No account found with this email address.';
       } else if (e.code == 'wrong-password') {
-        throw Exception('Incorrect password.');
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (e.code == 'user-disabled') {
+        errorMessage = 'This account has been disabled. Please contact support.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (e.code == 'too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
       } else {
-        throw Exception('Authentication error: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('An error occurred: ${e.toString()}');
-    }
-  }
-
-  Future<Map<String, dynamic>> handleSignIn(
-      BuildContext context,
-      WidgetRef ref, {
-        required String email,
-        required String password,
-      }) async {
-    final authService = ref.read(authProvider);
-    String message = '';
-
-    try {
-      User? user = await authService.signIn(email: email, password: password);
-
-      if (user == null) {
-        return {
-          'success': false,
-          'message': 'Failed to sign in. Please try again.'
-        };
+        errorMessage = 'Authentication failed: ${e.message}';
       }
 
-      final dbRef = ref.read(firebaseDatabaseProvider);
-      String uid = user.uid;
-
-      final doctorSnapshot = await dbRef.child('Doctors').child(uid).get();
-      final patientSnapshot = await dbRef.child('Patients').child(uid).get();
-
-      if (doctorSnapshot.exists) {
-        return {
-          'success': true,
-          'userType': 'doctor',
-          'message': 'Signed in successfully'
-        };
-      } else if (patientSnapshot.exists) {
-        return {
-          'success': true,
-          'userType': 'patient',
-          'message': 'Signed in successfully'
-        };
-      } else {
-        return {
-          'success': false,
-          'message': 'User not found'
-        };
-      }
-    } catch (e) {
-      message = e.toString().replaceAll('Exception: ', '');
       return {
         'success': false,
-        'message': message
+        'message': errorMessage,
+        'userType': '',
+        'uid': ''
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'An unexpected error occurred: ${e.toString()}',
+        'userType': '',
+        'uid': ''
+      };
+    }
+  }
+  Future<Map<String, dynamic>> resetPassword() async {
+    final auth = _ref.read(firebaseAuthProvider);
+    final email=_ref.read(forgotPasswordEmailProvider);
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty) {
+      return {
+        'success': false,
+        'message': 'Please enter your email address.',
+      };
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(email: trimmedEmail);
+      _ref.read(forgotPasswordEmailProvider.notifier).state = '';
+      return {
+        'success': true,
+        'message': 'A password reset link has been sent to your email.',
+      };
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Failed to send password reset email.';
+
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found with this email address.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The provided email address is not valid.';
+      } else if (e.code == 'missing-email') {
+        errorMessage = 'Email address is required.';
+      } else {
+        errorMessage = e.message ?? errorMessage;
+      }
+
+      return {
+        'success': false,
+        'message': errorMessage,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'An unexpected error occurred. Please try again later.',
       };
     }
   }
 
-  Future<void> resetPassword({required String email}) async {
-    final auth = _ref.read(firebaseAuthProvider);
-
-    try {
-      await auth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        throw Exception('No user found for that email.');
-      } else {
-        throw Exception('Password reset error: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('An error occurred during password reset: $e');
-    }
-  }
 
   Future<void> logout(BuildContext context) async {
     final auth = _ref.read(firebaseAuthProvider);
@@ -229,7 +250,12 @@ class AuthService {
           context: context,
           text: 'You have been logged out successfully.',
         );
+        _ref.read(bottomNavIndexProvider.notifier).state = 0;
+        _ref.invalidate(currentPatientProvider);
+        _ref.invalidate(doctorsProvider);
+        _ref.invalidate(favoriteDoctorUidsProvider);
         _ref.read(splashProvider.notifier).checkAuthUser();
+
       } else {
         CustomSnackBarWidget.show(
           backgroundColor: Colors.red,
