@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
-import '../../home/views/patient_main_view.dart';
+import '../../patient/views/patient_main_view.dart';
 import '../../patient/providers/patient_providers.dart';
 import '../../reset_password/providers/password_reset_providers.dart';
 import '../../signup/helpers/upload_profile_image_to_cloudinary.dart';

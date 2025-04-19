@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:curemate/const/app_routes.dart';
-import 'package:curemate/src/features/home/views/patient_main_view.dart';
-import 'package:curemate/src/features/on_boarding/views/on_boarding_first_view.dart';
+import 'package:curemate/src/features/patient/views/patient_main_view.dart';
+import 'package:curemate/src/features/on_boarding/views/on_boarding_carousel_view.dart';
 import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
 import 'package:curemate/src/shared/views/no_internet_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,8 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../router/nav.dart';
 import '../../../utils/delay_utils.dart';
 import '../../doctor/home/views/doctor_home_view.dart';
-import '../../on_boarding/providers/on_boarding_views_provider.dart';
-import '../../patient/home/views/patient_home_view.dart';
+import '../../on_boarding/providers/on_boarding__carousel_view_provider.dart';
 import '../../signin/views/signin_view.dart';
 
 class SplashNotifier extends StateNotifier<SplashState> {
@@ -38,13 +37,12 @@ class SplashNotifier extends StateNotifier<SplashState> {
 
         if (hasSeenOnboarding == false) {
           AppNavigation.pushReplacement(
-            const OnBoardingFirstView(),
+            OnBoardingCarouselView(),
             routeName: AppRoutes.onBoardingFirstView,
           );
           return;
         } else {
           final isConnected = await _ref.read(checkInternetConnectionProvider.future);
-          // final isConnected = internetState.whenData((value) => value).value ?? false;
           if (!isConnected) {
             AppNavigation.pushReplacement(
               NoInternetView(

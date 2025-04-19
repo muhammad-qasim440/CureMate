@@ -4,6 +4,7 @@ class AppColors {
   static const Color black = Colors.black;
   static const grey = Color(0xff4B5563);
   static const subtextcolor = Color(0xFF9D9D9D);
+  static const appBarBackBtnBgColor = Color(0xFFF2F2F4);
 
 
   static const Color gradientGreen = Color(0xFF0EBE7E);

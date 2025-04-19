@@ -9,8 +9,14 @@ class AppStrings {
   static const findTrustedDoctors = 'Find Trusted Doctors';
   static const chooseBestDoctors = 'Choose Best Doctors';
   static const easyAppointment = 'Easy Appointments';
-  static const lorem2000 =
-      'Contrary to popular belief, Lorem Ipsum is\n not simply random text. It has roots in a\n piece of it over 2000 years old.';
+
+  static const findTrustedDoctorsDesc =
+      'We help you connect with trusted doctors\n near you, ensuring expert care for all\n your health needs.';
+  static const chooseBestDoctorsDesc =
+      'Browse verified reviews to choose the best\n doctors in your area for personalized\n and quality medical care.';
+  static const easyAppointmentDesc =
+      'Book appointments quickly and easily\n through our app—anytime, anywhere,\n with just a few taps.';
+
   static const getStartedBtnText='Get Started';
   static const skipBtnText='Skip';
 

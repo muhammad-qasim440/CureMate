@@ -1,5 +1,5 @@
 import 'package:curemate/extentions/widget_extension.dart';
-import 'package:curemate/src/features/home/views/patient_main_view.dart';
+import 'package:curemate/src/features/patient/views/patient_main_view.dart';
 import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/features/signup/widgets/credentials_form_section.dart';

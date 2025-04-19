@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Model for Patient
+
 class Patient {
   final String uid;
   final String fullName;
@@ -46,8 +47,8 @@ class Patient {
     );
   }
 }
-
 // Model for Doctor
+
 class Doctor {
   final String uid;
   final String fullName;
@@ -109,31 +110,6 @@ class Doctor {
     );
   }
 }
-
-// Provider for current user (Patient)
-final currentPatientProvider = StreamProvider<Patient?>((ref) async* {
-  // Listen to auth state changes
-  await for (final user in FirebaseAuth.instance.authStateChanges()) {
-    if (user == null) {
-      yield null; // User logged out, return null
-      continue;
-    }
-
-    // User is logged in, fetch patient data
-    final database = FirebaseDatabase.instance.ref();
-    final patientRef = database.child('Patients').child(user.uid);
-
-    await for (final event in patientRef.onValue) {
-      final data = event.snapshot.value as Map<dynamic, dynamic>?;
-      if (data != null) {
-        yield Patient.fromMap(data, user.uid);
-      } else {
-        yield null;
-      }
-    }
-  }
-});
-
 // Provider for doctors list
 final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
   // Listen to auth state changes
@@ -163,6 +139,29 @@ final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
         });
       }
       yield doctors;
+    }
+  }
+});
+// Provider for current user (Patient)
+final currentPatientProvider = StreamProvider<Patient?>((ref) async* {
+  // Listen to auth state changes
+  await for (final user in FirebaseAuth.instance.authStateChanges()) {
+    if (user == null) {
+      yield null; // User logged out, return null
+      continue;
+    }
+
+    // User is logged in, fetch patient data
+    final database = FirebaseDatabase.instance.ref();
+    final patientRef = database.child('Patients').child(user.uid);
+
+    await for (final event in patientRef.onValue) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+      if (data != null) {
+        yield Patient.fromMap(data, user.uid);
+      } else {
+        yield null;
+      }
     }
   }
 });

@@ -1,76 +1,50 @@
+import 'package:curemate/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../const/app_fonts.dart';
-import '../../../../../const/font_sizes.dart';
-import '../../../../shared/providers/check_internet_connectivity_provider.dart';
-import '../../../../shared/widgets/custom_button_widget.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../utils/screen_utils.dart';
-import '../../../signin/providers/auth-provider.dart';
+import '../../../../shared/widgets/lower_background_effects_widgets.dart';
+import '../widgets/doctor_search_bar_widget.dart';
+import '../widgets/doctors_speciality_icons_list_widget.dart';
+import '../widgets/featured_doctors_list_widget.dart';
+import '../widgets/near_by_doctors_list_widget.dart';
+import '../widgets/popular_doctors_list_widget.dart';
+import '../widgets/user_profile_header_widget.dart';
 
 class PatientHomeView extends ConsumerWidget {
   const PatientHomeView({super.key});
 
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Centers content vertically
-          children: [
-            const Text(
-              'Patient screen',
-              style: TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 20),
-            CustomButtonWidget(
-              text: 'logout',
-              height: ScreenUtil.scaleHeight(context, 45),
-              backgroundColor: AppColors.btnBgColor,
-              fontFamily: AppFonts.rubik,
-              fontSize: FontSizes(context).size18,
-              fontWeight: FontWeight.w900,
-              textColor: AppColors.gradientWhite,
-              width: ScreenUtil.scaleWidth(context, 320),
-              onPressed: () async {
-                  final isNetworkAvailable = ref.read(
-                    checkInternetConnectionProvider,
-                  );
-                  final isConnected =
-                      await isNetworkAvailable
-                          .whenData((value) => value)
-                          .value ??
-                          false;
-
-                  if (!isConnected) {
-                    CustomSnackBarWidget.show(
-                      context: context,
-                      backgroundColor: AppColors.gradientGreen,
-                      text: "No Internet Connection",
-                    );
-                    return;
-                  }
-                  try {
-
-                    await ref
-                        .read(authProvider)
-                        .logout(
-                      context,
-                    );
-                  } catch (e) {
-                    CustomSnackBarWidget.show(
-                      context: context,
-                      text: "$e",
-                    );
-                  }
-                }
-            ),
-
-          ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Stack(
+      children: [
+        const LowerBackgroundEffectsWidgets(),
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              220.height,
+              DoctorsSpecialityIconsListWidget(),
+              const NearbyDoctorsListWidget(),
+              const PopularDoctorsListWidget(),
+              const FeaturedDoctorsListWidget(),
+            ],
+          ),
         ),
-      ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Column(
+            children: [
+              UserProfileHeaderWidget(),
+              Transform.translate(
+                offset: const Offset(0, -40),
+                child: const DoctorSearchBarWidget(),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
