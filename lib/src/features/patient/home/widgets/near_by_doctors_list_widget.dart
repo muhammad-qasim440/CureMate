@@ -1,4 +1,6 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'dart:math';
+
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,7 +15,13 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doctorsAsync = ref.watch(doctorsProvider);
+    final doctorsAsync = ref.watch(nearByDoctorsProvider);
+    final  logedInPatientProvider = ref.watch(currentSignInPatientDataProvider).value;
+    late Patient patient;
+    if(logedInPatientProvider!=null){
+      patient=logedInPatientProvider;
+    }
+
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -44,9 +52,12 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
                   ? const Center(child: Text('No doctors available'))
                   : ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: doctors.length,
+                itemCount:
+                doctors.length > 4
+                    ? 4
+                    : doctors.length,
                 itemBuilder: (context, index) {
-                  return NearByDoctorsCard(doctor: doctors[index]);
+                  return NearByDoctorsCard(doctor: doctors[index],patient: patient,);
                 },
               ),
               loading: () => const Center(child: CircularProgressIndicator()),

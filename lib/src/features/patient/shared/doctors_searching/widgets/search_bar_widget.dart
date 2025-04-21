@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../theme/app_colors.dart';
-import '../providers/doctors_searching_providers.dart';
 class SearchBarWidget extends ConsumerStatefulWidget {
-  const SearchBarWidget({super.key});
+  final StateProvider<String> provider;
+  final bool applyFocusNode;
+
+  const SearchBarWidget({
+    super.key,
+    required this.provider,
+    this.applyFocusNode = true,
+  });
 
   @override
   ConsumerState<SearchBarWidget> createState() => _SearchBarWidgetState();
@@ -12,12 +18,15 @@ class SearchBarWidget extends ConsumerStatefulWidget {
 
 class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
   final FocusNode _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
+    if (widget.applyFocusNode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
@@ -29,9 +38,9 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      focusNode: _focusNode,
+      focusNode: widget.applyFocusNode ? _focusNode : null,
       decoration: InputDecoration(
-        hintText: ref.watch(searchQueryProvider),
+        hintText: ref.watch(widget.provider),
         prefixIcon: const Icon(
           Icons.search,
           color: AppColors.subtextcolor,
@@ -40,7 +49,7 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
         suffixIcon: InkWell(
           onTap: () {
             FocusScope.of(context).unfocus();
-            ref.read(searchQueryProvider.notifier).state='';
+            ref.read(widget.provider.notifier).state = '';
           },
           child: const Icon(Icons.close, color: AppColors.subtextcolor, size: 20),
         ),
@@ -52,9 +61,8 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
         ),
       ),
       onChanged: (value) {
-        ref.read(searchQueryProvider.notifier).state = value;
+        ref.read(widget.provider.notifier).state = value;
       },
     );
   }
-
 }

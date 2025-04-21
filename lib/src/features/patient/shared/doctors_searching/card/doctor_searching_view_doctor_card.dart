@@ -1,5 +1,7 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../const/app_fonts.dart';
 import '../../../../../../const/font_sizes.dart';
@@ -9,7 +11,7 @@ import '../../../../../theme/app_colors.dart';
 import '../../../../../utils/screen_utils.dart';
 import '../../../providers/patient_providers.dart';
 
-class DoctorSearchingViewDoctorCard extends StatelessWidget {
+class DoctorSearchingViewDoctorCard extends ConsumerWidget {
   final Doctor doctor;
   final bool isFavorite;
 
@@ -20,7 +22,7 @@ class DoctorSearchingViewDoctorCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -78,10 +80,21 @@ class DoctorSearchingViewDoctorCard extends StatelessWidget {
                             ),
                           ),
                           4.width,
-                          Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.grey[400],
-                            size: 20,
+                          InkWell(
+                            onTap: () {
+                              AddORRemoveDoctorIntoFavorite.toggleFavorite(
+                                context,
+                                ref,
+                                doctor.uid,
+                              );
+                            },
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : Colors.grey[400],
+                              size: 20,
+                            ),
                           ),
                         ],
                       ),
@@ -176,7 +189,7 @@ class DoctorSearchingViewDoctorCard extends StatelessWidget {
                         fontFamily: AppFonts.rubik,
                         fontSize: FontSizes(context).size14,
                         fontWeight: FontWeight.w800,
-                        color:AppColors.gradientGreen,
+                        color: AppColors.gradientGreen,
                       ),
                     ),
                     CustomTextWidget(

@@ -15,3 +15,4 @@ final checkInternetConnectionProvider = StreamProvider<bool>((ref) async* {
 bool _isConnected(List<ConnectivityResult> results) {
   return results.isNotEmpty && results[0] != ConnectivityResult.none;
 }
+final lastConnectionStatusProvider = StateProvider<bool?>((ref) => null);

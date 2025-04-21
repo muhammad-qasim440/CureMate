@@ -1,6 +1,6 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/custom_linear_gradient_container_widget.dart';

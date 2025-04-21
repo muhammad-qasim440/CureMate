@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:curemate/src/features/signup/providers/signup_form_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
+
+import '../../../features/authentication/signup/providers/signup_form_provider.dart';
 
 class ProfileImageState {
   final XFile? originalImage;

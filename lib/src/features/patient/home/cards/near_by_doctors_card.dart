@@ -1,19 +1,21 @@
 // Doctor Card Widget (Reusable for all doctor lists)
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
-
+import 'dart:math';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../router/nav.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../providers/patient_providers.dart';
+import '../../shared/views/doctor_details_view.dart';
 
 class NearByDoctorsCard extends StatelessWidget {
   final Doctor doctor;
-
-  const NearByDoctorsCard({super.key, required this.doctor});
+  final Patient patient;
+  const NearByDoctorsCard({super.key, required this.doctor,required this.patient});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,7 @@ class NearByDoctorsCard extends StatelessWidget {
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
+        AppNavigation.push(DoctorDetailsView(doctor: doctor));
       },
       child: Container(
         width: ScreenUtil.scaleWidth(context, 190),
@@ -86,7 +89,7 @@ class NearByDoctorsCard extends StatelessWidget {
                 15.width,
                 CustomTextWidget(
                   text:
-                  '${doctor.latitude != 0 ? (doctor.latitude - 30.2246769).abs().toStringAsFixed(1) : 'N/A'} km',
+                  '${calculateDistance(patient.latitude,patient.longitude,doctor.latitude,doctor.longitude).toStringAsFixed(0)} km',
                   textStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: AppFonts.rubik,
@@ -100,5 +103,19 @@ class NearByDoctorsCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371;
+    double dLat = (lat2 - lat1) * pi / 180.0;
+    double dLon = (lon2 - lon1) * pi / 180.0;
+
+    lat1 = lat1 * pi / 180.0;
+    lat2 = lat2 * pi / 180.0;
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        sin(dLon / 2) * sin(dLon / 2) * cos(lat1) * cos(lat2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
   }
 }

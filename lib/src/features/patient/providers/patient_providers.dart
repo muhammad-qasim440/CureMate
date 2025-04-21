@@ -1,9 +1,9 @@
+import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Model for Patient
-
+import '../../../shared/providers/check_internet_connectivity_provider.dart';
 class Patient {
   final String uid;
   final String fullName;
@@ -47,7 +47,6 @@ class Patient {
     );
   }
 }
-// Model for Doctor
 
 class Doctor {
   final String uid;
@@ -67,6 +66,8 @@ class Doctor {
   final double averageRatings;
   final int numberOfReviews;
   final int totalReviews;
+  final int totalPatientConsulted;
+  final int consultationFee;
 
   Doctor({
     required this.uid,
@@ -86,6 +87,8 @@ class Doctor {
     required this.averageRatings,
     required this.numberOfReviews,
     required this.totalReviews,
+    required this.totalPatientConsulted,
+    required this.consultationFee,
   });
 
   factory Doctor.fromMap(Map<dynamic, dynamic> map, String uid) {
@@ -107,11 +110,13 @@ class Doctor {
       averageRatings: (map['averageRatings'] as num?)?.toDouble() ?? 0.0,
       numberOfReviews: map['numberOfReviews'] ?? 0,
       totalReviews: map['totalReviews'] ?? 0,
+      totalPatientConsulted: map['totalPatientConsulted'] ?? 0,
+      consultationFee: map['consultationFee'] ?? 0,
     );
   }
 }
-// Provider for doctors list
 final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
+  final isNetworkConnected=ref.read(checkInternetConnectionProvider.future);
   // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
@@ -142,8 +147,7 @@ final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
     }
   }
 });
-// Provider for current user (Patient)
-final currentPatientProvider = StreamProvider<Patient?>((ref) async* {
+final currentSignInPatientDataProvider = StreamProvider<Patient?>((ref) async* {
   // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
@@ -165,8 +169,42 @@ final currentPatientProvider = StreamProvider<Patient?>((ref) async* {
     }
   }
 });
+final nearByDoctorsProvider = FutureProvider<List<Doctor>>((ref) async {
+  final patientAsync = ref.watch(currentSignInPatientDataProvider);
+  var doctors = ref.watch(doctorsProvider).value ?? [];
+  if (patientAsync.value == null) {
+    return [];
+  }
 
-// In providers/patient_providers.dart
+  final patient = patientAsync.value!;
+  final nearbyDoctors = doctors
+      .map((doctor) {
+    final distance = calculateDistance(
+      patient.latitude,
+      patient.longitude,
+      doctor.latitude,
+      doctor.longitude,
+    );
+    return MapEntry(doctor, distance);
+  })
+      .where((entry) => entry.value <= 30)
+      .toList()
+    ..sort((a, b) => a.value.compareTo(b.value));
+  return nearbyDoctors.map((entry) => entry.key).toList();
+});
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  const double earthRadius = 6371; // Earth radius in kilometers
+  double dLat = (lat2 - lat1) * pi / 180.0;
+  double dLon = (lon2 - lon1) * pi / 180.0;
+
+  lat1 = lat1 * pi / 180.0;
+  lat2 = lat2 * pi / 180.0;
+
+  double a = sin(dLat / 2) * sin(dLat / 2) +
+      sin(dLon / 2) * sin(dLon / 2) * cos(lat1) * cos(lat2);
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return earthRadius * c;
+}
 final favoriteDoctorUidsProvider = StreamProvider<List<String>>((ref) async* {
   // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {

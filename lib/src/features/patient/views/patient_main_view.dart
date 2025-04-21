@@ -1,37 +1,43 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
+import 'package:curemate/src/features/patient/chat/views/chat_view.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../theme/app_colors.dart';
+import '../../authentication/signin/providers/auth-provider.dart';
 import '../home/views/patient_home_view.dart';
-import '../../signin/providers/auth-provider.dart';
 
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
-class PatientMainView extends ConsumerWidget {
-  final List<Widget> _screens = const [
-    PatientHomeView(),
-    DummyScreen(title: 'Favorites'),
-    DummyScreen(title: 'Messages'),
-    DummyScreen(title: 'Profile'),
-  ];
-
+class PatientMainView extends ConsumerStatefulWidget {
   const PatientMainView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PatientMainView> createState() => _PatientMainViewState();
+}
+
+class _PatientMainViewState extends ConsumerState<PatientMainView> {
+  final List<Widget> _screens = const [
+    PatientHomeView(),
+    DummyScreen(title: 'Favorites'),
+    DummyScreen(title: 'Bookings'),
+    ChatView(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     final selectedIndex = ref.watch(bottomNavIndexProvider);
     return WillPopScope(
       onWillPop: () async {
         if (selectedIndex != 0) {
           ref.read(bottomNavIndexProvider.notifier).state = 0;
+          print('WillPopScope: Set bottomNavIndex to 0 from $selectedIndex');
           return false;
         }
         ExitAppBottomSheet(
@@ -45,9 +51,10 @@ class PatientMainView extends ConsumerWidget {
         body: _screens[selectedIndex],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: selectedIndex,
-          onTap:
-              (index) =>
-                  ref.read(bottomNavIndexProvider.notifier).state = index,
+          onTap: (index) {
+            ref.read(bottomNavIndexProvider.notifier).state = index;
+            print('BottomNavigationBar: Changed index to $index');
+          },
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
           showSelectedLabels: false,
@@ -118,7 +125,7 @@ class DummyScreen extends ConsumerWidget {
               );
               final isConnected =
                   await isNetworkAvailable.whenData((value) => value).value ??
-                  false;
+                      false;
 
               if (!isConnected) {
                 CustomSnackBarWidget.show(
@@ -130,7 +137,6 @@ class DummyScreen extends ConsumerWidget {
               }
               try {
                 await ref.read(authProvider).logout(context);
-
               } catch (e) {
                 CustomSnackBarWidget.show(context: context, text: "$e");
               }

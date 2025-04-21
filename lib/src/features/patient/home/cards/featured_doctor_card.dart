@@ -1,5 +1,7 @@
 import 'dart:ui';
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/patient/shared/views/doctor_details_view.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -31,11 +33,13 @@ class FeaturedDoctorCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        _showRatingDialog(context, ref);
+        // _showRatingDialog(context, ref);
         CustomSnackBarWidget.show(
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
+        AppNavigation.push(DoctorDetailsView(doctor: doctor));
+
       },
       child: Stack(
         children: [
@@ -96,7 +100,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
                 4.height,
                 CustomTextWidget(
                   text:
-                  '\$${doctor.yearsOfExperience != null ? (int.parse(doctor.yearsOfExperience) * 10).toStringAsFixed(2) : 'N/A'}/hour',
+                  '${doctor.consultationFee.toString()} RKR',
                   textStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: AppFonts.rubik,

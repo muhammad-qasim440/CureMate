@@ -1,8 +1,15 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/patient/providers/patient_providers.dart';
+import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
+import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
+import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../const/app_strings.dart';
+import '../../../../../core/utils/handle_internet_connection_snackbar.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
+import '../../../../theme/app_colors.dart';
 import '../widgets/doctor_search_bar_widget.dart';
 import '../widgets/doctors_speciality_icons_list_widget.dart';
 import '../widgets/featured_doctors_list_widget.dart';
@@ -15,19 +22,37 @@ class PatientHomeView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isConnected =
+        ref.watch(checkInternetConnectionProvider).value ?? false;
     return Stack(
       children: [
         const LowerBackgroundEffectsWidgets(),
-        SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              220.height,
-              DoctorsSpecialityIconsListWidget(),
-              const NearbyDoctorsListWidget(),
-              const PopularDoctorsListWidget(),
-              const FeaturedDoctorsListWidget(),
-            ],
+        RefreshIndicator(
+          displacement: ScreenUtil.scaleHeight(context, 130),
+          backgroundColor: AppColors.gradientGreen,
+          color: AppColors.gradientWhite,
+          onRefresh: () async {
+            if (!isConnected) {
+              CustomSnackBarWidget.show(
+                context: context,
+                text: AppStrings.noInternetInSnackBar,
+              );
+              return;
+            }
+            ref.refresh(doctorsProvider);
+            ref.refresh(favoriteDoctorUidsProvider);
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                220.height,
+                DoctorsSpecialityIconsListWidget(),
+                const NearbyDoctorsListWidget(),
+                const PopularDoctorsListWidget(),
+                const FeaturedDoctorsListWidget(),
+              ],
+            ),
           ),
         ),
         Positioned(
@@ -36,7 +61,7 @@ class PatientHomeView extends ConsumerWidget {
           right: 0,
           child: Column(
             children: [
-              UserProfileHeaderWidget(),
+              const UserProfileHeaderWidget(),
               Transform.translate(
                 offset: const Offset(0, -40),
                 child: const DoctorSearchBarWidget(),

@@ -1,4 +1,4 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,8 +51,8 @@ class PopularDoctorsListWidget extends ConsumerWidget {
                     : ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount:
-                  sortedDoctors.length > 2
-                      ? 2
+                  sortedDoctors.length > 4
+                      ? 4
                       : sortedDoctors
                       .length, // Limit to 2 as per screenshot
                   itemBuilder: (context, index) {

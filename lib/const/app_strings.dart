@@ -5,6 +5,9 @@ class AppStrings {
   static const loading='Loading...';
   static const noInternet='No Internet Connection';
   static const checkingInternet='Checking Your Internet Connection';
+
+                           /// Patients views Strings section ///
+
   /// on boarding view texts
   static const findTrustedDoctors = 'Find Trusted Doctors';
   static const chooseBestDoctors = 'Choose Best Doctors';
@@ -40,9 +43,76 @@ class AppStrings {
   static const haveAccount="Already have an account? Log in";
   static const List<String> userTypes = ['Patient','Doctor'];
   static const List<String> cities = ['Lahore', 'Karachi', 'Islamabad'];
+  static const List<String> docCategories =  [
+    'Allergist/Immunologist',
+    'Anesthesiologist',
+    'Bariatric Surgeon',
+    'Cardiologist',
+    'Cardiothoracic Surgeon',
+    'Chiropractor',
+    'Clinic Doctor',
+    'Colorectal Surgeon',
+    'Cosmetologist',
+    'Dentist',
+    'Dermatologist',
+    'Diabetologist',
+    'Dietitian',
+    'Endocrinologist',
+    'ENT Specialist',
+    'ENT Surgeon',
+    'Family Physician',
+    'Gastroenterologist',
+    'General Practitioner (GP)',
+    'General Physician',
+    'General Surgeon',
+    'Gynecologist',
+    'Hematologist',
+    'Hepatobiliary Surgeon',
+    'Homeopathic Doctor',
+    'House Officer',
+    'Infectious Disease Specialist',
+    'Internal Medicine Specialist',
+    'Medical Officer',
+    'Nephrologist',
+    'Neurosurgeon',
+    'Neurologist',
+    'Nutritionist',
+    'Occupational Therapist',
+    'Oncologist',
+    'Ophthalmologist',
+    'Oral and Maxillofacial Surgeon',
+    'Orthopedic Surgeon',
+    'Pathologist',
+    'Pediatric Surgeon',
+    'Pediatrician',
+    'Physiotherapist',
+    'Plastic Surgeon',
+    'Primary Care Doctor',
+    'Psychiatrist',
+    'Psychologist',
+    'Pulmonologist',
+    'Radiologist',
+    'Rheumatologist',
+    'Sexologist',
+    'Speech Therapist',
+    'Transplant Surgeon',
+    'Trauma Surgeon',
+    'Urologist',
+    'Urologic Surgeon',
+    'Vascular Surgeon',
+    'Other',
+  ];
    final cloudName='dqijptmo0';
   final cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dqijptmo0/image/upload';
   final uploadPreset = 'curemate_preset';
   final folderName = 'curemate_profiles';
+
+
+  /// no internet
+  static const noInternetInSnackBar='No internet, Please check your internet connection';
+  static const internetHasBeenConnectedInSnackBar='Internet has been restored successfully';
+
+  // chat with doctors strings
+  static const chatsWithDoctors='Chats With Doctors';
 
 }
