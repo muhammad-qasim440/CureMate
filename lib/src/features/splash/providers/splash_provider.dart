@@ -10,9 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../router/nav.dart';
 import '../../../utils/delay_utils.dart';
+import '../../authentication/signin/views/signin_view.dart';
 import '../../doctor/home/views/doctor_home_view.dart';
 import '../../on_boarding/providers/on_boarding__carousel_view_provider.dart';
-import '../../signin/views/signin_view.dart';
 
 class SplashNotifier extends StateNotifier<SplashState> {
   SplashNotifier(this._ref) : super(SplashState(progress: 0.0)) {

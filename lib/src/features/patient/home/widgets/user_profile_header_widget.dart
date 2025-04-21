@@ -1,4 +1,4 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,7 +14,7 @@ class UserProfileHeaderWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final patientAsync = ref.watch(currentPatientProvider);
+    final patientAsync = ref.watch(currentSignInPatientDataProvider);
 
     return Container(
       height: ScreenUtil.scaleHeight(context, 156),

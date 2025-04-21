@@ -1,4 +1,4 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 

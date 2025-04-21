@@ -1,5 +1,6 @@
-import 'package:curemate/extentions/widget_extension.dart';
-import 'package:curemate/src/shared/widgets/custom_header_widget.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/patient/shared/doctors_searching/providers/doctors_searching_providers.dart';
+import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,9 +28,9 @@ class _SearchDoctorsViewState extends ConsumerState<DoctorsSearchingView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CustomHeaderWidget(title: 'Find Doctors',),
+                  const CustomAppBarHeaderWidget(title: 'Find Doctors',),
                   34.height,
-                  const SearchBarWidget(),
+                  SearchBarWidget(provider: searchQueryProvider,),
                   16.height,
                   const DoctorsListWidget(),
                 ],

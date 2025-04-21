@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:flutter/material.dart';

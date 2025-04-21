@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../const/app_strings.dart';
+import '../core/lifecycle/observers/app_lifecycle_observer.dart';
+import '../core/utils/cache_network_image_utils.dart';
 import '../databases/local/hive/initialize_and_open_hive_db.dart';
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class App extends ConsumerStatefulWidget {
@@ -22,6 +24,7 @@ class App extends ConsumerStatefulWidget {
     });
    await initializeHiveDB();
     await openBoxShowOnBoardingViewsDb();
+    await CacheUtils.clearCache();
     runApp(const ProviderScope(overrides: [
     ], child: App._()));
   }
@@ -31,6 +34,13 @@ class App extends ConsumerStatefulWidget {
 }
 
 class _AppState extends ConsumerState<App> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize observer globally
+    ref.read(appLifecycleObserverProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);

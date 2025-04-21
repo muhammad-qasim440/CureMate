@@ -19,47 +19,47 @@ class DoctorsSpecialityIconsListWidget extends ConsumerWidget {
     },
     {
       'icon': Icons.favorite,
-      'label': 'Cardiology',
+      'label': 'Cardiologist',
       'gradient': [Colors.redAccent, Colors.red],
     },
     {
       'icon': Icons.remove_red_eye,
-      'label': 'Eye',
+      'label': 'Ophthalmologist',
       'gradient': [Colors.lightBlueAccent, Colors.blue],
     },
     {
       'icon': Icons.masks,
-      'label': 'Dental',
+      'label': 'Dentist',
       'gradient': [Colors.lightGreen, Colors.green],
     },
     {
       'icon': Icons.child_care,
-      'label': 'Pediatrics',
+      'label': 'Pediatrician',
       'gradient': [Colors.purpleAccent, Colors.purple],
     },
     {
       'icon': Icons.psychology,
-      'label': 'Psychiatry',
+      'label': 'Psychiatrist',
       'gradient': [Colors.tealAccent, Colors.teal],
     },
     {
       'icon': Icons.accessibility_new,
-      'label': 'Orthopedics',
+      'label': 'Orthopedic Surgeon',
       'gradient': [Colors.indigoAccent, Colors.indigo],
     },
     {
       'icon': Icons.woman,
-      'label': 'Gynecology',
+      'label': 'Gynecologist',
       'gradient': [Colors.pinkAccent, Colors.pink],
     },
     {
       'icon': Icons.bubble_chart,
-      'label': 'Neurology',
+      'label': 'Neurologist',
       'gradient': [Colors.deepPurpleAccent, Colors.deepPurple],
     },
     {
       'icon': Icons.spa,
-      'label': 'Dermatology',
+      'label': 'Dermatologist',
       'gradient': [Colors.brown.shade200, Colors.brown],
     },
     {
@@ -68,6 +68,7 @@ class DoctorsSpecialityIconsListWidget extends ConsumerWidget {
       'gradient': [Colors.black12, Colors.white],
     },
   ];
+
 
   DoctorsSpecialityIconsListWidget({super.key});
 
@@ -84,7 +85,7 @@ class DoctorsSpecialityIconsListWidget extends ConsumerWidget {
             onTap: () {
               final selectedLabel = specialities[index]['label'];
 
-              if (selectedLabel == 'All' || selectedLabel == 'General') {
+              if (selectedLabel == 'All') {
                 ref.read(searchQueryProvider.notifier).state = '';
               } else {
                 ref.read(searchQueryProvider.notifier).state = selectedLabel;

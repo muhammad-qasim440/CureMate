@@ -8,7 +8,7 @@ import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
-import '../../../signin/providers/auth-provider.dart';
+import '../../signin/providers/auth-provider.dart';
 
 class LogoutView extends ConsumerWidget {
   const LogoutView({super.key});

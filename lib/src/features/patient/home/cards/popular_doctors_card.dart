@@ -1,4 +1,5 @@
-import 'package:curemate/extentions/widget_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../const/app_fonts.dart';
@@ -8,6 +9,7 @@ import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../providers/patient_providers.dart';
+import '../../shared/views/doctor_details_view.dart';
 
 class PopularDoctorCard extends StatelessWidget {
   final Doctor doctor;
@@ -22,10 +24,11 @@ class PopularDoctorCard extends StatelessWidget {
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
+        AppNavigation.push(DoctorDetailsView(doctor: doctor));
       },
       child: Container(
         width: ScreenUtil.scaleWidth(context, 190),
-        height: ScreenUtil.scaleHeight(context, 264),
+        height: ScreenUtil.scaleHeight(context, 270),
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           color: AppColors.gradientWhite,
@@ -34,31 +37,32 @@ class PopularDoctorCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            5.height,
             Container(
               width: ScreenUtil.scaleWidth(context, 160),
               height: ScreenUtil.scaleHeight(context, 140),
               decoration: BoxDecoration(
                 image:
-                doctor.profileImageUrl.isNotEmpty
-                    ? DecorationImage(
-                  image: NetworkImage(doctor.profileImageUrl),
-                  fit: BoxFit.cover,
-                )
-                    : null,
+                    doctor.profileImageUrl.isNotEmpty
+                        ? DecorationImage(
+                          image: NetworkImage(doctor.profileImageUrl),
+                          fit: BoxFit.cover,
+                        )
+                        : null,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
               ),
               child:
-              doctor.profileImageUrl.isEmpty
-                  ? Center(
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.grey.shade600,
-                ),
-              )
-                  : null,
+                  doctor.profileImageUrl.isEmpty
+                      ? Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.grey.shade600,
+                        ),
+                      )
+                      : null,
             ),
             8.height,
             CustomTextWidget(
@@ -86,13 +90,13 @@ class PopularDoctorCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 5,
-                    (index) => Icon(
+                (index) => Icon(
                   Icons.star,
                   size: 16,
                   color:
-                  index < (doctor.averageRatings / 2).round()
-                      ? Colors.amber
-                      : Colors.grey,
+                      index < (doctor.averageRatings / 2).round()
+                          ? Colors.amber
+                          : Colors.grey,
                 ),
               ),
             ),
