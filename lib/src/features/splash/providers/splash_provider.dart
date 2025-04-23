@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../router/nav.dart';
 import '../../../utils/delay_utils.dart';
 import '../../authentication/signin/views/signin_view.dart';
-import '../../doctor/home/views/doctor_home_view.dart';
+import '../../doctor/doctor_main_view.dart';
 import '../../on_boarding/providers/on_boarding__carousel_view_provider.dart';
 
 class SplashNotifier extends StateNotifier<SplashState> {
@@ -23,8 +23,6 @@ class SplashNotifier extends StateNotifier<SplashState> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   Timer? _progressTimer;
   void _startProgressTimer() {
-
-
     _progressTimer = Timer.periodic(const Duration(milliseconds: 20), (
       timer,
     ) async {
@@ -37,8 +35,7 @@ class SplashNotifier extends StateNotifier<SplashState> {
 
         if (hasSeenOnboarding == false) {
           AppNavigation.pushReplacement(
-            OnBoardingCarouselView(),
-            routeName: AppRoutes.onBoardingFirstView,
+            const OnBoardingCarouselView(),
           );
           return;
         } else {
@@ -63,25 +60,21 @@ class SplashNotifier extends StateNotifier<SplashState> {
     User? user = _auth.currentUser;
     if (user == null) {
       AppNavigation.pushReplacement(SignInView(),
-        routeName: AppRoutes.signInView,
       );
     } else {
       DatabaseReference userRef = _database.child('Doctors').child(user.uid);
       DataSnapshot snapshot = await userRef.get();
       if (snapshot.exists) {
-        AppNavigation.pushReplacement(const DoctorHomeView(),
-          routeName: AppRoutes.doctorHomeView,
+        AppNavigation.pushReplacement(const DoctorMainView(),
         );
       } else {
         userRef = _database.child('Patients').child(user.uid);
         DataSnapshot snapshot = await userRef.get();
         if (snapshot.exists) {
-          AppNavigation.pushReplacement(PatientMainView(),
-            routeName: AppRoutes.patientMainView,
+          AppNavigation.pushReplacement(const PatientMainView(),
           );
         } else {
           AppNavigation.pushReplacement(SignInView(),
-            routeName: AppRoutes.signInView,
           );
         }
       }

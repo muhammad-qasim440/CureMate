@@ -1,16 +1,20 @@
 import 'dart:async';
-
+import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/doctor/doctor_main_view.dart';
 import 'package:curemate/src/router/nav.dart';
+import 'package:curemate/src/theme/app_colors.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:animate_do/animate_do.dart';
-
+import 'package:lottie/lottie.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+import '../../../../const/app_fonts.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/flutter_cache_manager.dart';
 import '../../../features/patient/views/patient_main_view.dart';
+import '../../../utils/screen_utils.dart';
 import '../../widgets/lower_background_effects_widgets.dart';
 import '../models/models_for_patient_and_doctors_for_chatting.dart';
 import '../providers/chatting_auth_providers.dart';
@@ -48,9 +52,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     _messageController.addListener(_handleTyping);
     _currentUser = ref.read(currentUserProvider).value;
-    if (_currentUser != null) {
-      _initChat(_currentUser!);
-    }
   }
 
   Future<void> _initChat(AppUser user) async {
@@ -67,18 +68,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       // Initialize for current user
-      await _database.child('Chats/${user.uid}/${widget.otherUserId}').update({
+      await _database.child('Chats/${user.uid}/${widget.otherUserId}').set({
         'chatId': chatId,
         otherUserRole: widget.otherUserName,
-        'lastMessage': '',
+        'lastMessage': _messageController.text.trim(),
         'timestamp': ServerValue.timestamp,
         'typing': false,
       });
       // Initialize for other user
-      await _database.child('Chats/${widget.otherUserId}/${user.uid}').update({
+      await _database.child('Chats/${widget.otherUserId}/${user.uid}').set({
         'chatId': chatId,
         currentUserRole: user.fullName,
-        'lastMessage': '',
+        'lastMessage': _messageController.text.trim(),
         'timestamp': ServerValue.timestamp,
         'typing': false,
       });
@@ -108,24 +109,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     };
 
     try {
+      // Check if chat exists for the current user
+      final chatSnapshot =
+          await _database
+              .child('Chats/$currentUserId/${widget.otherUserId}')
+              .get();
+      if (!chatSnapshot.exists) {
+        // Initialize chat if it doesn't exist
+        await _initChat(_currentUser!);
+      } else {
+        // Update existing chat
+        await _database
+            .child('Chats/$currentUserId/${widget.otherUserId}')
+            .update({
+              'lastMessage': _messageController.text.trim(),
+              'timestamp': ServerValue.timestamp,
+            });
+        await _database
+            .child('Chats/${widget.otherUserId}/$currentUserId')
+            .update({
+              'lastMessage': _messageController.text.trim(),
+              'timestamp': ServerValue.timestamp,
+            });
+      }
+
       // Send message
       await _database.child('Messages/$chatId/$messageId').set(message);
-      // Update current user's chat
-      await _database
-          .child('Chats/$currentUserId/${widget.otherUserId}')
-          .update({
-            'chatId': chatId, // Ensure chatId is included
-            'lastMessage': _messageController.text.trim(),
-            'timestamp': ServerValue.timestamp,
-          });
-      // Update other user's chat
-      await _database
-          .child('Chats/${widget.otherUserId}/$currentUserId')
-          .update({
-            'chatId': chatId, // Ensure chatId is included
-            'lastMessage': _messageController.text.trim(),
-            'timestamp': ServerValue.timestamp,
-          });
 
       _messageController.clear();
       _scrollController.animateTo(
@@ -154,56 +163,59 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isTyping = _messageController.text.isNotEmpty;
 
     try {
-      // Cancel any existing timer
       _typingTimer?.cancel();
-
-      // Update typing status
       _database
           .child('Chats/${user.uid}/${widget.otherUserId}/typing')
-          .set(isTyping);
-      print('Set typing=$isTyping for Chats/${user.uid}/${widget.otherUserId}');
+          .set(isTyping)
+          .catchError((e) {
+            print('Error updating typing status: $e');
+          });
 
       if (isTyping) {
-        // Start a timer to set typing to false if no typing for 2 seconds
         _typingTimer = Timer(const Duration(seconds: 2), () {
           _database
               .child('Chats/${user.uid}/${widget.otherUserId}/typing')
-              .set(false);
-          print(
-            'Typing stopped, set typing=false for Chats/${user.uid}/${widget.otherUserId}',
-          );
+              .set(false)
+              .catchError((e) {
+                print('Error stopping typing status: $e');
+              });
         });
       }
-
-      // Reset typing to false when user disconnects
       _database
           .child('Chats/${user.uid}/${widget.otherUserId}/typing')
           .onDisconnect()
           .set(false);
     } catch (e) {
-      print('Error updating typing status: $e');
+      print('Error handling typing: $e');
     }
   }
 
   void _markAsSeen(String messageId, String chatId) {
-    _database.child('Messages/$chatId/$messageId').update({'seen': true});
+    _database
+        .child('Messages/$chatId/$messageId')
+        .update({'seen': true})
+        .catchError((e) {
+          print('Error marking message as seen: $e');
+        });
   }
+
   Future<bool> _onPopScope() async {
     print('onPopScope called: fromDoctorDetails=${widget.fromDoctorDetails}');
-    // Set bottomNavIndexProvider to 3 (Chats tab)
-    ref.read(bottomNavIndexProvider.notifier).state = 3;
-
+    if (!widget.isPatient) {
+      ref.read(doctorBottomNavIndexProvider.notifier).state = 3;
+    } else {
+      ref.read(bottomNavIndexProvider.notifier).state = 3;
+    }
     if (widget.fromDoctorDetails) {
-      // Pop until the root (BottomNavScreen)
       Navigator.of(context).popUntil((route) => route.isFirst);
       print('Popped until root, bottomNavIndex set to 3');
-      return false; // Prevent default pop
+      return false;
     } else {
-      // Normal pop to return to ChatView
       print('Normal pop to ChatView, bottomNavIndex remains 3');
       return true;
     }
   }
+
   @override
   void dispose() {
     _messageController.removeListener(_handleTyping);
@@ -211,6 +223,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _scrollController.dispose();
     _typingTimer?.cancel();
     super.dispose();
+  }
+
+  String _getChatDisabledMessage(
+    Map<String, dynamic> currentSettings,
+    Map<String, dynamic> otherSettings,
+    AppUser user,
+  ) {
+    final currentAllowChat = currentSettings['allowChat'] == true;
+    final otherAllowChat = otherSettings['allowChat'] == true;
+    if (currentAllowChat && otherAllowChat) {
+      return ''; // Chat is enabled
+    }
+    final otherUserRole = widget.isPatient ? 'doctor' : 'patient';
+    if (!currentAllowChat && !otherAllowChat) {
+      return 'Chat disabled by both sides.';
+    } else if (!currentAllowChat) {
+      return 'Chat is disabled by you.';
+    } else {
+      return 'Chat disabled by $otherUserRole.';
+    }
   }
 
   @override
@@ -242,11 +274,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: AppColors.gradientGreen,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              AppNavigation.pop();
-              ref.read(bottomNavIndexProvider.notifier).state = 3;
+              if (widget.fromDoctorDetails && widget.isPatient) {
+                ref.read(bottomNavIndexProvider.notifier).state = 3;
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                print('Popped until root, bottomNavIndex set to 3');
+              } else {
+                AppNavigation.pop();
+              }
             },
           ),
           title: Row(
@@ -268,7 +306,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               widget.otherUserName.isNotEmpty
                                   ? widget.otherUserName[0]
                                   : '?',
-                              style: const TextStyle(fontSize: 20),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontFamily: AppFonts.rubik,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                         imageBuilder:
                             (context, imageProvider) => CircleAvatar(
@@ -278,14 +320,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                 loading:
-                    () => const CircleAvatar(child: CircularProgressIndicator()),
+                    () =>
+                        const CircleAvatar(child: CircularProgressIndicator()),
                 error:
                     (error, _) => CircleAvatar(
                       child: Text(
                         widget.otherUserName.isNotEmpty
                             ? widget.otherUserName[0]
                             : '?',
-                        style: const TextStyle(fontSize: 20),
+                        style: const TextStyle(
+                          fontSize: 20,
+
+                        ),
                       ),
                     ),
               ),
@@ -297,13 +343,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     widget.otherUserName.isNotEmpty
                         ? widget.otherUserName
                         : 'Unknown User',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16,       fontFamily: AppFonts.rubik,
+                      fontWeight: FontWeight.w600,),
                   ),
                   status.when(
                     data: (data) {
                       final ping = data['ping'] as int?;
                       final now = DateTime.now().millisecondsSinceEpoch;
-                      final isOnline = ping != null && (now - ping < 15000);
+                      final isOnline =
+                          ping != null && (now - ping < 15000); // 15s threshold
                       return Text(
                         isOnline
                             ? 'Online'
@@ -312,14 +360,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             : 'Offline',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isOnline ? Colors.green : Colors.grey,
+                          color: AppColors.gradientWhite,
+                          fontFamily: AppFonts.rubik,
+                          fontWeight: FontWeight.w600,
                         ),
                       );
                     },
                     loading: () => const Text('...'),
                     error: (error, _) => const Text('Offline'),
                   ),
-
                 ],
               ),
             ],
@@ -329,82 +378,97 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             const LowerBackgroundEffectsWidgets(),
             Column(
+              mainAxisSize: MainAxisSize.min, // Minimize vertical space
               children: [
                 Expanded(
                   child: messages.when(
-                    data:
-                        (msgs) => ListView.builder(
-                          controller: _scrollController,
-                          reverse: true,
-                          itemCount: msgs.length,
-                          itemBuilder: (context, index) {
-                            final msg = msgs[index];
-                            final isMe = msg['senderId'] == user.uid;
-                            if (!msg['seen'] && !isMe)
+                    data: (msgs) => ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      itemCount: msgs.length,
+                      itemBuilder: (context, index) {
+                        final msg = msgs[index];
+                        final isMe = msg['senderId'] == user.uid;
+                        return VisibilityDetector(
+                          key: Key(msg['messageId']),
+                          onVisibilityChanged: (info) {
+                            if (info.visibleFraction > 0.5 && !isMe && !msg['seen']) {
                               _markAsSeen(msg['messageId'], chatId);
-                            return FadeInUp(
-                              duration: const Duration(milliseconds: 300),
-                              child: MessageBubble(
-                                text: msg['text'] ?? '',
-                                isMe: isMe,
-                                timestamp: msg['timestamp'] ?? 0,
-                                seen: msg['seen'] ?? false,
-                              ),
-                            );
+                            }
                           },
-                        ),
-                    loading:
-                        () => const Center(child: CircularProgressIndicator()),
+                          child: FadeInUp(
+                            duration: const Duration(milliseconds: 300),
+                            child: MessageBubble(
+                              text: msg['text'] ?? '',
+                              isMe: isMe,
+                              timestamp: msg['timestamp'] ?? 0,
+                              seen: msg['seen'] ?? false,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
                     error: (error, _) => Center(child: Text('Error: $error')),
                   ),
                 ),
-                isTyping.when(
-                  data:
-                      (typing) =>
-                          typing
-                              ? Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: FadeIn(
-                                  child: Text(
-                                    '${widget.otherUserName} is typing...',
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              : const SizedBox.shrink(),
-                  loading: () => const SizedBox.shrink(),
-                  error: (error, _) => const SizedBox.shrink(),
-                ),
+                20.height,
                 otherUserSettings.when(
-                  data:
-                      (settings) => currentUserSettings.when(
-                        data: (currentSettings) {
-                          final canChat =
-                              settings['allowChat'] == true &&
-                              currentSettings['allowChat'] == true;
-                          return canChat
-                              ? ChatInput(
-                                controller: _messageController,
-                                onSend: () => _sendMessage(user.uid),
-                              )
-                              : const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Chatting is disabled by one of the users.',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              );
-                        },
-                        loading: () => const CircularProgressIndicator(),
-                        error: (error, _) => Text('Error: $error'),
-                      ),
+                  data: (settings) => currentUserSettings.when(
+                    data: (currentSettings) {
+                      final chatDisabledMessage =
+                      _getChatDisabledMessage(currentSettings, settings, user);
+                      return chatDisabledMessage.isEmpty
+                          ? Container(
+                        margin: EdgeInsets.zero, // No margin to eliminate gap
+                        child: ChatInput(
+                          controller: _messageController,
+                          onSend: () => _sendMessage(user.uid),
+                        ),
+                      )
+                          : Container(
+                        margin: const EdgeInsets.symmetric(vertical: 2.0), // Minimal margin
+                        child: Text(
+                          chatDisabledMessage,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      );
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (error, _) => Text('Error: $error'),
+                  ),
                   loading: () => const CircularProgressIndicator(),
                   error: (error, _) => Text('Error: $error'),
                 ),
               ],
+            ),
+            Positioned(
+              bottom: ScreenUtil.scaleHeight(context, 40),
+              left: ScreenUtil.scaleWidth(context, -15),
+              child: isTyping.when(
+                data: (typing) => typing
+                    ? Container(
+                  margin: EdgeInsets.zero,
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FadeIn(
+                        child: SizedBox(
+                          height: ScreenUtil.scaleHeight(context, 100),
+                          child: Lottie.asset(
+                            'assets/animations/typing.json',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                    : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (error, _) => const SizedBox.shrink(),
+              ),
             ),
           ],
         ),

@@ -1,24 +1,24 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/doctor/chat/widgets/doctor_chat_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../router/nav.dart';
+import '../../../../shared/chat/providers/chat_list_search_query_provider.dart';
 import '../../../../shared/chat/providers/chatting_auth_providers.dart';
 import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/chat/views/chat_screen.dart';
 import '../../../../shared/chat/widgets/chat_list_item_widget.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
-import '../../../../shared/chat/providers/chat_list_search_query_provider.dart';
-import '../widgets/patient_chat_view_header.dart';
 
-class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key});
+class DoctorChatView extends ConsumerStatefulWidget {
+  const DoctorChatView({super.key});
 
   @override
-  ConsumerState<ChatView> createState() => _ChatViewState();
+  ConsumerState<DoctorChatView> createState() => _DoctorChatViewState();
 }
 
-class _ChatViewState extends ConsumerState<ChatView> {
+class _DoctorChatViewState extends ConsumerState<DoctorChatView> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
@@ -107,7 +107,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
             right: 0,
             child: Column(
               children: [
-                const PatientsChatViewHeaderWidget(),
+                const DoctorChatHeaderWidget(),
                 Transform.translate(
                   offset: const Offset(0, -35),
                   child: Padding(

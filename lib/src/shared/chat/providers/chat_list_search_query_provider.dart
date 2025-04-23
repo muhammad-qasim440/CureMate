@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/chat/providers/chatting_providers.dart';
+import 'chatting_providers.dart';
 
-final searchQueryForPatientChatWithDoctorProvider=StateProvider<String>((ref)=>'');
+final chatListSearchQueryProviderProvider=StateProvider<String>((ref)=>'');
 final filteredChatListProvider = Provider<List<Map<String, dynamic>>>((ref) {
   final chatList = ref.watch(chatListProvider).valueOrNull ?? [];
-  final searchQuery = ref.watch(searchQueryForPatientChatWithDoctorProvider);
+  final searchQuery = ref.watch(chatListSearchQueryProviderProvider);
 
   if (searchQuery.isEmpty) {
     return chatList;

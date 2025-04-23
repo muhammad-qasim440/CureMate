@@ -1,6 +1,8 @@
-// Reusable Message Bubble Widget
+import 'package:curemate/const/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../theme/app_colors.dart';
 
 class MessageBubble extends StatelessWidget {
   final String text;
@@ -18,45 +20,39 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Align(
-        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: isMe ? AppColors.gradientGreen : Colors.grey[300],
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Column(
           crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            Container(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.blue : Colors.grey[200],
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: Text(
-                text,
-                style: TextStyle(color: isMe ? Colors.white : Colors.black),
-              ),
+            Text(
+              text,
+              style: TextStyle(color: isMe ? Colors.white : Colors.black,fontFamily: AppFonts.rubik,fontSize:15),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    DateFormat('hh:mm a').format(DateTime.fromMillisecondsSinceEpoch(timestamp)),
-                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  DateFormat('h:mm a').format(DateTime.fromMillisecondsSinceEpoch(timestamp)),
+                  style:  TextStyle(fontSize: 10, color:isMe?AppColors.black: AppColors.gradientGreen,fontFamily: AppFonts.rubik),
+                ),
+                if (isMe) ...[
+                  const SizedBox(width: 5),
+                  Icon(
+                    seen ? Icons.done_all : Icons.done,
+                    size: 16,
+                    color: seen ? AppColors.gradientBlue : AppColors.gradientWhite,
                   ),
-                  if (isMe)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4.0),
-                      child: Icon(
-                        seen ? Icons.done_all : Icons.done,
-                        size: 14,
-                        color: seen ? Colors.blue : Colors.grey,
-                      ),
-                    ),
                 ],
-              ),
+              ],
             ),
           ],
         ),

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../widgets/doctors_list_widget.dart';
-import '../widgets/search_bar_widget.dart';
+import '../../../../../shared/widgets/search_bar_widget.dart';
 
 class DoctorsSearchingView extends ConsumerStatefulWidget {
   const DoctorsSearchingView({super.key});

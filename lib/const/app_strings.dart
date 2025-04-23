@@ -112,7 +112,8 @@ class AppStrings {
   static const noInternetInSnackBar='No internet, Please check your internet connection';
   static const internetHasBeenConnectedInSnackBar='Internet has been restored successfully';
 
-  // chat with doctors strings
+  //patient chat with doctors strings
   static const chatsWithDoctors='Chats With Doctors';
-
+  //doctor chat with patients strings
+  static const chatsWithPatients='Chats With Patients';
 }

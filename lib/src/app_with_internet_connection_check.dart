@@ -16,11 +16,11 @@ class _AppWithConnectionCheckState extends ConsumerState<AppWithConnectionCheck>
   bool _wasDisconnected = false;
 
   final List<String> _excludedRoutes = [
-    AppRoutes.onBoardingFirstView,
-    AppRoutes.onBoardingSecondView,
-    AppRoutes.onBoardingThirdView,
-    AppRoutes.signInView,
-    AppRoutes.signupView,
+    // AppRoutes.onBoardingFirstView,
+    // AppRoutes.onBoardingSecondView,
+    // AppRoutes.onBoardingThirdView,
+    // AppRoutes.signInView,
+    // AppRoutes.signupView,
   ];
 
   bool _shouldShowInternetDialog(String? currentRoute) {

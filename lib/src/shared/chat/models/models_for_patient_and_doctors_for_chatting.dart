@@ -1,4 +1,3 @@
-// AppUser model
 class AppUser {
   final String uid;
   final String fullName;
@@ -33,4 +32,17 @@ class AppUser {
       data: Map<String, dynamic>.from(map),
     );
   }
+
+  factory AppUser.fromUserMap(Map<dynamic, dynamic> map, String uid) {
+    return AppUser(
+      uid: uid,
+      fullName: map['fullName'] ?? '',
+      userType: map['userType'] ?? 'Unknown',
+      profileImageUrl: map['profileImageUrl'] ?? '',
+      data: Map<String, dynamic>.from(map),
+    );
+  }
+
+  @override
+  String toString() => 'AppUser(uid: $uid, fullName: $fullName, userType: $userType, profileImageUrl: $profileImageUrl)';
 }

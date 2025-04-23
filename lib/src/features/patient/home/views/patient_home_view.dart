@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../const/app_strings.dart';
-import '../../../../../core/utils/handle_internet_connection_snackbar.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../theme/app_colors.dart';
 import '../widgets/doctor_search_bar_widget.dart';

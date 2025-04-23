@@ -155,7 +155,7 @@ class DoctorSearchingViewDoctorCard extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: CustomTextWidget(
-                              text: '${doctor.numberOfReviews} Patient Stories',
+                              text: '${doctor.totalPatientConsulted} Patient Stories',
                               textAlignment: TextAlign.left,
                               textStyle: TextStyle(
                                 fontFamily: AppFonts.rubik,

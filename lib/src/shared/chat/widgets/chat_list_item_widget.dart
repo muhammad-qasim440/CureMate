@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../theme/app_colors.dart';
 import '../providers/chatting_auth_providers.dart';
 import '../providers/chatting_providers.dart';
 

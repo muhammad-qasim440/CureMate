@@ -75,83 +75,51 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
   });
 });
 
-String _generateChatId(String userId1, String userId2) {
-  final ids = [userId1, userId2]..sort();
-  return '${ids[0]}_${ids[1]}';
-}
-
-// Chat messages provider: Messages for a specific chat
 final chatMessagesProvider = StreamProvider.family<List<Map<String, dynamic>>, String>((ref, chatId) {
-  final database = FirebaseDatabase.instance.ref('Messages/$chatId');
-  return database.onValue.map((event) {
-    final data = event.snapshot.value as Map<dynamic, dynamic>?;
-    if (data == null) return [];
-    return data.entries.map((e) {
-      return {
-        'messageId': e.key as String,
-        ...Map<String, dynamic>.from(e.value as Map<dynamic, dynamic>),
-      };
-    }).toList()
-      ..sort((a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
+  return FirebaseDatabase.instance.ref().child('Messages/$chatId').onValue.map((event) {
+    final messages = <Map<String, dynamic>>[];
+    if (event.snapshot.value != null) {
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
+      data.forEach((key, value) {
+        messages.add({
+          'messageId': key,
+          ...Map<String, dynamic>.from(value),
+        });
+      });
+      messages.sort((a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
+    }
+    return messages;
   });
 });
 
-// Typing indicator provider
 final typingIndicatorProvider = StreamProvider.family<bool, String>((ref, chatId) {
   final user = ref.watch(currentUserProvider).value;
   if (user == null) return Stream.value(false);
-  final otherUserId = chatId.split('_').first == user.uid
-      ? chatId.split('_').last
-      : chatId.split('_').first;
-  final database = FirebaseDatabase.instance
-      .ref('Chats/$otherUserId/${user.uid}/typing');
-  return database.onValue.map((event) {
-    final value = event.snapshot.value;
-    return value is bool ? value : false;
-  });
+
+  final parts = chatId.split('_');
+  final otherUserId = parts.first == user.uid ? parts.last : parts.first;
+
+  return FirebaseDatabase.instance
+      .ref()
+      .child('Chats/$otherUserId/${user.uid}/typing')
+      .onValue
+      .map((event) => event.snapshot.value as bool? ?? false);
 });
 
-// Chat settings provider
-final chatSettingsProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) {
-  final database = FirebaseDatabase.instance.ref('Users/$userId/settings');
-  return database.onValue.map((event) {
-    final data = event.snapshot.value as Map<dynamic, dynamic>?;
-    return data != null ? Map<String, dynamic>.from(data) : {'allowChat': true};
-  });
+
+final chatSettingsProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
+  return FirebaseDatabase.instance
+      .ref()
+      .child('Users/$uid/settings')
+      .onValue
+      .map((event) => Map<String, dynamic>.from(event.snapshot.value as Map? ?? {'allowChat': true}));
 });
 
-// Last seen and online status provider
-final userStatusProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) {
-  final database = FirebaseDatabase.instance.ref('Users/$userId/status');
-  print('userStatusProvider: Listening to Users/$userId/status');
-  return database.onValue.map((event) {
-    final data = event.snapshot.value as Map<dynamic, dynamic>? ?? {};
-    print('userStatusProvider: Data for $userId: $data');
-    return {
-      'isOnline': data['isOnline'] ?? false,
-      'lastSeen': data['lastSeen'] ?? 0,
-    };
-  });
+final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
+  return FirebaseDatabase.instance.ref().child('Users/$uid').onValue.map((event) =>
+     Map<String, dynamic>.from(event.snapshot.value as Map? ?? {}));
 });
 
-// Other user profile provider (for profileImageUrl and fullName)
-final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) {
-  final database = FirebaseDatabase.instance.ref();
-  return database.child('Doctors/$userId').onValue.asyncMap((doctorEvent) async {
-    final doctorData = doctorEvent.snapshot.value as Map<dynamic, dynamic>?;
-    if (doctorData != null) {
-      return {
-        'profileImageUrl': doctorData['profileImageUrl'] ?? '',
-        'fullName': doctorData['fullName'] ?? '',
-        'userType': 'Doctor',
-      };
-    }
-    final patientData = await database.child('Patients/$userId').once();
-    final patientMap = patientData.snapshot.value as Map<dynamic, dynamic>?;
-    return {
-      'profileImageUrl': patientMap?['profileImageUrl'] ?? '',
-      'fullName': patientMap?['fullName'] ?? '',
-      'userType': 'Patient',
-    };
-  });
+final userStatusProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
+  return FirebaseDatabase.instance.ref().child('Users/$uid/status').onValue.map((event) => Map<String, dynamic>.from(event.snapshot.value as Map? ?? {}));
 });

@@ -42,6 +42,7 @@ dependencies:
   animate_do: ^4.2.0
   intl: ^0.20.2
   flutter_cache_manager: ^3.4.1
+  visibility_detector: ^0.3.3
 
 
 dev_dependencies:
@@ -90,6 +91,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/signing_up.json
+    - assets/animations/typing.json
   fonts:
     - family: Poppins
       fonts:
