@@ -52,7 +52,12 @@ class AuthService {
       final docCategory = _ref.read(customDropDownProvider(AppStrings.docCategories));
       final docQualification = _ref.read(docQualificationProvider);
       final docExperience = _ref.read(docYearsOfExperienceProvider);
-
+      final docHospital = _ref.read(docHospitalProvider);
+// New availability data
+      final availableDays = _ref.read(availableDaysProvider);
+      final morningAvailability = _ref.read(morningAvailabilityProvider);
+      final afternoonAvailability = _ref.read(afternoonAvailabilityProvider);
+      final eveningAvailability = _ref.read(eveningAvailabilityProvider);
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -87,10 +92,18 @@ class AuthService {
           'qualification': docQualification,
           'category': docCategory.selected,
           'yearsOfExperience': docExperience,
+          'hospital':docHospital,
           'consultationFee': docConsultationFee,
           'totalReviews': 0,
           'averageRatings': 0.0,
           'totalPatientConsulted': 0,
+          // Add availability data
+          'availability': {
+            'days': availableDays,
+            'morning': morningAvailability,
+            'afternoon': afternoonAvailability,
+            'evening': eveningAvailability,
+          },
         });
       }
 
@@ -121,10 +134,8 @@ class AuthService {
         },
       });
 
-      print('User $uid created with data in $userTypePath and Users at ${DateTime.now()}');
       return 'Account created successfully!';
     } on FirebaseAuthException catch (e) {
-      print('FirebaseAuthException during signup: ${e.code} - ${e.message} at ${DateTime.now()}');
       if (e.code == 'email-already-in-use') {
         return 'An account already exists with this email.';
       } else if (e.code == 'invalid-email') {
@@ -135,7 +146,6 @@ class AuthService {
         return 'Authentication failed: ${e.message}';
       }
     } catch (e) {
-      print('Unexpected error during signup: $e at ${DateTime.now()}');
       return 'An unexpected error occurred: ${e.toString()}';
     }
   }
@@ -152,7 +162,6 @@ class AuthService {
 
       User? user = userCredential.user;
       if (user == null) {
-        print('SignIn failed: No user returned at ${DateTime.now()}');
         return {
           'success': false,
           'message': 'Failed to sign in. Please try again.',
@@ -193,17 +202,14 @@ class AuthService {
             'allowChat': true,
           },
         });
-        print('Created Users/$uid for $uid at ${DateTime.now()}');
       } else if (!(await statusRef.get()).exists) {
         await statusRef.set({
           'isOnline': true,
           'lastSeen': ServerValue.timestamp,
           'ping': ServerValue.timestamp,
         });
-        print('Initialized status for $uid at ${DateTime.now()}');
       }
 
-      print('Signed in user $uid, userType: $userType at ${DateTime.now()}');
       return {
         'success': true,
         'message': 'Signed in successfully!',
@@ -211,7 +217,6 @@ class AuthService {
         'uid': uid,
       };
     } on FirebaseAuthException catch (e) {
-      print('FirebaseAuthException during signIn: ${e.code} - ${e.message} at ${DateTime.now()}');
       String errorMessage = 'Authentication failed';
       if (e.code == 'user-not-found') {
         errorMessage = 'No account found with this email address.';
@@ -233,7 +238,6 @@ class AuthService {
         'uid': '',
       };
     } catch (e) {
-      print('Unexpected error during signIn: $e at ${DateTime.now()}');
       return {
         'success': false,
         'message': 'An unexpected error occurred: ${e.toString()}',
@@ -257,13 +261,11 @@ class AuthService {
     try {
       await auth.sendPasswordResetEmail(email: trimmedEmail);
       _ref.read(forgotPasswordEmailProvider.notifier).state = '';
-      print('Password reset email sent to $trimmedEmail at ${DateTime.now()}');
       return {
         'success': true,
         'message': 'A password reset link has been sent to your email.',
       };
     } on FirebaseAuthException catch (e) {
-      print('FirebaseAuthException during resetPassword: ${e.code} - ${e.message} at ${DateTime.now()}');
       String errorMessage = 'Failed to send password reset email.';
       if (e.code == 'user-not-found') {
         errorMessage = 'No user found with this email address.';
@@ -279,7 +281,6 @@ class AuthService {
         'message': errorMessage,
       };
     } catch (e) {
-      print('Unexpected error during resetPassword: $e at ${DateTime.now()}');
       return {
         'success': false,
         'message': 'An unexpected error occurred. Please try again later.',
@@ -293,7 +294,6 @@ class AuthService {
     try {
       await auth.signOut();
       if (auth.currentUser == null) {
-        print('User logged out successfully at ${DateTime.now()}');
         CustomSnackBarWidget.show(
           backgroundColor: AppColors.gradientGreen,
           context: context,
@@ -306,7 +306,6 @@ class AuthService {
         _ref.invalidate(favoriteDoctorUidsProvider);
         _ref.read(splashProvider.notifier).checkAuthUser();
       } else {
-        print('Logout failed: User still signed in at ${DateTime.now()}');
         CustomSnackBarWidget.show(
           backgroundColor: Colors.red,
           context: context,
@@ -314,7 +313,6 @@ class AuthService {
         );
       }
     } catch (e) {
-      print('Error during logout: $e at ${DateTime.now()}');
       CustomSnackBarWidget.show(
         backgroundColor: Colors.red,
         context: context,

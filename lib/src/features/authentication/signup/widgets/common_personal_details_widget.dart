@@ -175,13 +175,13 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
         CustomTextFormFieldWidget(
           controller: locationController,
           label: 'Location',
-          hintText: 'your location(latitude,longitude)',
+          hintText: 'your location(latitude - longitude)',
           focusNode: locationFocus,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter your location';
             }
-            final parts = value.split(',');
+            final parts = value.split(' - ');
             if (parts.length != 2) {
               return 'Enter coordinates in format: latitude, longitude';
             }

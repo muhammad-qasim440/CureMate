@@ -1,5 +1,7 @@
+import 'package:curemate/core/utils/debug_print.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/format_last_seen_time.dart';
 import 'chatting_auth_providers.dart';
 
 
@@ -37,30 +39,36 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
           timestamp = lastMessageData['timestamp'] as int? ?? 0;
         }
 
-        // Fetch otherUserName
-        String otherUserName = chat['doctorName'] ?? chat['patientName'] ?? '';
-        if (otherUserName.isEmpty) {
-          print('Warning: No doctorName or patientName for otherUserId: $otherUserId');
+        // Determine otherUserName based on user type
+        String otherUserName;
+        final isPatient = user.userType == 'Patient';
+        if (isPatient) {
+          otherUserName = chat['doctorName']?.trim() ?? '';
+        } else {
+          otherUserName = chat['patientName']?.trim() ?? '';
+        }
+
+        // Fetch from database if name is empty or invalid
+        if (otherUserName.isEmpty || otherUserName == otherUserId) {
+          logDebug('Fetching name for otherUserId: $otherUserId');
           try {
-            // Check if current user is a patient or doctor
-            final isPatient = user.userType == 'Patient';
             final targetNode = isPatient ? 'Doctors' : 'Patients';
             final snapshot = await database.child('$targetNode/$otherUserId').get();
             if (snapshot.exists) {
-              otherUserName = (snapshot.value as Map)['fullName'] ?? 'Unknown';
+              otherUserName = (snapshot.value as Map)['fullName']?.trim() ?? 'Unknown';
             } else {
               otherUserName = 'Unknown';
-              print('No data found in $targetNode for otherUserId: $otherUserId');
+              logDebug('No data found in $targetNode for otherUserId: $otherUserId');
             }
           } catch (e) {
-            print('Error fetching name for otherUserId: $otherUserId, error: $e');
+            logDebug('Error fetching name for otherUserId: $otherUserId, error: $e');
             otherUserName = 'Unknown';
           }
         }
 
         chats.add({
           'otherUserId': otherUserId,
-          'otherUserName': otherUserName.trim(), // Remove trailing spaces
+          'otherUserName': otherUserName.trim(),
           'lastMessage': lastMessage,
           'timestamp': timestamp,
           'chatId': chatId,
@@ -74,6 +82,7 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
     return chats;
   });
 });
+
 
 final chatMessagesProvider = StreamProvider.family<List<Map<String, dynamic>>, String>((ref, chatId) {
   return FirebaseDatabase.instance.ref().child('Messages/$chatId').onValue.map((event) {
@@ -120,6 +129,18 @@ final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, Str
      Map<String, dynamic>.from(event.snapshot.value as Map? ?? {}));
 });
 
-final userStatusProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
-  return FirebaseDatabase.instance.ref().child('Users/$uid/status').onValue.map((event) => Map<String, dynamic>.from(event.snapshot.value as Map? ?? {}));
+final formattedLastSeenProvider = StreamProvider.family<String, String>((ref, userId) {
+  final userRef = FirebaseDatabase.instance.ref().child('Users/$userId/status');
+  return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
+    final snapshot = await userRef.get();
+    final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
+
+    final ping = data['ping'] as int?;
+    if (ping == null) return 'Offline';
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isOnline = now - ping < 15000;
+
+    return isOnline ? 'Online' : formatLastSeen(ping);
+  });
 });

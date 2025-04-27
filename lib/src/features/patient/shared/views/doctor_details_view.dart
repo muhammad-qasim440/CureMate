@@ -2,8 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/bookings/views/appointment_booking_view.dart';
+import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/theme/app_colors.dart';
+import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/flutter_cache_manager.dart';
@@ -20,6 +23,7 @@ class DoctorDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.gradientGreen,
         title: Text(
           doctor.fullName,
           style: TextStyle(
@@ -31,7 +35,18 @@ class DoctorDetailsView extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.chat, color: AppColors.gradientGreen),
+            icon: const Icon(Icons.call, color: AppColors.gradientWhite),
+            onPressed: () {
+              AppNavigation.push( ChatScreen(
+                otherUserId: doctor.uid,
+                otherUserName: doctor.fullName,
+                isPatient: true,
+                fromDoctorDetails: true,
+              ),);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat, color: AppColors.gradientWhite),
             onPressed: () {
                   AppNavigation.push( ChatScreen(
                     otherUserId: doctor.uid,
@@ -76,22 +91,23 @@ class DoctorDetailsView extends StatelessWidget {
                   ),
                 ),
                 16.height,
-                Text(
-                  doctor.fullName,
-                  style: TextStyle(
-                    fontSize: FontSizes(context).size22,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: AppFonts.rubik,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                // Text(
+                //   doctor.fullName,
+                //   style: TextStyle(
+                //     fontSize: FontSizes(context).size22,
+                //     fontWeight: FontWeight.bold,
+                //     fontFamily: AppFonts.rubik,
+                //   ),
+                //   textAlign: TextAlign.center,
+                // ),
                 4.height,
                 Text(
                   doctor.category.isNotEmpty == true ? doctor.category : 'General',
                   style: TextStyle(
                     fontSize: FontSizes(context).size16,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.black,
                     fontFamily: AppFonts.rubik,
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -141,38 +157,18 @@ class DoctorDetailsView extends StatelessWidget {
                   '${doctor.totalReviews }',
                 ),
                 32.height,
-                // ElevatedButton.icon(
-                //   onPressed: () {
-                //
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (context) => ChatScreen(
-                //             otherUserId: doctor.uid,
-                //             otherUserName: doctor.fullName,
-                //             isPatient: true,
-                //           ),
-                //         ),
-                //       );
-                //   },
-                //   icon: const Icon(Icons.chat),
-                //   label: const Text('Chat with Doctor'),
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: AppColors.gradientGreen,
-                //     foregroundColor: Colors.white,
-                //     padding: const EdgeInsets.symmetric(
-                //       horizontal: 24,
-                //       vertical: 12,
-                //     ),
-                //     textStyle: TextStyle(
-                //       fontSize: FontSizes(context).size16,
-                //       fontFamily: AppFonts.rubik,
-                //     ),
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                // ),
+                CustomButtonWidget(
+                  text:'Book now',
+                  backgroundColor: AppColors.gradientGreen,
+                  width: ScreenUtil.scaleWidth(context, 295),
+                  height: ScreenUtil.scaleHeight(context, 54),
+                  fontFamily: AppFonts.rubik,
+                  fontWeight: FontWeight.w500,
+                  fontSize: FontSizes(context).size16,
+                  onPressed: (){
+                    AppNavigation.push(AppointmentBookingView(doctor: doctor, isFavorite: false));
+                  },
+                )
               ],
             ),
           ),

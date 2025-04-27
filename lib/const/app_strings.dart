@@ -42,7 +42,7 @@ class AppStrings {
   static const signUp='Sign Up';
   static const haveAccount="Already have an account? Log in";
   static const List<String> userTypes = ['Patient','Doctor'];
-  static const List<String> cities = ['Lahore', 'Karachi', 'Islamabad'];
+  static const List<String> cities = ['Multan','Bahawalpur','DG Khan','Faisalabad','Lahore', 'Karachi', 'Islamabad'];
   static const List<String> docCategories =  [
     'Allergist/Immunologist',
     'Anesthesiologist',
@@ -116,4 +116,11 @@ class AppStrings {
   static const chatsWithDoctors='Chats With Doctors';
   //doctor chat with patients strings
   static const chatsWithPatients='Chats With Patients';
+  /// near by doctor view strings
+  static const List<int> doctorSearchingAreaRadius=[10,30,50,70,100,150,200,500];
+  static const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+
 }

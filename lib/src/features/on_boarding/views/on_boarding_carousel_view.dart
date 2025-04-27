@@ -14,8 +14,6 @@ import '../../splash/providers/splash_provider.dart';
 import '../providers/on_boarding__carousel_view_provider.dart';
 import '../widgets/build_on_boarding_page_widget.dart';
 
-
-
 class OnBoardingCarouselView extends ConsumerStatefulWidget {
   const OnBoardingCarouselView({super.key});
 
@@ -40,21 +38,16 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (!ref.watch(isUserInteractingProvider)) {
+      if (!ref.read(isUserInteractingProvider)) {
         final pages = ref.read(onboardingPagesProvider);
         final currentPage = ref.read(currentOnboardingPageProvider);
-        if (currentPage < pages.length - 1) {
-          _pageController.nextPage(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        } else {
-          _pageController.animateToPage(
-            0,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
+        int nextPage = (currentPage + 1) % pages.length; // Loop back to 0
+        print('Auto-scroll: currentPage=$currentPage, nextPage=$nextPage');
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
       }
     });
   }
@@ -76,11 +69,14 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
     final currentPage = ref.read(currentOnboardingPageProvider);
 
     if (currentPage < pages.length - 1) {
-      _pageController.nextPage(
+      print('Next button: Moving to page ${currentPage + 1}');
+      _pageController.animateToPage(
+        currentPage + 1,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOutQuint,
       );
     } else {
+      print('Next button: Finishing onboarding');
       _skipOnboarding();
     }
   }
@@ -99,9 +95,9 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
             NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification is ScrollStartNotification) {
-                 ref.read(isUserInteractingProvider.notifier).state=true;
+                  ref.read(isUserInteractingProvider.notifier).state = true;
                 } else if (notification is ScrollEndNotification) {
-                  ref.read(isUserInteractingProvider.notifier).state=true;
+                  ref.read(isUserInteractingProvider.notifier).state = false;
                   _startAutoScroll();
                 }
                 return false;
@@ -110,6 +106,7 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
                 controller: _pageController,
                 physics: const ClampingScrollPhysics(),
                 onPageChanged: (index) {
+                  print('Page changed to: $index');
                   ref.read(currentOnboardingPageProvider.notifier).state = index;
                 },
                 itemCount: pages.length,
@@ -205,7 +202,6 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
       ),
     );
   }
-
 }
 
 class OnBoardingPageData {

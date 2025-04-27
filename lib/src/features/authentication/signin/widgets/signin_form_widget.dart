@@ -15,6 +15,7 @@ import '../../../../../const/app_strings.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../theme/app_colors.dart';
+import '../../../doctor/doctor_main_view.dart';
 import '../../../doctor/home/views/doctor_home_view.dart';
 import '../../../patient/providers/patient_providers.dart';
 import '../../../patient/views/patient_main_view.dart';
@@ -209,7 +210,7 @@ class SignInFormWidget extends ConsumerWidget {
           text: result['message'],
         );
         if (result['userType'] == 'Doctor') {
-          AppNavigation.pushReplacement(const DoctorHomeView());
+          AppNavigation.pushReplacement(const DoctorMainView());
         } else if (result['userType'] == 'Patient') {
           ref.refresh(currentSignInPatientDataProvider);
           ref.refresh(doctorsProvider);

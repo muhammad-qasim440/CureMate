@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
@@ -103,19 +104,5 @@ class NearByDoctorsCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371;
-    double dLat = (lat2 - lat1) * pi / 180.0;
-    double dLon = (lon2 - lon1) * pi / 180.0;
-
-    lat1 = lat1 * pi / 180.0;
-    lat2 = lat2 * pi / 180.0;
-
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-        sin(dLon / 2) * sin(dLon / 2) * cos(lat1) * cos(lat2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadius * c;
   }
 }

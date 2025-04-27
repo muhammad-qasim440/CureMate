@@ -1,7 +1,6 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/src/features/doctor/chat/views/doctor_chat_view.dart';
-import 'package:curemate/src/features/patient/chat/views/chat_view.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,7 @@ import '../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
 import '../../shared/widgets/custom_button_widget.dart';
 import '../../theme/app_colors.dart';
 import '../authentication/signin/providers/auth-provider.dart';
-import 'home/views/doctor_home_view.dart';
+import 'bookings/views/doctor_booking_view.dart';
 
 
 final doctorBottomNavIndexProvider = StateProvider<int>((ref) => 0);
@@ -27,10 +26,10 @@ class DoctorMainView extends ConsumerStatefulWidget {
 
 class _DoctorMainViewState extends ConsumerState<DoctorMainView> {
   final List<Widget> _screens = const [
-    DoctorHomeView(),
-    DummyScreen(title: 'Bookings'),
-    DummyScreen(title: 'Profile'),
+    DummyScreen(title: 'Home'),
+    DoctorBookingsView(),
     DoctorChatView(),
+    DummyScreen(title: 'Profile'),
   ];
 
   @override
@@ -40,7 +39,6 @@ class _DoctorMainViewState extends ConsumerState<DoctorMainView> {
       onWillPop: () async {
         if (selectedIndex != 0) {
           ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
-          print('WillPopScope: Set bottomNavIndex to 0 from $selectedIndex');
           return false;
         }
         ExitAppBottomSheet(
@@ -56,7 +54,6 @@ class _DoctorMainViewState extends ConsumerState<DoctorMainView> {
           currentIndex: selectedIndex,
           onTap: (index) {
             ref.read(doctorBottomNavIndexProvider.notifier).state = index;
-            print('BottomNavigationBar: Changed index to $index');
           },
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,

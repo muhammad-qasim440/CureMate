@@ -62,7 +62,7 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
         borderRadius: BorderRadius.circular(widget.borderRadius ?? 8),
         boxShadow: [
           BoxShadow(
-            color: widget.shadowColor ?? Colors.black.withOpacity(0.3),
+            color: widget.shadowColor ?? Colors.transparent,
             blurRadius: widget.elevation ?? 9.0,
             offset: const Offset(0, 3),
           ),
@@ -71,6 +71,7 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
       child: ElevatedButton(
         onPressed: widget.isEnabled ? widget.onPressed : null,
         style: ElevatedButton.styleFrom(
+          disabledBackgroundColor: Colors.transparent,
           backgroundColor: Colors.transparent,
           foregroundColor: widget.textColor ?? Colors.white,
           padding: widget.padding ?? EdgeInsets.zero,

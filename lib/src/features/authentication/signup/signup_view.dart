@@ -22,6 +22,7 @@ import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
+import '../../doctor/doctor_main_view.dart';
 import '../../doctor/home/views/doctor_home_view.dart';
 import '../signin/providers/auth-provider.dart';
 
@@ -153,14 +154,13 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
     }
 
     if (!mounted) return;
-
     if (result == 'Account created successfully!') {
       CustomSnackBarWidget.show(
         context: context,
         text: "Sign Up Successful!",
       );
       AppNavigation.pushReplacement(
-        user == 'Doctor' ? const DoctorHomeView() : PatientMainView(),
+        user == 'Doctor' ? const DoctorMainView() :const PatientMainView(),
       );
     } else {
       CustomSnackBarWidget.show(

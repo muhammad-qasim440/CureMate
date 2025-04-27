@@ -1,6 +1,4 @@
 import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

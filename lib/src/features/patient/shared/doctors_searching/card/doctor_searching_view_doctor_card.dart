@@ -1,5 +1,7 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/bookings/views/appointment_booking_view.dart';
 import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -216,7 +218,9 @@ class DoctorSearchingViewDoctorCard extends ConsumerWidget {
                   textColor: Colors.white,
                   shadowColor: Colors.transparent,
                   borderRadius: 6,
-                  onPressed: () {},
+                  onPressed: () {
+                    AppNavigation.push(AppointmentBookingView(doctor: doctor, isFavorite: isFavorite));
+                  },
                 ),
               ],
             ),

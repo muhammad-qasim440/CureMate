@@ -58,7 +58,7 @@ class ChatListItem extends ConsumerWidget {
             imageUrl: data['profileImageUrl']?.isNotEmpty == true
                 ? data['profileImageUrl']
                 : '',
-            placeholder: (context, url) => const CircularProgressIndicator(),
+            placeholder: (context, url) => const CircularProgressIndicator(color: AppColors.gradientGreen,),
             errorWidget: (context, url, error) => Text(
               otherUserName.isNotEmpty ? otherUserName[0] : '?',
               style: const TextStyle(fontSize: 20),
@@ -68,7 +68,7 @@ class ChatListItem extends ConsumerWidget {
             ),
           ),
         ),
-        loading: () => const CircleAvatar(child: CircularProgressIndicator()),
+        loading: () => const CircleAvatar(child: CircularProgressIndicator(color: AppColors.gradientGreen,)),
         error: (error, _) => CircleAvatar(
           child: Text(
             otherUserName.isNotEmpty ? otherUserName[0] : '?',

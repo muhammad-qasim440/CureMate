@@ -3,7 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../const/app_strings.dart';
+import '../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
+import '../home/widgets/near_by_doctors_searching_radius_provider_widget.dart';
 class Patient {
   final String uid;
   final String fullName;
@@ -47,7 +50,6 @@ class Patient {
     );
   }
 }
-
 class Doctor {
   final String uid;
   final String fullName;
@@ -63,11 +65,13 @@ class Doctor {
   final String qualification;
   final String yearsOfExperience;
   final String category;
+  final String hospital;
   final double averageRatings;
   final int numberOfReviews;
   final int totalReviews;
   final int totalPatientConsulted;
   final int consultationFee;
+  final Map<String, dynamic> availability; // New field
 
   Doctor({
     required this.uid,
@@ -84,11 +88,13 @@ class Doctor {
     required this.qualification,
     required this.yearsOfExperience,
     required this.category,
+    required this.hospital,
     required this.averageRatings,
     required this.numberOfReviews,
     required this.totalReviews,
     required this.totalPatientConsulted,
     required this.consultationFee,
+    required this.availability,
   });
 
   factory Doctor.fromMap(Map<dynamic, dynamic> map, String uid) {
@@ -107,17 +113,20 @@ class Doctor {
       qualification: map['qualification'] ?? '',
       yearsOfExperience: map['yearsOfExperience'] ?? '',
       category: map['category'] ?? '',
+      hospital: map['hospital'] ?? '',
       averageRatings: (map['averageRatings'] as num?)?.toDouble() ?? 0.0,
       numberOfReviews: map['numberOfReviews'] ?? 0,
       totalReviews: map['totalReviews'] ?? 0,
       totalPatientConsulted: map['totalPatientConsulted'] ?? 0,
       consultationFee: map['consultationFee'] ?? 0,
+      availability: (map['availability'] as Map<dynamic, dynamic>?)?.map((key, value) {
+        return MapEntry(key as String, value);
+      }) ?? {},
     );
   }
 }
 final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
   final isNetworkConnected=ref.read(checkInternetConnectionProvider.future);
-  // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
       yield []; // User logged out, return empty list
@@ -148,14 +157,11 @@ final doctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
   }
 });
 final currentSignInPatientDataProvider = StreamProvider<Patient?>((ref) async* {
-  // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
-      yield null; // User logged out, return null
+      yield null;
       continue;
     }
-
-    // User is logged in, fetch patient data
     final database = FirebaseDatabase.instance.ref();
     final patientRef = database.child('Patients').child(user.uid);
 
@@ -171,12 +177,19 @@ final currentSignInPatientDataProvider = StreamProvider<Patient?>((ref) async* {
 });
 final nearByDoctorsProvider = FutureProvider<List<Doctor>>((ref) async {
   final patientAsync = ref.watch(currentSignInPatientDataProvider);
+  final searchingRadius = ref.watch(radiusProvider);
   var doctors = ref.watch(doctorsProvider).value ?? [];
+
   if (patientAsync.value == null) {
     return [];
   }
 
   final patient = patientAsync.value!;
+  if (searchingRadius == 0) {
+    return doctors;
+  }
+
+  // If not 'All', filter doctors by distance within the selected radius
   final nearbyDoctors = doctors
       .map((doctor) {
     final distance = calculateDistance(
@@ -187,24 +200,12 @@ final nearByDoctorsProvider = FutureProvider<List<Doctor>>((ref) async {
     );
     return MapEntry(doctor, distance);
   })
-      .where((entry) => entry.value <= 30)
+      .where((entry) => entry.value <= searchingRadius) // Only doctors within the radius
       .toList()
-    ..sort((a, b) => a.value.compareTo(b.value));
+    ..sort((a, b) => a.value.compareTo(b.value)); // Sort by distance
+
   return nearbyDoctors.map((entry) => entry.key).toList();
 });
-double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-  const double earthRadius = 6371; // Earth radius in kilometers
-  double dLat = (lat2 - lat1) * pi / 180.0;
-  double dLon = (lon2 - lon1) * pi / 180.0;
-
-  lat1 = lat1 * pi / 180.0;
-  lat2 = lat2 * pi / 180.0;
-
-  double a = sin(dLat / 2) * sin(dLat / 2) +
-      sin(dLon / 2) * sin(dLon / 2) * cos(lat1) * cos(lat2);
-  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return earthRadius * c;
-}
 final favoriteDoctorUidsProvider = StreamProvider<List<String>>((ref) async* {
   // Listen to auth state changes
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
@@ -221,6 +222,39 @@ final favoriteDoctorUidsProvider = StreamProvider<List<String>>((ref) async* {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
       final favoriteDoctorUids = data?.keys.cast<String>().toList() ?? [];
       yield favoriteDoctorUids;
+    }
+  }
+});
+final favoriteDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
+  await for (final user in FirebaseAuth.instance.authStateChanges()) {
+    if (user == null) {
+      yield [];
+      continue;
+    }
+
+    final database = FirebaseDatabase.instance.ref();
+    final favoritesRef = database.child('Patients').child(user.uid).child('favorites');
+
+    await for (final event in favoritesRef.onValue) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (data == null) {
+        yield [];
+        continue;
+      }
+
+      final doctorUids = data.keys.cast<String>();
+      final favoriteDoctors = <Doctor>[];
+
+      for (final uid in doctorUids) {
+        final snapshot = await database.child('Doctors').child(uid).get();
+        if (snapshot.exists) {
+          final doctor = Doctor.fromMap(snapshot.value as Map, uid);
+          favoriteDoctors.add(doctor);
+        }
+      }
+
+      yield favoriteDoctors;
     }
   }
 });

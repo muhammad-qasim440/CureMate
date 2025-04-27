@@ -38,9 +38,9 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      focusNode: widget.applyFocusNode ? _focusNode : null,
+      // focusNode: widget.applyFocusNode ? _focusNode : null,
       decoration: InputDecoration(
-        hintText: ref.watch(widget.provider),
+        hintText: 'Search...',
         prefixIcon: const Icon(
           Icons.search,
           color: AppColors.subtextcolor,
