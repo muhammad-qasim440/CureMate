@@ -219,7 +219,7 @@ class DoctorSearchingViewDoctorCard extends ConsumerWidget {
                   shadowColor: Colors.transparent,
                   borderRadius: 6,
                   onPressed: () {
-                    AppNavigation.push(AppointmentBookingView(doctor: doctor, isFavorite: isFavorite));
+                    AppNavigation.push(AppointmentBookingView(doctor: doctor,));
                   },
                 ),
               ],

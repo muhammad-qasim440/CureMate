@@ -1,16 +1,21 @@
+import 'dart:async';
 import 'package:curemate/core/utils/debug_print.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/format_last_seen_time.dart';
+import '../../../features/authentication/signin/providers/auth-provider.dart';
 import 'chatting_auth_providers.dart';
 
-
-final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) async* {
+  final authService = ref.read(authProvider);
   final user = ref.watch(currentUserProvider).value;
-  if (user == null) return Stream.value([]);
+  if (user == null) {
+    yield [];
+    return;
+  }
 
   final database = FirebaseDatabase.instance.ref();
-  return database.child('Chats/${user.uid}').onValue.asyncMap((event) async {
+  final subscription = database.child('Chats/${user.uid}').onValue.listen((event) async {
     final chats = <Map<String, dynamic>>[];
     final snapshot = event.snapshot;
 
@@ -21,25 +26,33 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
         final chat = entry.value as Map<dynamic, dynamic>;
         final chatId = chat['chatId'] as String;
 
-        // Fetch last message
-        final messagesSnapshot = await database
-            .child('Messages/$chatId')
-            .orderByChild('timestamp')
-            .limitToLast(1)
-            .once();
         String? senderId;
-        String lastMessage = chat['lastMessage'] ?? '';
-        int timestamp = chat['timestamp'] ?? 0;
+        String lastMessage = '';
+        int timestamp = 0;
 
-        if (messagesSnapshot.snapshot.exists) {
-          final messages = messagesSnapshot.snapshot.value as Map<dynamic, dynamic>;
-          final lastMessageData = messages.values.first;
-          senderId = lastMessageData['senderId'] as String?;
-          lastMessage = lastMessageData['text'] as String? ?? '';
-          timestamp = lastMessageData['timestamp'] as int? ?? 0;
+        try {
+          final messagesSnapshot = await database
+              .child('Messages/$chatId')
+              .orderByChild('timestamp')
+              .limitToLast(1)
+              .once();
+          if (messagesSnapshot.snapshot.exists) {
+            final messageData = (messagesSnapshot.snapshot.value as Map<dynamic, dynamic>).values.first as Map<dynamic, dynamic>;
+            senderId = messageData['senderId'] as String?;
+            lastMessage = messageData['text'] as String? ?? '';
+            timestamp = messageData['timestamp'] as int? ?? 0;
+            logDebug('chatListProvider: Fetched lastMessage="$lastMessage", timestamp=$timestamp, senderId=$senderId');
+          } else {
+            lastMessage = chat['lastMessage']?.toString() ?? '';
+            timestamp = chat['timestamp'] as int? ?? 0;
+            logDebug('chatListProvider: Fallback lastMessage="$lastMessage", timestamp=$timestamp');
+          }
+        } catch (e) {
+          logDebug('chatListProvider: Error fetching messages for chatId=$chatId, error: $e');
+          lastMessage = chat['lastMessage']?.toString() ?? '';
+          timestamp = chat['timestamp'] as int? ?? 0;
         }
 
-        // Determine otherUserName based on user type
         String otherUserName;
         final isPatient = user.userType == 'Patient';
         if (isPatient) {
@@ -48,9 +61,8 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
           otherUserName = chat['patientName']?.trim() ?? '';
         }
 
-        // Fetch from database if name is empty or invalid
         if (otherUserName.isEmpty || otherUserName == otherUserId) {
-          logDebug('Fetching name for otherUserId: $otherUserId');
+          logDebug('chatListProvider: Fetching name for otherUserId: $otherUserId');
           try {
             final targetNode = isPatient ? 'Doctors' : 'Patients';
             final snapshot = await database.child('$targetNode/$otherUserId').get();
@@ -58,10 +70,10 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
               otherUserName = (snapshot.value as Map)['fullName']?.trim() ?? 'Unknown';
             } else {
               otherUserName = 'Unknown';
-              logDebug('No data found in $targetNode for otherUserId: $otherUserId');
+              logDebug('chatListProvider: No data found in $targetNode for otherUserId: $otherUserId');
             }
           } catch (e) {
-            logDebug('Error fetching name for otherUserId: $otherUserId, error: $e');
+            logDebug('chatListProvider: Error fetching name for otherUserId: $otherUserId, error: $e');
             otherUserName = 'Unknown';
           }
         }
@@ -79,13 +91,17 @@ final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
       chats.sort((a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
     }
 
-    return chats;
+    ref.state = AsyncValue.data(chats);
+    ref.state.whenData((value) => value);
   });
+  authService.addRealtimeDbListener(subscription);
+
+  yield ref.state.value ?? [];
 });
-
-
-final chatMessagesProvider = StreamProvider.family<List<Map<String, dynamic>>, String>((ref, chatId) {
-  return FirebaseDatabase.instance.ref().child('Messages/$chatId').onValue.map((event) {
+final chatMessagesProvider = StreamProvider.family<List<Map<String, dynamic>>, String>((ref, chatId) async* {
+  final authService = ref.read(authProvider);
+  ref.watch(currentUserProvider);
+  final subscription = FirebaseDatabase.instance.ref().child('Messages/$chatId').onValue.listen((event) {
     final messages = <Map<String, dynamic>>[];
     if (event.snapshot.value != null) {
       final data = Map<String, dynamic>.from(event.snapshot.value as Map);
@@ -97,50 +113,122 @@ final chatMessagesProvider = StreamProvider.family<List<Map<String, dynamic>>, S
       });
       messages.sort((a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
     }
-    return messages;
+    ref.state = AsyncValue.data(messages);
+    ref.state.whenData((value) => value);
   });
+  authService.addRealtimeDbListener(subscription);
+  yield ref.state.value ?? [];
 });
-
-final typingIndicatorProvider = StreamProvider.family<bool, String>((ref, chatId) {
+final typingIndicatorProvider = StreamProvider.family<bool, String>((ref, chatId) async* {
+  final authService = ref.read(authProvider);
   final user = ref.watch(currentUserProvider).value;
-  if (user == null) return Stream.value(false);
+  if (user == null) {
+    yield false;
+    return;
+  }
 
   final parts = chatId.split('_');
   final otherUserId = parts.first == user.uid ? parts.last : parts.first;
 
-  return FirebaseDatabase.instance
+  final subscription = FirebaseDatabase.instance
       .ref()
       .child('Chats/$otherUserId/${user.uid}/typing')
       .onValue
-      .map((event) => event.snapshot.value as bool? ?? false);
+      .listen((event) {
+    final isTyping = event.snapshot.value as bool? ?? false;
+    ref.state = AsyncValue.data(isTyping);
+    ref.state.whenData((value) => value);
+  });
+  authService.addRealtimeDbListener(subscription);
+  yield ref.state.value ?? false;
 });
-
-
-final chatSettingsProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
-  return FirebaseDatabase.instance
+final chatSettingsProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) async* {
+  final authService = ref.read(authProvider);
+  ref.watch(currentUserProvider);
+  final subscription = FirebaseDatabase.instance
       .ref()
       .child('Users/$uid/settings')
       .onValue
-      .map((event) => Map<String, dynamic>.from(event.snapshot.value as Map? ?? {'allowChat': true}));
+      .listen((event) {
+    final settings = Map<String, dynamic>.from(event.snapshot.value as Map? ?? {'allowChat': true});
+    ref.state = AsyncValue.data(settings);
+    ref.state.whenData((value) => value);
+  });
+  authService.addRealtimeDbListener(subscription);
+  yield ref.state.value ?? {'allowChat': true};
 });
-
-final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) {
-  return FirebaseDatabase.instance.ref().child('Users/$uid').onValue.map((event) =>
-     Map<String, dynamic>.from(event.snapshot.value as Map? ?? {}));
+final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, uid) async* {
+  final authService = ref.read(authProvider);
+  ref.watch(currentUserProvider);
+  final subscription = FirebaseDatabase.instance.ref().child('Users/$uid').onValue.listen((event) {
+    final profile = Map<String, dynamic>.from(event.snapshot.value as Map? ?? {});
+    ref.state = AsyncValue.data(profile);
+    ref.state.whenData((value) => value);
+  });
+  authService.addRealtimeDbListener(subscription);
+  yield ref.state.value ?? {};
 });
-
-final formattedLastSeenProvider = StreamProvider.family<String, String>((ref, userId) {
+final formattedLastSeenProvider = StreamProvider.family<String, String>((ref, userId) async* {
   final userRef = FirebaseDatabase.instance.ref().child('Users/$userId/status');
-  return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
+  Timer? timer;
+
+  final subscription = Stream.periodic(const Duration(seconds: 1)).listen((_) async {
     final snapshot = await userRef.get();
     final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
-
     final ping = data['ping'] as int?;
-    if (ping == null) return 'Offline';
-
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final isOnline = now - ping < 15000;
-
-    return isOnline ? 'Online' : formatLastSeen(ping);
+    if (ping == null) {
+      ref.state = AsyncValue.data('Offline');
+    } else {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final isOnline = now - ping < 15000;
+      ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+    }
+    ref.state.whenData((value) => value);
   });
+
+  timer = Timer.periodic(const Duration(seconds: 1), (_) async {
+    final snapshot = await userRef.get();
+    final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
+    final ping = data['ping'] as int?;
+    if (ping == null) {
+      ref.state = AsyncValue.data('Offline');
+    } else {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final isOnline = now - ping < 15000;
+      ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+    }
+  });
+
+  ref.onDispose(() {
+    timer?.cancel();
+    subscription.cancel();
+  });
+  yield ref.state.value ?? 'Offline';
+});
+final unseenMessagesProvider = StreamProvider.family<int, String>((ref, chatId) async* {
+  final authService = ref.read(authProvider);
+  final user = ref.watch(currentUserProvider).value;
+  if (user == null) {
+    logDebug('unseenMessagesProvider: User is null');
+    yield 0;
+    return;
+  }
+  final messagesRef = FirebaseDatabase.instance.ref().child('Messages/$chatId');
+  final subscription = messagesRef.onValue.listen((event) {
+    int unseenCount = 0;
+    if (event.snapshot.exists) {
+      final messages = Map<String, dynamic>.from(event.snapshot.value as Map);
+      messages.forEach((key, value) {
+        final message = Map<String, dynamic>.from(value);
+        if (message['senderId'] != user.uid && !(message['seen'] ?? false)) {
+          unseenCount++;
+        }
+      });
+    }
+    logDebug('unseenMessagesProvider: Unseen count for $chatId = $unseenCount');
+    ref.state = AsyncValue.data(unseenCount);
+    ref.state.whenData((value) => value);
+  });
+  authService.addRealtimeDbListener(subscription);
+  yield ref.state.value ?? 0;
 });

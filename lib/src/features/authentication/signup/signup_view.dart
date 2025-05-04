@@ -155,6 +155,8 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
 
     if (!mounted) return;
     if (result == 'Account created successfully!') {
+      ref.read(profileImagePickerProvider.notifier).reset(ref);
+      ref.read(daySlotConfigsProvider.notifier).state=[];
       CustomSnackBarWidget.show(
         context: context,
         text: "Sign Up Successful!",
@@ -172,21 +174,6 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
 
   @override
   void dispose() {
-    ref.refresh(userProfileProvider);
-    ref.refresh(profileImageURLProvider);
-    ref.refresh(emailProvider);
-    ref.refresh(passwordProvider);
-    ref.refresh(fullNameProvider);
-    ref.refresh(phoneNumberProvider);
-    ref.refresh(dateOfBirthProvider);
-    ref.refresh(cityProvider);
-    ref.refresh(locationLatitudeProvider);
-    ref.refresh(locationLongitudeProvider);
-    ref.refresh(docConsultancyFeeProvider);
-    ref.refresh(docYearsOfExperienceProvider);
-    ref.refresh(hidePasswordProvider);
-    ref.refresh(isSigningUpProvider);
-    ref.read(profileImagePickerProvider.notifier).reset(ref);
     super.dispose();
   }
 

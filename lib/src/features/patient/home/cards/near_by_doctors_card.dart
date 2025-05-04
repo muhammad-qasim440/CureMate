@@ -26,7 +26,7 @@ class NearByDoctorsCard extends StatelessWidget {
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
-        AppNavigation.push(DoctorDetailsView(doctor: doctor));
+        AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(
         width: ScreenUtil.scaleWidth(context, 190),

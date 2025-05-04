@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../theme/app_colors.dart';
 import '../../providers/profile_image_picker_provider/profile_image_picker_provider.dart';
 
 class ProfileImagePickerWidget extends ConsumerWidget {
@@ -43,7 +44,7 @@ class ProfileImagePickerWidget extends ConsumerWidget {
           ),
           child: ClipOval(
             child: imageState.isProcessing
-                ? const Center(child: CircularProgressIndicator())
+                ?  const Center(child: CircularProgressIndicator(color: AppColors.gradientGreen,))
                 : imageState.croppedImage != null
                 ? Image.file(
               File(imageState.croppedImage!.path),

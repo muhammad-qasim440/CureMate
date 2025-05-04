@@ -38,7 +38,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
-        AppNavigation.push(DoctorDetailsView(doctor: doctor));
+        AppNavigation.push(DoctorProfileView(doctor: doctor));
 
       },
       child: Stack(
@@ -131,7 +131,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
                 ),
                 child: Icon(
                   isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : const Color(0xFF6B46C1), // Purple for not favorited
+                  color: isFavorite ? Colors.red : const Color(0xFF6B46C1),
                   size: 20,
                 ),
               ),

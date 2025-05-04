@@ -11,14 +11,14 @@ import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../../shared/chat/providers/chat_list_search_query_provider.dart';
 import '../widgets/patient_chat_view_header.dart';
 
-class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key});
+class PatientChatView extends ConsumerStatefulWidget {
+  const PatientChatView({super.key});
 
   @override
-  ConsumerState<ChatView> createState() => _ChatViewState();
+  ConsumerState<PatientChatView> createState() => _ChatViewState();
 }
 
-class _ChatViewState extends ConsumerState<ChatView> {
+class _ChatViewState extends ConsumerState<PatientChatView> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
@@ -52,9 +52,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
                         final otherUserName =
                             chat['otherUserName']?.trim() ??
                                 'Unknown';
-                        print(
-                          'ChatListItem $index: otherUserId=${chat['otherUserId']}, otherUserName=$otherUserName',
-                        );
                         return ChatListItem(
                           otherUserId: chat['otherUserId'] ?? '',
                           otherUserName: otherUserName,

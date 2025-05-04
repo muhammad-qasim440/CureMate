@@ -1,11 +1,13 @@
-// select_time_view.dart
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 import '../../../../const/app_fonts.dart';
+import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
 import '../../../router/nav.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
@@ -15,22 +17,26 @@ import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
+import '../../bookings/models/appointment_model.dart';
 import '../../patient/providers/patient_providers.dart';
 import '../providers/booking_providers.dart';
 import 'confirmation_view.dart';
-import 'select_time_view.dart';
 
+final selectedDayProvider = StateProvider<DateTime?>((ref) => null);
+final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final selectedTimeSlotProvider = StateProvider<String?>((ref) => null);
+final selectedSlotTypeProvider = StateProvider<String?>((ref) => null);
+final reminderProvider = StateProvider<String>((ref) => '25 min');
+final categorizedTimeSlotsProvider = StateProvider<Map<String, List<String>>>((ref) => {});
 
 class SelectTimeView extends ConsumerStatefulWidget {
   final Doctor doctor;
-  final String patientName;
-  final String contactNumber;
+  final AppointmentModel? appointment; // Add this for editing
 
   const SelectTimeView({
     super.key,
     required this.doctor,
-    required this.patientName,
-    required this.contactNumber,
+    this.appointment,
   });
 
   @override
@@ -38,397 +44,849 @@ class SelectTimeView extends ConsumerStatefulWidget {
 }
 
 class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  String? _selectedTimeSlot;
-  String _reminder = '30 min';
-  List<String> _availableTimeSlots = [];
-
   @override
   void initState() {
     super.initState();
-    _selectedDay = _findNextAvailableDay();
-    _updateTimeSlots(_selectedDay!);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final availableDays = widget.doctor.availability.map((avail) => avail['day'] as String).toList();
+      DateTime initialDay;
+      String? initialTimeSlot;
+      String? initialSlotType;
+
+      if (widget.appointment != null) {
+        try {
+          initialDay = DateFormat('yyyy-MM-dd').parse(widget.appointment!.date);
+          initialTimeSlot = widget.appointment!.timeSlot;
+          initialSlotType = widget.appointment!.slotType;
+        } catch (e) {
+          initialDay = findNextAvailableDay(availableDays);
+          initialTimeSlot = null;
+          initialSlotType = null;
+        }
+      } else {
+        initialDay = findNextAvailableDay(availableDays);
+        initialTimeSlot = null;
+        initialSlotType = null;
+      }
+
+      ref.read(selectedDayProvider.notifier).state = initialDay;
+      ref.read(focusedDayProvider.notifier).state = initialDay;
+      ref.read(selectedTimeSlotProvider.notifier).state = initialTimeSlot;
+      ref.read(selectedSlotTypeProvider.notifier).state = initialSlotType;
+      updateTimeSlots(initialDay, availableDays);
+    });
   }
 
-  DateTime _findNextAvailableDay() {
+  DateTime findNextAvailableDay(List<String> availableDays) {
     final now = DateTime.now();
-    final daysOfWeek = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-    final availableDays = widget.doctor.availability['days'] as List<dynamic>? ?? [];
-
     for (int i = 0; i < 7; i++) {
       final day = now.add(Duration(days: i));
-      final dayName = daysOfWeek[day.weekday - 1];
+      final dayName = AppStrings.daysOfWeek[day.weekday - 1];
       if (availableDays.contains(dayName)) {
-        if (day.isAfter(now) || (day.day == now.day && day.month == now.month && day.year == now.year)) {
-          return DateTime(day.year, day.month, day.day);
-        }
+        return DateTime(day.year, day.month, day.day);
       }
     }
     return now;
   }
 
-  void _updateTimeSlots(DateTime selectedDay) {
-    final daysOfWeek = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-    final dayName = daysOfWeek[selectedDay.weekday - 1];
-    final availableDays = widget.doctor.availability['days'] as List<dynamic>? ?? [];
-    final morning = widget.doctor.availability['morning'] as bool? ?? false;
-    final afternoon = widget.doctor.availability['afternoon'] as bool? ?? false;
-    final evening = widget.doctor.availability['evening'] as bool? ?? false;
+  void updateTimeSlots(DateTime selectedDay, List<String> availableDays) {
+    final dayName = AppStrings.daysOfWeek[selectedDay.weekday - 1];
+    final availability = widget.doctor.availability.firstWhere(
+          (avail) => avail['day'] == dayName,
+      orElse: () => {},
+    );
 
-    List<String> timeSlots = [];
-    if (availableDays.contains(dayName)) {
-      if (morning) {
-        timeSlots.addAll(['09:00 AM', '10:00 AM', '11:00 AM']);
-      }
-      if (afternoon) {
-        timeSlots.addAll(['12:00 PM', '01:00 PM', '02:00 PM']);
-      }
-      if (evening) {
-        timeSlots.addAll(['03:00 PM', '04:00 PM', '05:00 PM']);
+    Map<String, List<String>> categorizedSlots = {
+      'Morning': [],
+      'Afternoon': [],
+      'Evening': [],
+      'FullDay': [],
+    };
+
+    if (availability.isNotEmpty) {
+      if (availability['isFullDay'] == true) {
+        categorizedSlots['FullDay'] = generateHourlySlots(availability['startTime'], availability['endTime']);
+      } else {
+        if (availability['morning']?['isAvailable'] == true) {
+          categorizedSlots['Morning'] = generateHourlySlots(availability['morning']['startTime'], availability['morning']['endTime']);
+        }
+        if (availability['afternoon']?['isAvailable'] == true) {
+          categorizedSlots['Afternoon'] = generateHourlySlots(availability['afternoon']['startTime'], availability['afternoon']['endTime']);
+        }
+        if (availability['evening']?['isAvailable'] == true) {
+          categorizedSlots['Evening'] = generateHourlySlots(availability['evening']['startTime'], availability['evening']['endTime']);
+        }
       }
     }
 
-    // Filter out past time slots if the selected day is today
     final now = DateTime.now();
-    if (selectedDay.day == now.day &&
-        selectedDay.month == now.month &&
-        selectedDay.year == now.year) {
-      timeSlots = timeSlots.where((slot) {
-        final hour = int.parse(slot.split(':')[0]);
-        final isPM = slot.contains('PM');
-        final slotHour = isPM && hour != 12 ? hour + 12 : hour;
-        return slotHour > now.hour;
-      }).toList();
+    if (selectedDay.day == now.day && selectedDay.month == now.month && selectedDay.year == now.year) {
+      categorizedSlots = categorizedSlots.map((category, slots) {
+        return MapEntry(
+          category,
+          slots.where((slot) {
+            final parsedTime = DateFormat('hh:mm a').parse(slot);
+            final slotHour = parsedTime.hour;
+            final slotMinute = parsedTime.minute;
+            return slotHour > now.hour || (slotHour == now.hour && slotMinute > now.minute);
+          }).toList(),
+        );
+      });
     }
 
-    setState(() {
-      _availableTimeSlots = timeSlots;
-      _selectedTimeSlot = timeSlots.isNotEmpty ? timeSlots.first : null;
-    });
+    ref.read(categorizedTimeSlotsProvider.notifier).state = categorizedSlots;
+
+    String? selectedTimeSlot = ref.read(selectedTimeSlotProvider);
+    String? selectedSlotType = ref.read(selectedSlotTypeProvider);
+
+    if (selectedTimeSlot != null && categorizedSlots[selectedSlotType]?.contains(selectedTimeSlot) == true) {
+    } else if (categorizedSlots['FullDay']!.isNotEmpty) {
+      ref.read(selectedTimeSlotProvider.notifier).state = categorizedSlots['FullDay']!.first;
+      ref.read(selectedSlotTypeProvider.notifier).state = 'FullDay';
+    } else if (categorizedSlots['Morning']!.isNotEmpty) {
+      ref.read(selectedTimeSlotProvider.notifier).state = categorizedSlots['Morning']!.first;
+      ref.read(selectedSlotTypeProvider.notifier).state = 'Morning';
+    } else if (categorizedSlots['Afternoon']!.isNotEmpty) {
+      ref.read(selectedTimeSlotProvider.notifier).state = categorizedSlots['Afternoon']!.first;
+      ref.read(selectedSlotTypeProvider.notifier).state = 'Afternoon';
+    } else if (categorizedSlots['Evening']!.isNotEmpty) {
+      ref.read(selectedTimeSlotProvider.notifier).state = categorizedSlots['Evening']!.first;
+      ref.read(selectedSlotTypeProvider.notifier).state = 'Evening';
+    } else {
+      ref.read(selectedTimeSlotProvider.notifier).state = null;
+      ref.read(selectedSlotTypeProvider.notifier).state = null;
+    }
+  }
+
+  List<String> generateHourlySlots(String startTime, String endTime) {
+    List<String> slots = [];
+    DateTime start = DateFormat('hh:mm a').parse(startTime);
+    DateTime end = DateFormat('hh:mm a').parse(endTime);
+
+    if (end.isBefore(start)) {
+      end = end.add(const Duration(days: 1));
+    }
+
+    DateTime current = start;
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+      slots.add(DateFormat('hh:mm a').format(current));
+      current = current.add(const Duration(hours: 1));
+    }
+
+    return slots;
+  }
+
+  void showDoctorAvailability(BuildContext context, Doctor doctor) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            'Doctor Availability',
+            style: TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: doctor.availability.map((avail) {
+                final day = avail['day'] as String;
+                List<String> slots = [];
+                if (avail['isFullDay'] == true) {
+                  slots.add('${avail['startTime']} - ${avail['endTime']} (Full Day)');
+                } else {
+                  if (avail['morning']?['isAvailable'] == true) {
+                    slots.add('Morning: ${avail['morning']['startTime']} - ${avail['morning']['endTime']}');
+                  }
+                  if (avail['afternoon']?['isAvailable'] == true) {
+                    slots.add('Afternoon: ${avail['afternoon']['startTime']} - ${avail['afternoon']['endTime']}');
+                  }
+                  if (avail['evening']?['isAvailable'] == true) {
+                    slots.add('Evening: ${avail['evening']['startTime']} - ${avail['evening']['endTime']}');
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        day,
+                        style: const TextStyle(
+                          fontFamily: AppFonts.rubik,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.black,
+                        ),
+                      ),
+                      ...slots.map((slot) => Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 4.0),
+                        child: Text(
+                          slot,
+                          style: const TextStyle(
+                            fontFamily: AppFonts.rubik,
+                            fontSize: 14,
+                            color: AppColors.subtextcolor,
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Close',
+                style: TextStyle(
+                  fontFamily: AppFonts.rubik,
+                  fontSize: 14,
+                  color: AppColors.gradientGreen,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final daysOfWeek = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-    final availableDays = widget.doctor.availability['days'] as List<dynamic>? ?? [];
-    final nextAvailableDay = _findNextAvailableDay();
-    final nextAvailableDayName = daysOfWeek[nextAvailableDay.weekday - 1];
-    final nextAvailableDate = '${nextAvailableDay.day} ${nextAvailableDay.month == 2 ? 'Feb' : 'Unknown'}';
+    final availableDays = widget.doctor.availability.map((avail) => avail['day'] as String).toList();
+    final selectedDay = ref.watch(selectedDayProvider);
+    final focusedDay = ref.watch(focusedDayProvider);
+    final categorizedTimeSlots = ref.watch(categorizedTimeSlotsProvider);
+    final isEditing = widget.appointment != null;
 
     return Scaffold(
       body: Stack(
         children: [
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                color: AppColors.gradientGreen.withOpacity(0.1),
-                child: SafeArea(
-                  child: Column(
+          const LowerBackgroundEffectsWidgets(),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const CustomAppBarHeaderWidget(title: 'Select Time'),
-                      16.height,
-                      Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: ScreenUtil.scaleWidth(context, 60),
-                              height: ScreenUtil.scaleHeight(context, 60),
-                              child: widget.doctor.profileImageUrl.isNotEmpty
-                                  ? Image.network(
-                                widget.doctor.profileImageUrl,
-                                fit: BoxFit.cover,
-                              )
-                                  : Image.asset(
-                                'assets/default_doctor.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          12.width,
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomTextWidget(
-                                text: widget.doctor.fullName,
-                                textStyle: TextStyle(
-                                  fontFamily: AppFonts.rubik,
-                                  fontSize: FontSizes(context).size18,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.black,
-                                ),
-                              ),
-                              CustomTextWidget(
-                                text: widget.doctor.category,
-                                textStyle: TextStyle(
-                                  fontFamily: AppFonts.rubik,
-                                  fontSize: FontSizes(context).size14,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.subtextcolor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          const Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                            size: 24,
-                          ),
-                        ],
+                      CustomAppBarHeaderWidget(title: isEditing ? 'Edit Appointment' : 'Appointment'),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.info_outline,
+                          color: AppColors.gradientGreen,
+                          size: 24,
+                        ),
+                        onPressed: () => showDoctorAvailability(context, widget.doctor),
                       ),
                     ],
                   ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CustomTextWidget(
-                              text: 'Today, ${DateTime.now().day} Feb',
-                              textStyle: TextStyle(
-                                fontFamily: AppFonts.rubik,
-                                fontSize: FontSizes(context).size14,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.subtextcolor,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          NotificationListener<ScrollNotification>(
+                            onNotification: (scrollNotification) {
+                              return false;
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: TableCalendar(
+                                firstDay: DateTime.now(),
+                                lastDay: DateTime.now().add(const Duration(days: 365)),
+                                focusedDay: focusedDay,
+                                selectedDayPredicate: (day) {
+                                  return isSameDay(selectedDay, day);
+                                },
+                                onDaySelected: (selectedDay, focusedDay) {
+                                  final dayName = AppStrings.daysOfWeek[selectedDay.weekday - 1];
+                                  if (selectedDay.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: 'Cannot select a past date',
+                                    );
+                                    return;
+                                  }
+                                  if (!availableDays.contains(dayName)) {
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: 'Doctor is not available on this day',
+                                    );
+                                    return;
+                                  }
+                                  ref.read(selectedDayProvider.notifier).state = selectedDay;
+                                  ref.read(focusedDayProvider.notifier).state = focusedDay;
+                                  updateTimeSlots(selectedDay, availableDays);
+                                },
+                                calendarFormat: CalendarFormat.month,
+                                availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+                                headerStyle: HeaderStyle(
+                                  headerPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.gradientGreen,
+                                    borderRadius: BorderRadius.circular(16.0),
+                                  ),
+                                  formatButtonVisible: false,
+                                  titleCentered: true,
+                                  leftChevronPadding: EdgeInsets.zero,
+                                  rightChevronPadding: EdgeInsets.zero,
+                                  leftChevronMargin: const EdgeInsets.only(left: 0),
+                                  rightChevronMargin: const EdgeInsets.only(right: 0),
+                                  titleTextStyle: const TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                  leftChevronIcon: const Icon(
+                                    Icons.chevron_left,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  rightChevronIcon: const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                daysOfWeekHeight: 40,
+                                daysOfWeekStyle: const DaysOfWeekStyle(
+                                  weekdayStyle: TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                  ),
+                                  weekendStyle: TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                calendarStyle: CalendarStyle(
+                                  cellMargin: const EdgeInsets.all(4.0),
+                                  cellPadding: const EdgeInsets.all(2.0),
+                                  outsideDaysVisible: false,
+                                  todayDecoration: BoxDecoration(
+                                    color: availableDays.contains(AppStrings.daysOfWeek[DateTime.now().weekday - 1])
+                                        ? AppColors.gradientGreen.withOpacity(0.3)
+                                        : Colors.redAccent.withOpacity(0.3),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  selectedDecoration: const BoxDecoration(
+                                    color: AppColors.gradientGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  defaultDecoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  outsideDecoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  defaultTextStyle: const TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                  ),
+                                  weekendTextStyle: const TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                  ),
+                                  outsideTextStyle: const TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                  markerDecoration: const BoxDecoration(
+                                    color: Colors.grey,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                calendarBuilders: CalendarBuilders(
+                                  defaultBuilder: (context, day, focusedDay) {
+                                    final dayName = AppStrings.daysOfWeek[day.weekday - 1];
+                                    if (availableDays.contains(dayName) &&
+                                        !isSameDay(day, selectedDay) &&
+                                        !isSameDay(day, DateTime.now())) {
+                                      return Container(
+                                        margin: const EdgeInsets.all(4.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.withOpacity(0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            '${day.day}',
+                                            style: const TextStyle(
+                                              fontFamily: AppFonts.rubik,
+                                              color: Colors.black,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ),
-                            CustomTextWidget(
-                              text: 'Tomorrow, ${DateTime.now().add(const Duration(days: 1)).day} Feb',
+                          ),
+                          30.height,
+                          if (categorizedTimeSlots.values.any((slots) => slots.isNotEmpty)) ...[
+                            const CustomTextWidget(
+                              text: 'Available Time',
                               textStyle: TextStyle(
                                 fontFamily: AppFonts.rubik,
-                                fontSize: FontSizes(context).size14,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.subtextcolor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                            16.height,
+                            if (categorizedTimeSlots['FullDay']!.isNotEmpty) ...[
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: categorizedTimeSlots['FullDay']!.map((slot) {
+                                    final isSelected = ref.watch(selectedTimeSlotProvider) == slot;
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          ref.read(selectedTimeSlotProvider.notifier).state = slot;
+                                          ref.read(selectedSlotTypeProvider.notifier).state = 'FullDay';
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                                          width: ScreenUtil.scaleWidth(context, 60),
+                                          height: ScreenUtil.scaleHeight(context, 60),
+                                          decoration: BoxDecoration(
+                                            color: isSelected ? AppColors.gradientGreen : AppColors.gradientBlue.withOpacity(0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: CustomTextWidget(
+                                              text: slot,
+                                              textAlignment: TextAlign.center,
+                                              textStyle: TextStyle(
+                                                color: isSelected ? Colors.white : Colors.black,
+                                                fontFamily: AppFonts.rubik,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ] else ...[
+                              if (categorizedTimeSlots['Morning']!.isNotEmpty) ...[
+                                const CustomTextWidget(
+                                  text: 'Morning',
+                                  textStyle: TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                8.height,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: categorizedTimeSlots['Morning']!.map((slot) {
+                                      final isSelected = ref.watch(selectedTimeSlotProvider) == slot;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            ref.read(selectedTimeSlotProvider.notifier).state = slot;
+                                            ref.read(selectedSlotTypeProvider.notifier).state = 'Morning';
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                                            width: ScreenUtil.scaleWidth(context, 60),
+                                            height: ScreenUtil.scaleHeight(context, 60),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? AppColors.gradientGreen : AppColors.gradientBlue.withOpacity(0.2),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: CustomTextWidget(
+                                                text: slot,
+                                                textAlignment: TextAlign.center,
+                                                textStyle: TextStyle(
+                                                  color: isSelected ? Colors.white : Colors.black,
+                                                  fontFamily: AppFonts.rubik,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                16.height,
+                              ],
+                              if (categorizedTimeSlots['Afternoon']!.isNotEmpty) ...[
+                                const CustomTextWidget(
+                                  text: 'Afternoon',
+                                  textStyle: TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                8.height,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: categorizedTimeSlots['Afternoon']!.map((slot) {
+                                      final isSelected = ref.watch(selectedTimeSlotProvider) == slot;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            ref.read(selectedTimeSlotProvider.notifier).state = slot;
+                                            ref.read(selectedSlotTypeProvider.notifier).state = 'Afternoon';
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                                            width: ScreenUtil.scaleWidth(context, 60),
+                                            height: ScreenUtil.scaleHeight(context, 60),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? AppColors.gradientGreen : AppColors.gradientBlue.withOpacity(0.2),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: CustomTextWidget(
+                                                text: slot,
+                                                textAlignment: TextAlign.center,
+                                                textStyle: TextStyle(
+                                                  color: isSelected ? Colors.white : Colors.black,
+                                                  fontFamily: AppFonts.rubik,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                16.height,
+                              ],
+                              if (categorizedTimeSlots['Evening']!.isNotEmpty) ...[
+                                const CustomTextWidget(
+                                  text: 'Evening',
+                                  textStyle: TextStyle(
+                                    fontFamily: AppFonts.rubik,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                8.height,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: categorizedTimeSlots['Evening']!.map((slot) {
+                                      final isSelected = ref.watch(selectedTimeSlotProvider) == slot;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            ref.read(selectedTimeSlotProvider.notifier).state = slot;
+                                            ref.read(selectedSlotTypeProvider.notifier).state = 'Evening';
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                                            width: ScreenUtil.scaleWidth(context, 60),
+                                            height: ScreenUtil.scaleHeight(context, 60),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? AppColors.gradientGreen : AppColors.gradientBlue.withOpacity(0.2),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: CustomTextWidget(
+                                                text: slot,
+                                                textAlignment: TextAlign.center,
+                                                textStyle: TextStyle(
+                                                  color: isSelected ? Colors.white : Colors.black,
+                                                  fontFamily: AppFonts.rubik,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ],
+                            24.height,
+                            const CustomTextWidget(
+                              text: 'Remind Me Before',
+                              textStyle: TextStyle(
+                                fontFamily: AppFonts.rubik,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                            16.height,
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: ['30 min', '40 min', '25 min', '10 min', '35 min'].map((reminder) {
+                                  final isSelected = ref.watch(reminderProvider) == reminder;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        ref.read(reminderProvider.notifier).state = reminder;
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                        width: ScreenUtil.scaleWidth(context, 60),
+                                        height: ScreenUtil.scaleHeight(context, 60),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? AppColors.gradientGreen : AppColors.gradientBlue.withOpacity(0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: CustomTextWidget(
+                                            textAlignment: TextAlign.center,
+                                            text: reminder.replaceAll(' min', ' Min'),
+                                            textStyle: TextStyle(
+                                              color: isSelected ? Colors.white : Colors.black,
+                                              fontFamily: AppFonts.rubik,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            24.height,
+                            Center(
+                              child: CustomButtonWidget(
+                                text: isEditing ? 'Save Changes' : 'Confirm',
+                                height: ScreenUtil.scaleHeight(context, 50),
+                                width: double.infinity,
+                                backgroundColor: AppColors.gradientGreen,
+                                fontFamily: AppFonts.rubik,
+                                fontSize: FontSizes(context).size16,
+                                fontWeight: FontWeight.w500,
+                                textColor: Colors.white,
+                                onPressed: () async {
+                                  final selectedTimeSlot = ref.read(selectedTimeSlotProvider);
+                                  final selectedSlotType = ref.read(selectedSlotTypeProvider);
+                                  if (selectedTimeSlot == null || selectedSlotType == null) {
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: 'Please select a time slot',
+                                    );
+                                    return;
+                                  }
+
+                                  final isConnected = await ref.read(checkInternetConnectionProvider.future);
+                                  if (!isConnected) {
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: 'No Internet Connection',
+                                    );
+                                    return;
+                                  }
+
+                                  final user = FirebaseAuth.instance.currentUser;
+                                  if (user == null) {
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: 'Please sign in to book an appointment',
+                                    );
+                                    return;
+                                  }
+
+                                  try {
+                                    if (isEditing) {
+                                      final updatedAppointment = widget.appointment!.copyWith(
+                                        date: DateFormat('yyyy-MM-dd').format(selectedDay!),
+                                        timeSlot: selectedTimeSlot,
+                                        slotType: selectedSlotType,
+                                        patientNotes: ref.read(bookingViewPatientNoteProvider).isEmpty ? null : ref.read(bookingViewPatientNoteProvider),
+                                        patientName: ref.read(bookingViewPatientNameProvider),
+                                        patientNumber: ref.read(bookingViewPatientNumberProvider),
+                                        patientType: ref.read(bookingViewSelectedPatientLabelProvider),
+                                        updatedAt: DateTime.now().toIso8601String(),
+                                        status: 'pending',
+                                      );
+                                      final database = FirebaseDatabase.instance.ref();
+                                      final snapshot = await database.child('Appointments').child(widget.appointment!.id).get();
+                                      if (snapshot.exists) {
+                                        final data = snapshot.value as Map<dynamic, dynamic>;
+                                        print('Authenticated user UID: ${user.uid}');
+                                        print('Appointment patientUid: ${data['patientUid']}');
+                                        if (data['patientUid'] != user.uid) {
+                                          CustomSnackBarWidget.show(
+                                            context: context,
+                                            text: 'Cannot save changes: You are not authorized to edit this appointment',
+                                          );
+                                          AppNavigation.pop();
+                                          return;
+                                        }
+                                      } else {
+                                        CustomSnackBarWidget.show(
+                                          context: context,
+                                          text: 'Appointment not found',
+                                        );
+                                        AppNavigation.pop();
+                                        return;
+                                      }
+
+                                      try {
+                                        await ref.read(bookingRepositoryProvider).updateBooking(updatedAppointment);
+                                        CustomSnackBarWidget.show(
+                                          context: context,
+                                          text: 'Appointment updated successfully',
+                                        );
+                                        ref.read(bookingViewPatientNameProvider.notifier).state = '';
+                                        ref.read(bookingViewPatientNumberProvider.notifier).state = '';
+                                        ref.read(bookingViewPatientNoteProvider.notifier).state = '';
+                                        ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = 'My Self';
+                                        AppNavigation.push(
+                                          ConfirmationView(
+                                            doctor: widget.doctor,
+                                            date: isEditing ? widget.appointment!.date : DateFormat('yyyy-MM-dd').format(selectedDay!),
+                                            timeSlot: selectedTimeSlot,
+                                            isEditing: isEditing,
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (e.toString().contains('Transaction aborted')) {
+                                          final snapshot = await database.child('Appointments').child(widget.appointment!.id).get();
+                                          if (snapshot.exists) {
+                                            final data = snapshot.value as Map<dynamic, dynamic>;
+                                            CustomSnackBarWidget.show(
+                                              context: context,
+                                              text: 'Cannot save changes: Appointment is no longer pending (status: ${data['status']})',
+                                            );
+                                          } else {
+                                            CustomSnackBarWidget.show(
+                                              context: context,
+                                              text: 'Cannot save changes: Appointment does not exist',
+                                            );
+                                          }
+                                        } else if (e.toString().contains('No changes to update')) {
+                                          CustomSnackBarWidget.show(
+                                            context: context,
+                                            text: 'No changes to save',
+                                          );
+                                        } else {
+                                          CustomSnackBarWidget.show(
+                                            context: context,
+                                            text: 'Failed to update appointment: $e',
+                                          );
+                                        }
+                                      }
+                                    } else {
+                                      final patientData = await ref.read(patientDataByUidProvider(user.uid).future);
+                                      final bookerName = patientData?.fullName;
+                                      final appointment = AppointmentModel(
+                                        id: FirebaseDatabase.instance.ref().child('Appointments').push().key!,
+                                        patientUid: user.uid,
+                                        doctorUid: widget.doctor.uid,
+                                        doctorName: widget.doctor.fullName,
+                                        doctorCategory: widget.doctor.category,
+                                        hospital: widget.doctor.hospital,
+                                        date: DateFormat('yyyy-MM-dd').format(selectedDay!),
+                                        timeSlot: selectedTimeSlot,
+                                        slotType: selectedSlotType,
+                                        status: 'pending',
+                                        consultationFee: widget.doctor.consultationFee,
+                                        createdAt: DateTime.now().toIso8601String(),
+                                        patientNotes: ref.read(bookingViewPatientNoteProvider),
+                                        bookerName: bookerName!,
+                                        patientName: ref.read(bookingViewPatientNameProvider),
+                                        patientNumber: ref.read(bookingViewPatientNumberProvider),
+                                        patientType: ref.read(bookingViewSelectedPatientLabelProvider),
+                                      );
+                                      await ref.read(bookingRepositoryProvider).createBooking(appointment);
+                                      CustomSnackBarWidget.show(
+                                        context: context,
+                                        text: 'Booking created successfully',
+                                      );
+                                      ref.read(bookingViewPatientNameProvider.notifier).state = '';
+                                      ref.read(bookingViewPatientNumberProvider.notifier).state = '';
+                                      ref.read(bookingViewPatientNoteProvider.notifier).state = '';
+                                      ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = 'My Self';
+                                      AppNavigation.push(
+                                        ConfirmationView(
+                                          doctor: widget.doctor,
+                                          date: isEditing ? widget.appointment!.date : DateFormat('yyyy-MM-dd').format(selectedDay!),
+                                          timeSlot: selectedTimeSlot,
+                                          isEditing: isEditing,
+                                        ),
+                                      );
+                                    }
+
+
+                                  } catch (e) {
+                                    print('Error updating appointment: $e');
+                                    CustomSnackBarWidget.show(
+                                      context: context,
+                                      text: isEditing ? 'Failed to update appointment: $e' : 'Failed to create booking: $e',
+                                    );
+                                  }
+                                },
                               ),
                             ),
                           ],
-                        ),
-                        16.height,
-                        CustomTextWidget(
-                          text: availableDays.contains(nextAvailableDayName)
-                              ? 'Next availability on $nextAvailableDayName, $nextAvailableDate'
-                              : 'Contact Clinic',
-                          textStyle: TextStyle(
-                            fontFamily: AppFonts.rubik,
-                            fontSize: FontSizes(context).size16,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.black,
-                          ),
-                        ),
-                        16.height,
-                        TableCalendar(
-                          firstDay: DateTime.now(),
-                          lastDay: DateTime.now().add(const Duration(days: 365)),
-                          focusedDay: _focusedDay,
-                          selectedDayPredicate: (day) {
-                            return isSameDay(_selectedDay, day);
-                          },
-                          onDaySelected: (selectedDay, focusedDay) {
-                            final dayName = daysOfWeek[selectedDay.weekday - 1];
-                            if (selectedDay.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-                              CustomSnackBarWidget.show(
-                                context: context,
-                                text: 'Cannot select a past date',
-                              );
-                              return;
-                            }
-                            if (!availableDays.contains(dayName)) {
-                              CustomSnackBarWidget.show(
-                                context: context,
-                                text: 'Doctor is not available on this day',
-                              );
-                              return;
-                            }
-                            setState(() {
-                              _selectedDay = selectedDay;
-                              _focusedDay = focusedDay;
-                            });
-                            _updateTimeSlots(selectedDay);
-                          },
-                          calendarFormat: CalendarFormat.month,
-                          availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-                          headerStyle: const HeaderStyle(
-                            formatButtonVisible: false,
-                            titleCentered: true,
-                          ),
-                          calendarStyle: const CalendarStyle(
-                            todayDecoration: BoxDecoration(
-                              color: AppColors.gradientGreen,
-                              shape: BoxShape.circle,
-                            ),
-                            selectedDecoration: BoxDecoration(
-                              color: AppColors.gradientGreen,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                        24.height,
-                        if (_availableTimeSlots.isNotEmpty) ...[
-                          const CustomTextWidget(
-                            text: 'Available Time',
-                            textStyle: TextStyle(
-                              fontFamily: AppFonts.rubik,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.black,
-                            ),
-                          ),
-                          16.height,
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _availableTimeSlots.map((slot) {
-                              final isSelected = _selectedTimeSlot == slot;
-                              return ChoiceChip(
-                                label: Text(slot),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _selectedTimeSlot = slot;
-                                  });
-                                },
-                                selectedColor: AppColors.gradientGreen,
-                                labelStyle: TextStyle(
-                                  color: isSelected ? Colors.white : AppColors.subtextcolor,
-                                  fontFamily: AppFonts.rubik,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          24.height,
-                          const CustomTextWidget(
-                            text: 'Remind Me Before',
-                            textStyle: TextStyle(
-                              fontFamily: AppFonts.rubik,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.black,
-                            ),
-                          ),
-                          16.height,
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: ['30 min', '15 min', '10 min'].map((reminder) {
-                              final isSelected = _reminder == reminder;
-                              return ChoiceChip(
-                                label: Text(reminder),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _reminder = reminder;
-                                  });
-                                },
-                                selectedColor: AppColors.gradientGreen,
-                                labelStyle: TextStyle(
-                                  color: isSelected ? Colors.white : AppColors.subtextcolor,
-                                  fontFamily: AppFonts.rubik,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          24.height,
-                          CustomButtonWidget(
-                            text: 'Confirm',
-                            height: ScreenUtil.scaleHeight(context, 50),
-                            width: double.infinity,
-                            backgroundColor: AppColors.gradientGreen,
-                            fontFamily: AppFonts.rubik,
-                            fontSize: FontSizes(context).size16,
-                            fontWeight: FontWeight.w500,
-                            textColor: Colors.white,
-                            onPressed: () async {
-                              if (_selectedTimeSlot == null) {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  text: 'Please select a time slot',
-                                );
-                                return;
-                              }
-
-                              final isConnected = await ref.read(checkInternetConnectionProvider.future);
-                              if (!isConnected) {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  text: 'No Internet Connection',
-                                );
-                                return;
-                              }
-
-                              final user = FirebaseAuth.instance.currentUser;
-                              if (user == null) {
-                                CustomSnackBarWidget.show(
-                                  context: context,
-                                  text: 'Please sign in to book an appointment',
-                                );
-                                return;
-                              }
-
-                              final database = FirebaseDatabase.instance.ref();
-                              final appointmentRef = database.child('Appointments').push();
-                              final appointment = Appointment(
-                                id: appointmentRef.key!,
-                                patientUid: user.uid,
-                                doctorUid: widget.doctor.uid,
-                                date: '${_selectedDay!.year}-${_selectedDay!.month}-${_selectedDay!.day}',
-                                timeSlot: _selectedTimeSlot!,
-                                status: 'pending',
-                                createdAt: DateTime.now().toIso8601String(),
-                                patientNotes: null,
-                              );
-
-                              await appointmentRef.set(appointment.toMap());
-
-                              AppNavigation.push(
-                                ConfirmationView(
-                                  doctor: widget.doctor,
-                                  date: appointment.date,
-                                  timeSlot: appointment.timeSlot,
-                                ),
-                              );
-                            },
-                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

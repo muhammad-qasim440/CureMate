@@ -20,7 +20,20 @@ final docYearsOfExperienceProvider = StateProvider<String>((ref) => '');
 final hidePasswordProvider = StateProvider<bool>((ref) => true);
 final isSigningUpProvider = StateProvider<bool>((ref) => false);
 
-final availableDaysProvider = StateProvider<List<String>>((ref) => []);
-final morningAvailabilityProvider = StateProvider<bool>((ref) => false);
-final afternoonAvailabilityProvider = StateProvider<bool>((ref) => false);
-final eveningAvailabilityProvider = StateProvider<bool>((ref) => false);
+// New provider for day-slot configurations
+final daySlotConfigsProvider = StateProvider<List<Map<String, dynamic>>>((ref) => []);
+
+// Temporary providers for building a single day-slot configuration
+final tempDayProvider = StateProvider<String>((ref) => '');
+final tempMorningAvailabilityProvider = StateProvider<bool>((ref) => false);
+final tempMorningStartTimeProvider = StateProvider<String>((ref) => '');
+final tempMorningEndTimeProvider = StateProvider<String>((ref) => '');
+final tempAfternoonAvailabilityProvider = StateProvider<bool>((ref) => false);
+final tempAfternoonStartTimeProvider = StateProvider<String>((ref) => '');
+final tempAfternoonEndTimeProvider = StateProvider<String>((ref) => '');
+final tempEveningAvailabilityProvider = StateProvider<bool>((ref) => false);
+final tempEveningStartTimeProvider = StateProvider<String>((ref) => '');
+final tempEveningEndTimeProvider = StateProvider<String>((ref) => '');
+final tempFullDayProvider = StateProvider<bool>((ref) => false);
+final tempFullDayStartTimeProvider = StateProvider<String>((ref) => '');
+final tempFullDayEndTimeProvider = StateProvider<String>((ref) => '');

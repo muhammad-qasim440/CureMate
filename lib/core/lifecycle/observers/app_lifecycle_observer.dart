@@ -41,8 +41,8 @@ class AppLifecycleObserver with WidgetsBindingObserver {
 
   Future<void> _handleNewUser(String uid) async {
     await _updateStatus(uid, true);
-    _setOnDisconnect(uid);
-    _startPinging(uid);
+    // _setOnDisconnect(uid);
+    // _startPinging(uid);
   }
 
   void _setOnDisconnect(String uid) {
@@ -115,8 +115,8 @@ class AppLifecycleObserver with WidgetsBindingObserver {
     try {
       if (state == AppLifecycleState.resumed) {
         logDebug('App resumed');
-        _updateStatus(user.uid, true);
-        _startPinging(user.uid);
+        // _updateStatus(user.uid, true);
+        // _startPinging(user.uid);
       } else if (state == AppLifecycleState.paused ||
           state == AppLifecycleState.detached ||
           state == AppLifecycleState.inactive) {
@@ -133,5 +133,7 @@ class AppLifecycleObserver with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _stopPinging();
     _userListener?.close();
+    _userListener = null;
+    print("AppLifecycleObserver disposed");
   }
 }

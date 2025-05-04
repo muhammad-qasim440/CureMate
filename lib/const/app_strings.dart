@@ -122,5 +122,21 @@ class AppStrings {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
+  static const List<String> daysOfWeek = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
 
+  static const List<String> appointmentFilterOptions = [
+    'All',
+    'Pending',
+    'Accepted',
+    'Completed',
+    'Rejected',
+  ];
 }

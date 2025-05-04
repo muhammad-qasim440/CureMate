@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:curemate/core/utils/debug_print.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../features/doctor/doctor_main_view.dart';
@@ -47,7 +48,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final user = ref.read(currentUserProvider).value;
     final isInternet = await ref.read(checkInternetConnectionProvider.future);
     final isTyping = _messageController.text.isNotEmpty;
-
+       logDebug('isTyping: $isTyping');
     await _chatService.handleTyping(
       user: user,
       otherUserId: widget.otherUserId,
@@ -86,9 +87,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           }
           if (widget.fromDoctorDetails) {
             Navigator.of(context).popUntil((route) => route.isFirst);
-            print('Popped until root, bottomNavIndex set to 3');
           } else {
-            print('Normal pop to ChatView, bottomNavIndex remains 3');
             AppNavigation.pop();
           }
         }

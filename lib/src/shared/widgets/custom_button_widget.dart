@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'custom_text_widget.dart';
 
@@ -14,12 +14,14 @@ class CustomButtonWidget extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final double? borderRadius;
   final String? svgIcon;
+  final Icon? icon;
   final Color? iconColor;
   final Color? shadowColor;
   final double? iconSize;
   final double? width;
   final double? height;
   final BorderSide? border;
+  final Color? borderColor; // <-- New addition
   final double? elevation;
   final bool isEnabled;
   final LinearGradient? gradient;
@@ -36,12 +38,14 @@ class CustomButtonWidget extends StatefulWidget {
     this.padding,
     this.borderRadius,
     this.svgIcon,
+    this.icon,
     this.iconColor,
     this.shadowColor,
     this.iconSize = 24,
     this.width,
     this.height,
     this.border,
+    this.borderColor, // <-- Added here
     this.elevation = 4.0,
     this.isEnabled = true,
     this.gradient,
@@ -50,6 +54,7 @@ class CustomButtonWidget extends StatefulWidget {
   @override
   _CustomButtonWidgetState createState() => _CustomButtonWidgetState();
 }
+
 class _CustomButtonWidgetState extends State<CustomButtonWidget> {
   @override
   Widget build(BuildContext context) {
@@ -77,7 +82,10 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
           padding: widget.padding ?? EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius ?? 8),
-            side: widget.border ?? BorderSide.none,
+            side: widget.border ?? BorderSide(
+              color: widget.borderColor ?? Colors.transparent, // <-- Now handled here
+              width: 1,
+            ),
           ),
           elevation: 0,
         ),
@@ -87,19 +95,27 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.svgIcon != null)
+              if (widget.svgIcon != null || widget.icon != null)
                 Flexible(
                   child: Padding(
                     padding: widget.text != null
                         ? const EdgeInsets.only(right: 8.0)
                         : EdgeInsets.zero,
-                    child: SvgPicture.asset(
+                    child: widget.svgIcon != null
+                        ? SvgPicture.asset(
                       widget.svgIcon!,
                       width: widget.iconSize,
                       height: widget.iconSize,
                       colorFilter: widget.iconColor != null
                           ? ColorFilter.mode(widget.iconColor!, BlendMode.srcIn)
                           : null,
+                    )
+                        : IconTheme(
+                      data: IconThemeData(
+                        size: widget.iconSize,
+                        color: widget.iconColor ?? widget.textColor,
+                      ),
+                      child: widget.icon!,
                     ),
                   ),
                 ),

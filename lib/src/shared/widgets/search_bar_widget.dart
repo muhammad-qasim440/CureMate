@@ -18,10 +18,12 @@ class SearchBarWidget extends ConsumerStatefulWidget {
 
 class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
   final FocusNode _focusNode = FocusNode();
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = TextEditingController(text: ref.read(widget.provider));
     if (widget.applyFocusNode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _focusNode.requestFocus();
@@ -31,13 +33,22 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
 
   @override
   void dispose() {
+    _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(widget.provider, (previous, next) {
+      if (_controller.text != next) {
+        _controller.text = next;
+        _controller.selection = TextSelection.collapsed(offset: next.length);
+      }
+    });
+
     return TextField(
+      controller: _controller,
       // focusNode: widget.applyFocusNode ? _focusNode : null,
       decoration: InputDecoration(
         hintText: 'Search...',
@@ -48,6 +59,7 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
         ),
         suffixIcon: InkWell(
           onTap: () {
+            _controller.clear();
             FocusScope.of(context).unfocus();
             ref.read(widget.provider.notifier).state = '';
           },
@@ -66,3 +78,4 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
     );
   }
 }
+

@@ -54,7 +54,7 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
                 shadowColor: Colors.transparent,
                 textColor: AppColors.gradientGreen,
                 onPressed: (){
-                  AppNavigation.push(const AllNearByDoctorsView());
+                  AppNavigation.push(const AllNearByDoctorsView(isFromFeatured: false,isFromPopular: false,));
                 },
               ),
             ],

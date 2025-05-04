@@ -1,19 +1,24 @@
+import 'dart:async';
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curemate/const/app_strings.dart';
+import 'package:curemate/src/features/authentication/signin/views/signin_view.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../../core/lifecycle/observers/app_lifecycle_observer.dart';
+import '../../../../shared/chat/providers/chatting_auth_providers.dart';
+import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../theme/app_colors.dart';
+import '../../../bookings/providers/booking_providers.dart';
 import '../../../doctor/doctor_main_view.dart';
 import '../../../patient/providers/patient_providers.dart';
 import '../../../patient/views/patient_main_view.dart';
-import '../../../splash/providers/splash_provider.dart';
 import '../../reset_password/providers/password_reset_providers.dart';
-import '../../signup/helpers/upload_profile_image_to_cloudinary.dart';
+import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
 import '../../signup/providers/signup_form_provider.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>(
@@ -22,17 +27,17 @@ final firebaseAuthProvider = Provider<FirebaseAuth>(
 final firebaseDatabaseProvider = Provider<DatabaseReference>(
       (ref) => FirebaseDatabase.instance.ref(),
 );
-final fireStoreProvider = Provider<FirebaseFirestore>(
-      (ref) => FirebaseFirestore.instance,
-);
 
-final authProvider = Provider<AuthService>((ref) {
-  return AuthService(ref);
-});
+final authProvider = Provider<AuthService>((ref) => AuthService(ref));
 
 class AuthService {
   final Ref _ref;
   AuthService(this._ref);
+  final List<StreamSubscription> _realtimeDbListeners = [];
+  void addRealtimeDbListener(StreamSubscription subscription) {
+    _realtimeDbListeners.add(subscription);
+  }
+
 
   Future<String> signUp() async {
     try {
@@ -53,11 +58,8 @@ class AuthService {
       final docQualification = _ref.read(docQualificationProvider);
       final docExperience = _ref.read(docYearsOfExperienceProvider);
       final docHospital = _ref.read(docHospitalProvider);
-// New availability data
-      final availableDays = _ref.read(availableDaysProvider);
-      final morningAvailability = _ref.read(morningAvailabilityProvider);
-      final afternoonAvailability = _ref.read(afternoonAvailabilityProvider);
-      final eveningAvailability = _ref.read(eveningAvailabilityProvider);
+      final daySlotConfigs = _ref.read(daySlotConfigsProvider);
+      await FirebaseDatabase.instance.goOnline();
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -69,7 +71,8 @@ class AuthService {
       }
 
       String uid = user.uid;
-      String profileImageUrl = '';
+      String? profileImageUrl = '';
+      String? profileImagePublicId = '';
 
       String userTypePath = userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
 
@@ -79,12 +82,15 @@ class AuthService {
         'fullName': fullName,
         'phoneNumber': phoneNumber,
         'profileImageUrl': profileImageUrl,
+        'profileImagePublicId': profileImagePublicId,
         'dob': dateOfBirth,
         'city': city.selected,
         'latitude': latitude,
         'longitude': longitude,
         'userType': userType.selected,
         'createdAt': DateTime.now().toIso8601String(),
+        'favorites': {},
+        'MedicalRecords': {},
       };
 
       if (userType.selected == 'Doctor') {
@@ -92,29 +98,27 @@ class AuthService {
           'qualification': docQualification,
           'category': docCategory.selected,
           'yearsOfExperience': docExperience,
-          'hospital':docHospital,
+          'hospital': docHospital,
           'consultationFee': docConsultationFee,
           'totalReviews': 0,
           'averageRatings': 0.0,
           'totalPatientConsulted': 0,
-          // Add availability data
-          'availability': {
-            'days': availableDays,
-            'morning': morningAvailability,
-            'afternoon': afternoonAvailability,
-            'evening': eveningAvailability,
-          },
+          'profileViews': 0,
+          'viewedBy': {},
+          'availability': daySlotConfigs,
         });
       }
 
       await database.child(userTypePath).child(uid).set(userData);
 
       if (profileImage != null) {
-        String? cloudinaryImageUrl = await uploadImageToCloudinary(File(profileImage.path));
-        if (cloudinaryImageUrl != null) {
-          profileImageUrl = cloudinaryImageUrl;
+        final cloudinaryImageData = await uploadImageToCloudinary(File(profileImage.path));
+        if (cloudinaryImageData != null) {
+          profileImageUrl = cloudinaryImageData['secure_url'];
+          profileImagePublicId = cloudinaryImageData['public_id'];
           await database.child(userTypePath).child(uid).update({
-            'profileImageUrl': cloudinaryImageUrl,
+            'profileImageUrl': profileImageUrl,
+            'profileImagePublicId': profileImagePublicId,
           });
         }
       }
@@ -154,7 +158,7 @@ class AuthService {
     try {
       final auth = _ref.read(firebaseAuthProvider);
       final database = _ref.read(firebaseDatabaseProvider);
-
+      await FirebaseDatabase.instance.goOnline();
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -290,33 +294,56 @@ class AuthService {
 
   Future<void> logout(BuildContext context) async {
     final auth = _ref.read(firebaseAuthProvider);
+    final database = _ref.read(firebaseDatabaseProvider);
 
     try {
-      await auth.signOut();
-      if (auth.currentUser == null) {
+      await FirebaseDatabase.instance.goOffline();
+
+        for (var subscription in _realtimeDbListeners) {
+          await subscription.cancel();
+        }
+        _realtimeDbListeners.clear();
+        final appLifecycleObserver = _ref.read(appLifecycleObserverProvider);
+        appLifecycleObserver.dispose();
+        _ref.invalidate(currentSignInPatientDataProvider);
+        _ref.invalidate(doctorsProvider);
+        _ref.invalidate(favoriteDoctorUidsProvider);
+        _ref.invalidate(favoriteDoctorsProvider);
+        _ref.invalidate(appointmentsProvider);
+        _ref.invalidate(patientDoctorsWithBookingsProvider);
+        _ref.invalidate(nearByDoctorsProvider);
+        _ref.invalidate(chatListProvider);
+        _ref.invalidate(chatMessagesProvider);
+        _ref.invalidate(typingIndicatorProvider);
+        _ref.invalidate(chatSettingsProvider);
+        _ref.invalidate(otherUserProfileProvider);
+        _ref.invalidate(formattedLastSeenProvider);
+        _ref.invalidate(unseenMessagesProvider);
+        _ref.invalidate(currentUserProvider);
+        _ref.invalidate(customDropDownProvider(AppStrings.userTypes));
+        _ref.invalidate(emailProvider);
+        _ref.invalidate(passwordProvider);
+        _ref.read(bottomNavIndexProvider.notifier).state = 0;
+        _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
+           await auth.signOut();
+        final userId = auth.currentUser?.uid;
+        if (userId != null) {
+          await database.child('Users/$userId/status').update({
+            'isOnline': false,
+            'lastSeen': ServerValue.timestamp,
+          });
+        }
         CustomSnackBarWidget.show(
           backgroundColor: AppColors.gradientGreen,
           context: context,
           text: 'You have been logged out successfully.',
         );
-        _ref.read(bottomNavIndexProvider.notifier).state = 0;
-        _ref.read(doctorBottomNavIndexProvider.notifier).state=0;
-        _ref.invalidate(currentSignInPatientDataProvider);
-        _ref.invalidate(doctorsProvider);
-        _ref.invalidate(favoriteDoctorUidsProvider);
-        _ref.read(splashProvider.notifier).checkAuthUser();
-      } else {
-        CustomSnackBarWidget.show(
-          backgroundColor: Colors.red,
-          context: context,
-          text: 'Logout failed. You are still signed in.',
-        );
-      }
+        AppNavigation.pushAndRemoveUntil(const SignInView());
     } catch (e) {
+      print("Logout error: $e");
       CustomSnackBarWidget.show(
-        backgroundColor: Colors.red,
         context: context,
-        text: 'Failed to log out. Please try again.',
+        text: 'Failed to log out: $e',
       );
     }
   }

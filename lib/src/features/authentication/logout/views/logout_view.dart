@@ -16,12 +16,15 @@ class LogoutView extends ConsumerWidget {
   @override
   Widget build(BuildContext context,WidgetRef ref) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+      ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Patient screen',
+              'Profile',
               style: TextStyle(fontSize: 20),
             ),
             const SizedBox(height: 20),
@@ -33,7 +36,7 @@ class LogoutView extends ConsumerWidget {
                 fontSize: FontSizes(context).size18,
                 fontWeight: FontWeight.w900,
                 textColor: AppColors.gradientWhite,
-                width: ScreenUtil.scaleWidth(context, 320),
+                width: ScreenUtil.scaleWidth(context, 200),
                 onPressed: () async {
                   final isNetworkAvailable = ref.read(
                     checkInternetConnectionProvider,

@@ -25,8 +25,17 @@ class AddORRemoveDoctorIntoFavorite {
       final snapshot = await favoritesRef.get();
       if (snapshot.exists) {
         await favoritesRef.remove();
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Removed from your favorites',
+        );
       } else {
         await favoritesRef.set(true);
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Added to your favorites',
+
+        );
       }
     } catch (e) {
       CustomSnackBarWidget.show(

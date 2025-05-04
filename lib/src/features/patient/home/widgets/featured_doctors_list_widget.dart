@@ -1,13 +1,18 @@
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../router/nav.dart';
+import '../../../../shared/widgets/custom_button_widget.dart';
+import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../providers/patient_providers.dart';
 import '../cards/featured_doctor_card.dart';
+import '../views/all_near_by_doctor_view.dart';
 
 class FeaturedDoctorsListWidget extends ConsumerWidget {
   const FeaturedDoctorsListWidget({super.key});
@@ -25,19 +30,30 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Featured Doctors',
-                style: TextStyle(
+              CustomTextWidget(
+                text: 'Featured Doctors',
+                textStyle: TextStyle(
                   fontWeight: FontWeight.w500,
                   fontFamily: AppFonts.rubik,
                   fontSize: FontSizes(context).size18,
-                  color: AppColors.black,
                 ),
               ),
-              const Text('See all', style: TextStyle(color: Colors.teal)),
+              4.width,
+              CustomButtonWidget(
+                text: 'See all',
+                fontWeight: FontWeight.w500,
+                fontFamily: AppFonts.rubik,
+                fontSize: FontSizes(context).size15,
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                textColor: AppColors.gradientGreen,
+                onPressed: (){
+                  AppNavigation.push(const AllNearByDoctorsView(isFromFeatured: true,isFromPopular: false,));
+                },
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          16.height,
           SizedBox(
             height: ScreenUtil.scaleHeight(context, 180),
             child: doctorsAsync.when(

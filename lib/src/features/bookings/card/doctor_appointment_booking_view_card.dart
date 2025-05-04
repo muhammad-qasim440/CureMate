@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../const/app_fonts.dart';
 import '../../../../../../const/font_sizes.dart';
-import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -13,16 +12,15 @@ import '../../patient/providers/patient_providers.dart';
 
 class DoctorAppointmentBookingViewCard extends ConsumerWidget {
   final Doctor doctor;
-  final bool isFavorite;
-
   const DoctorAppointmentBookingViewCard({
     super.key,
     required this.doctor,
-    required this.isFavorite,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final favoriteDoctroIdAsync=ref.watch(favoriteDoctorUidsProvider).value??[];
+    final isFavorite = favoriteDoctroIdAsync.contains(doctor.uid,);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(

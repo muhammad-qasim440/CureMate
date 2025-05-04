@@ -24,7 +24,7 @@ class PopularDoctorCard extends StatelessWidget {
           context: context,
           text: 'Tapped on ${doctor.fullName}',
         );
-        AppNavigation.push(DoctorDetailsView(doctor: doctor));
+        AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(
         width: ScreenUtil.scaleWidth(context, 190),
@@ -94,7 +94,7 @@ class PopularDoctorCard extends StatelessWidget {
                   Icons.star,
                   size: 16,
                   color:
-                      index < (doctor.averageRatings / 2).round()
+                      index < (doctor.averageRatings / 5).round()
                           ? Colors.amber
                           : Colors.grey,
                 ),

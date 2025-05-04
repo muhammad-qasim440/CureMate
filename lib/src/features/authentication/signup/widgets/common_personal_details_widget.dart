@@ -82,12 +82,17 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
           focusNode: phoneFocus,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter a phone number';
-            } else if(value.length<11){
-              return 'Phone number should be of 11 digits';
+              return 'Please enter the contact number';
+            } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+              return 'Contact number must contain only digits';
+            } else if (!value.startsWith('0') || !value.startsWith('3', 1)) {
+              return 'Number should start from 03*********';
+            } else if (value.length != 11) {
+              return 'Contact number should be exactly 11 digits';
             }
             return null;
           },
+
           onChanged:
               (value) => ref.read(phoneNumberProvider.notifier).state = value,
           keyboardType: TextInputType.phone,

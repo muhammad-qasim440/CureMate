@@ -5,4 +5,5 @@ class AppAssets {
   static const doctorImg1 = '${baseImagePath}doctor1_img.png';
   static const doctorImg2 = '${baseImagePath}doctor2_img.png';
   static const doctorImg3 = '${baseImagePath}doctor3_img.png';
+  static const patientDrawerSideBarImg = '${baseImagePath}patient_drawer_side_bar_img.png';
 }

@@ -16,12 +16,14 @@ class ConfirmationView extends ConsumerWidget {
   final Doctor doctor;
   final String date;
   final String timeSlot;
+  final bool? isEditing;
 
   const ConfirmationView({
     super.key,
     required this.doctor,
     required this.date,
     required this.timeSlot,
+    required this.isEditing,
   });
 
   @override
@@ -63,9 +65,9 @@ class ConfirmationView extends ConsumerWidget {
                     ),
                   ),
                   8.height,
-                  const CustomTextWidget(
-                    text: 'Your appointment successful',
-                    textStyle: TextStyle(
+                   CustomTextWidget(
+                    text:isEditing!?'Your appointment update successful': 'Your appointment successful',
+                    textStyle: const TextStyle(
                       fontFamily: AppFonts.rubik,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,

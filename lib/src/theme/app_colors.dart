@@ -8,6 +8,7 @@ class AppColors {
 
 
   static const Color gradientGreen = Color(0xFF0EBE7E);
+  static const Color gradientDarkGreen = Color(0xFF0BA56F);
   static const Color gradientBlue = Color(0xFF61CEFF);
   static const Color gradientWhite = Color(0xFFFFFFFF);
   static const Color gradientEmeraldGreen = Color(0xFF0EBE7E);

@@ -1,17 +1,13 @@
-import 'package:curemate/const/app_fonts.dart';
-import 'package:curemate/const/font_sizes.dart';
-import 'package:curemate/src/features/patient/chat/views/chat_view.dart';
-import 'package:curemate/src/features/patient/views/patient_booking_view.dart';
-import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
-import 'package:curemate/src/utils/screen_utils.dart';
+
+import 'package:curemate/src/features/patient/chat/views/patient_chat_view.dart';
+import 'package:curemate/src/features/patient/appointments/views/patient_appointments_view.dart';
+import 'package:curemate/src/features/patient/favorites/views/patient_favorite_doctors_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
-import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../theme/app_colors.dart';
-import '../../authentication/signin/providers/auth-provider.dart';
+import '../drawer/views/patient_drawer_view.dart';
 import '../home/views/patient_home_view.dart';
 
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
@@ -26,9 +22,9 @@ class PatientMainView extends ConsumerStatefulWidget {
 class _PatientMainViewState extends ConsumerState<PatientMainView> {
   final List<Widget> _screens = const [
     PatientHomeView(),
-    DummyScreen(title: 'Favorites'),
-    PatientBookingsView(),
-    ChatView(),
+     PatientFavoriteDoctorsView(),
+    PatientAppointmentsView(),
+    PatientChatView(),
   ];
 
   @override
@@ -95,56 +91,6 @@ class _PatientMainViewState extends ConsumerState<PatientMainView> {
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: Colors.white),
-    );
-  }
-}
-
-class DummyScreen extends ConsumerWidget {
-  final String title;
-
-  const DummyScreen({super.key, required this.title});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('$title screen', style: TextStyle(fontSize: 20)),
-          const SizedBox(height: 20),
-          CustomButtonWidget(
-            text: 'logout',
-            height: ScreenUtil.scaleHeight(context, 45),
-            backgroundColor: AppColors.btnBgColor,
-            fontFamily: AppFonts.rubik,
-            fontSize: FontSizes(context).size18,
-            fontWeight: FontWeight.w900,
-            textColor: AppColors.gradientWhite,
-            width: ScreenUtil.scaleWidth(context, 320),
-            onPressed: () async {
-              final isNetworkAvailable = ref.read(
-                checkInternetConnectionProvider,
-              );
-              final isConnected =
-                  await isNetworkAvailable.whenData((value) => value).value ??
-                      false;
-
-              if (!isConnected) {
-                CustomSnackBarWidget.show(
-                  context: context,
-                  backgroundColor: AppColors.gradientGreen,
-                  text: "No Internet Connection",
-                );
-                return;
-              }
-              try {
-                await ref.read(authProvider).logout(context);
-              } catch (e) {
-                CustomSnackBarWidget.show(context: context, text: "$e");
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 }

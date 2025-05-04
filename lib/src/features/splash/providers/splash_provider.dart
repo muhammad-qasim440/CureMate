@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:curemate/const/app_routes.dart';
 import 'package:curemate/src/features/patient/views/patient_main_view.dart';
 import 'package:curemate/src/features/on_boarding/views/on_boarding_carousel_view.dart';
 import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';

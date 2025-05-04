@@ -13,71 +13,102 @@ class CustomDropdown extends ConsumerWidget {
   final String? validatorText;
   final void Function(String)? onChanged;
 
+  final TextStyle? labelStyle;
+  final TextStyle? itemTextStyle;
+  final BoxDecoration? dropdownDecoration;
+  final double? borderRadius;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final double? dropdownMaxHeight;
+  final ScrollbarThemeData? scrollbarThemeData;
+  final Color? backgroundColor;
+
   const CustomDropdown({
     super.key,
     required this.items,
     required this.label,
     this.validatorText,
     this.onChanged,
+    this.labelStyle,
+    this.itemTextStyle,
+    this.dropdownDecoration,
+    this.borderRadius,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.dropdownMaxHeight,
+    this.scrollbarThemeData,
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = customDropDownProvider(items);
     final state = ref.watch(provider);
+    final radius = borderRadius ?? 12;
 
     return DropdownButtonFormField2<String>(
       isExpanded: true,
       value: state.selected,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          fontFamily: AppFonts.rubik,
-          fontWeight: FontWeight.w400,
-          fontSize: FontSizes(context).size14,
-          color: AppColors.subtextcolor,
-        ),
+        labelStyle: labelStyle ??
+            TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontWeight: FontWeight.w400,
+              fontSize: FontSizes(context).size14,
+              color: AppColors.subtextcolor,
+            ),
         contentPadding: EdgeInsets.zero,
+        filled: true,
+        fillColor: backgroundColor ?? Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(radius),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide:  BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(radius),
+          borderSide: BorderSide(color: borderColor ?? Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.grey,),
+          borderRadius: BorderRadius.circular(radius),
+          borderSide: BorderSide(color: focusedBorderColor ?? Colors.grey),
         ),
       ),
       hint: const Icon(Icons.keyboard_arrow_down_rounded),
       dropdownStyleData: DropdownStyleData(
-        maxHeight: 150,
-        width: null,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        maxHeight: dropdownMaxHeight ?? 250,
+        scrollbarTheme: scrollbarThemeData ??
+            ScrollbarThemeData(
+              thumbColor: MaterialStateProperty.all(AppColors.gradientGreen),
+              trackColor: MaterialStateProperty.all(AppColors.subtextcolor),
+              thickness: MaterialStateProperty.all(4),
+              radius: const Radius.circular(8),
+            ),
+        decoration: dropdownDecoration ??
+            BoxDecoration(
+              borderRadius: BorderRadius.circular(radius),
+              color: backgroundColor ?? Colors.white, // 👈 NEW for dropdown popup
+            ),
         elevation: 4,
         offset: const Offset(0, -4),
       ),
-      items:
-          items
-              .map(
-                (item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      fontFamily: AppFonts.rubik,
-                      color: AppColors.subtextcolor,
-                    ),
-                  ),
+      items: items
+          .map(
+            (item) => DropdownMenuItem<String>(
+          value: item,
+          child: Text(
+            item,
+            overflow: TextOverflow.ellipsis,
+            style: itemTextStyle ??
+                const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  fontFamily: AppFonts.rubik,
+                  color: AppColors.subtextcolor,
                 ),
-              )
-              .toList(),
+          ),
+        ),
+      )
+          .toList(),
       onChanged: (value) {
         if (value != null) {
           ref.read(provider.notifier).setSelected(value);
@@ -93,3 +124,4 @@ class CustomDropdown extends ConsumerWidget {
     );
   }
 }
+

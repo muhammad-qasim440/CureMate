@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:curemate/const/font_sizes.dart';
+import 'package:curemate/core/utils/debug_print.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../const/app_fonts.dart';
 import '../../../theme/app_colors.dart';
 import '../providers/chatting_auth_providers.dart';
 import '../providers/chatting_providers.dart';
@@ -49,7 +52,10 @@ class ChatListItem extends ConsumerWidget {
     final profile = ref.watch(otherUserProfileProvider(otherUserId));
     final currentUser = ref.watch(currentUserProvider).value;
     final isCurrentUserSender = senderId != null && currentUser != null && senderId == currentUser.uid;
-
+    final unseenCount = ref.watch(unseenMessagesProvider(chatId));
+    
+    logDebug('lassssss $lastMessage');
+    
     return ListTile(
       leading: profile.when(
         data: (data) => CircleAvatar(
@@ -76,15 +82,55 @@ class ChatListItem extends ConsumerWidget {
           ),
         ),
       ),
-      title: Text(otherUserName.isNotEmpty ? otherUserName : 'Unknown User'),
+      title: Text(otherUserName.isNotEmpty ? otherUserName : 'Unknown User',style: const TextStyle(
+        fontFamily: AppFonts.rubik,
+         fontSize: 18,
+        fontWeight: FontWeight.w400,
+      ),),
       subtitle: Text(
         lastMessage.isNotEmpty
             ? (isCurrentUserSender ? 'You: $lastMessage' : lastMessage)
             : 'No messages',
+        style: TextStyle(
+          fontSize: FontSizes(context).size18,
+          fontFamily: AppFonts.rubik,
+          fontWeight: FontWeight.w400,
+          color: unseenCount.when(
+            data: (count) => count > 0 ? AppColors.gradientGreen : Colors.grey,
+            loading: () => Colors.grey,
+            error: (error, _) => Colors.grey,
+          ),
+        ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: Text(_formatTimestamp(timestamp)),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(_formatTimestamp(timestamp)),
+          unseenCount.when(
+            data: (count) => count > 0
+                ? Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: AppColors.gradientGreen,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (error, _) => const SizedBox.shrink(),
+          ),
+        ],
+      ),
       onTap: onTap,
     );
   }
