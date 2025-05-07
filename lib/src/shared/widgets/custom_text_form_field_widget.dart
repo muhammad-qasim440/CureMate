@@ -30,6 +30,9 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final InputBorder? errorBorder;
    final FocusNode? focusNode;
    final TextAlign? textAlign;
+   final bool? readOnly;
+   final VoidCallback? onTap;
+   final Color?fillColor;
   const CustomTextFormFieldWidget({
     super.key,
      this.controller,
@@ -60,6 +63,9 @@ class CustomTextFormFieldWidget extends StatelessWidget {
     this.minHeight,
     this.minWidth,
     this.textAlign,
+    this.readOnly,
+    this.onTap,
+    this.fillColor,
   });
 
   @override
@@ -67,6 +73,8 @@ class CustomTextFormFieldWidget extends StatelessWidget {
     return TextFormField(
       controller: controller,
       enabled: enabled,
+      readOnly: readOnly??false,
+      onTap: onTap??(){},
       strutStyle: const StrutStyle(height: 0),
       obscureText: obscureText,
       keyboardType: keyboardType,
@@ -85,7 +93,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
       maxLength: maxLength,
       initialValue: initialValue,
       decoration: InputDecoration(
-
+         fillColor: fillColor,
         labelText: label,
         labelStyle: labelStyle,
         hintText: hintText,

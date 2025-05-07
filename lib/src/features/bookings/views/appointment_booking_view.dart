@@ -2,7 +2,6 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/core/utils/debug_print.dart';
 import 'package:curemate/src/features/bookings/card/doctor_appointment_booking_view_card.dart';
-import 'package:curemate/src/features/bookings/views/doctor_availability_slots_view.dart';
 import 'package:curemate/src/features/bookings/views/select_time_view.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +52,6 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
 
   @override
   Widget build(BuildContext context) {
-    final patient = ref.watch(currentSignInPatientDataProvider).value;
     final isEditing = widget.appointment != null;
 
     return Scaffold(

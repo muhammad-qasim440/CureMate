@@ -1,5 +1,4 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/appointments/views/patient_appointments_view.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

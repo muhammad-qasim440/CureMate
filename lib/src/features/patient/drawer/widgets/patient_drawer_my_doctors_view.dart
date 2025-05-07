@@ -9,15 +9,15 @@ import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../providers/patient_providers.dart';
 import '../../shared/doctors_searching/widgets/doctors_list_widget.dart';
-class MyDoctorsView extends ConsumerStatefulWidget {
-  const MyDoctorsView({super.key});
+class PatientDrawerMyDoctorsView extends ConsumerStatefulWidget {
+  const PatientDrawerMyDoctorsView({super.key});
 
   @override
-  ConsumerState<MyDoctorsView> createState() =>
-      _SearchDoctorsViewState();
+  ConsumerState<PatientDrawerMyDoctorsView> createState() =>
+      _PatientDrawerMyDoctorsViewState();
 }
 
-class _SearchDoctorsViewState extends ConsumerState<MyDoctorsView> {
+class _PatientDrawerMyDoctorsViewState extends ConsumerState<PatientDrawerMyDoctorsView> {
   @override
   Widget build(BuildContext context) {
     final filteredDoctors = ref.watch(

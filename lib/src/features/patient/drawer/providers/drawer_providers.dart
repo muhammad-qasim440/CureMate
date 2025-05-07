@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../authentication/signin/providers/auth-provider.dart';
 
+///  patient medical records view provider
 final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) async* {
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
@@ -46,12 +47,34 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
   }
 });
 
+
+/// add patient record view providers
 final selectedImagesProvider = StateProvider<List<File>>((ref) => []);
 final recordTypeProvider = StateProvider.autoDispose<String>((ref) => 'Prescription');
 final recordDateProvider = StateProvider.autoDispose<String>(
       (ref) => DateTime.now().toIso8601String(),
 );
 final patientNameProvider = StateProvider.autoDispose<String>((ref) => '');
-final isEditingNameProvider = StateProvider.autoDispose<bool>((ref) => false);
+final isEditingNameProvider = StateProvider<bool>((ref) => false);
 final isEditingDateProvider = StateProvider.autoDispose<bool>((ref) => false);
 final isUploadingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final isDeletingProvider = StateProvider.autoDispose<bool>((ref) => false);
+/// medical records details view Providers
+final selectedIndicesProvider = StateProvider<Set<int>>((ref) => {});
+final selectionModeProvider = StateProvider<bool>((ref) => false);
+final newImagesProvider = StateProvider<List<File>>((ref) => []);
+/// Full image Screen Providers
+final currentOpenedImageIndexProvider=StateProvider<int>((ref)=>0);
+
+/// user profile providers
+
+final userUpdatedNameProvider = StateProvider<String>((ref) => '');
+final userUpdatedPhoneNumberProvider = StateProvider<String>((ref) => '');
+final userUpdatedCityProvider = StateProvider<String>((ref) => '');
+final userUpdatedLatitudeProvider = StateProvider<String>((ref) => '');
+final userUpdatedLongitudeProvider = StateProvider<String>((ref) => '');
+final userUpdatedDOBProvider = StateProvider<String>((ref) => '');
+final isEditingPhoneNumberProvider = StateProvider<bool>((ref) => false);
+final isEditingDOBProvider = StateProvider<bool>((ref) => false);
+final isEditingCityProvider = StateProvider<bool>((ref) => false);
+final isEditingLocationProvider = StateProvider<bool>((ref) => false);

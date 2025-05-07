@@ -1,4 +1,3 @@
-import 'package:curemate/const/app_routes.dart';
 import 'package:curemate/src/shared/providers/check_internet_connectivity_provider.dart';
 import 'package:curemate/src/shared/views/no_internet_view.dart';
 import 'package:flutter/material.dart';

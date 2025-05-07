@@ -168,43 +168,87 @@ final otherUserProfileProvider = StreamProvider.family<Map<String, dynamic>, Str
   authService.addRealtimeDbListener(subscription);
   yield ref.state.value ?? {};
 });
-final formattedLastSeenProvider = StreamProvider.family<String, String>((ref, userId) async* {
-  final userRef = FirebaseDatabase.instance.ref().child('Users/$userId/status');
-  Timer? timer;
+// final formattedLastSeenProvider = StreamProvider.family<String, String>((ref, userId) async* {
+//   final userRef = FirebaseDatabase.instance.ref().child('Users/$userId/status');
+//   Timer? timer;
+//
+//   final subscription = Stream.periodic(const Duration(seconds: 1)).listen((_) async {
+//     final snapshot = await userRef.get();
+//     final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
+//     final ping = data['ping'] as int?;
+//     if (ping == null) {
+//       ref.state = AsyncValue.data('Offline');
+//     } else {
+//       final now = DateTime.now().millisecondsSinceEpoch;
+//       final isOnline = now - ping < 15000;
+//       ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+//     }
+//     ref.state.whenData((value) => value);
+//   });
+//
+//   timer = Timer.periodic(const Duration(seconds: 1), (_) async {
+//     final snapshot = await userRef.get();
+//     final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
+//     final ping = data['ping'] as int?;
+//     if (ping == null) {
+//       ref.state = AsyncValue.data('Offline');
+//     } else {
+//       final now = DateTime.now().millisecondsSinceEpoch;
+//       final isOnline = now - ping < 15000;
+//       ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+//     }
+//   });
+//
+//   ref.onDispose(() {
+//     timer?.cancel();
+//     subscription.cancel();
+//   });
+//   yield ref.state.value ?? 'Offline';
+// });
+final formattedStatusProvider = StreamProvider.family<String, String>((ref, userId) {
+  final controller = StreamController<String>();
+  final dbRef = FirebaseDatabase.instance.ref().child('Users/$userId/status');
 
-  final subscription = Stream.periodic(const Duration(seconds: 1)).listen((_) async {
-    final snapshot = await userRef.get();
-    final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
-    final ping = data['ping'] as int?;
-    if (ping == null) {
-      ref.state = AsyncValue.data('Offline');
+  StreamSubscription? firebaseSub;
+  Timer? periodicTimer;
+  int? lastSeenTimestamp;
+  bool isOnline = false;
+
+  void updateStatus() {
+    if (isOnline) {
+      controller.add('Online');
+    } else if (lastSeenTimestamp != null) {
+      controller.add(formatLastSeen(lastSeenTimestamp!));
     } else {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final isOnline = now - ping < 15000;
-      ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+      controller.add('Offline');
     }
-    ref.state.whenData((value) => value);
-  });
+  }
 
-  timer = Timer.periodic(const Duration(seconds: 1), (_) async {
-    final snapshot = await userRef.get();
-    final data = Map<String, dynamic>.from(snapshot.value as Map? ?? {});
-    final ping = data['ping'] as int?;
-    if (ping == null) {
-      ref.state = AsyncValue.data('Offline');
-    } else {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final isOnline = now - ping < 15000;
-      ref.state = AsyncValue.data(isOnline ? 'Online' : formatLastSeen(ping));
+  // Listen to Firebase real-time status
+  firebaseSub = dbRef.onValue.listen((event) {
+    final data = event.snapshot.value as Map?;
+    isOnline = data?['isOnline'] ?? false;
+    lastSeenTimestamp = data?['lastSeen'];
+    updateStatus();
+
+    // If user is offline, start timer to update every minute
+    periodicTimer?.cancel();
+    if (!isOnline && lastSeenTimestamp != null) {
+      periodicTimer = Timer.periodic(Duration(minutes: 1), (_) {
+        updateStatus();
+      });
     }
   });
 
   ref.onDispose(() {
-    timer?.cancel();
-    subscription.cancel();
+    firebaseSub?.cancel();
+    periodicTimer?.cancel();
+    controller.close();
   });
-  yield ref.state.value ?? 'Offline';
+
+  return controller.stream;
 });
+
 final unseenMessagesProvider = StreamProvider.family<int, String>((ref, chatId) async* {
   final authService = ref.read(authProvider);
   final user = ref.watch(currentUserProvider).value;

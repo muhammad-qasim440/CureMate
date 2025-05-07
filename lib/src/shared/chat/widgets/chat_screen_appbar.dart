@@ -30,7 +30,7 @@ class ChatScreenAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final otherUserProfile = ref.watch(otherUserProfileProvider(otherUserId));
-    final status = ref.watch(formattedLastSeenProvider(otherUserId));
+    final status = ref.watch(formattedStatusProvider(otherUserId));
     final isInternet = ref.watch(checkInternetConnectionProvider).value ?? false;
 
     return AppBar(

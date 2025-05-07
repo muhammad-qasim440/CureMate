@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_medical_records.dart';
+import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_medical_records.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
+import 'package:curemate/src/shared/widgets/custom_confirmation_dialog_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -18,68 +19,13 @@ import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../authentication/signin/providers/auth-provider.dart';
 import '../../../authentication/signin/views/signin_view.dart';
-import '../widgets/my_doctors_view.dart';
+import '../widgets/patient_drawer_my_doctors_view.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
+import '../widgets/patient_drawer_profile_view_widget.dart';
 
 class PatientDrawerView extends ConsumerWidget {
   const PatientDrawerView({super.key});
-
-  Future<void> _pickImage(BuildContext context, WidgetRef ref) async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final user = ref.read(currentSignInPatientDataProvider).value;
-      if (user != null) {
-        final result = await uploadImageToCloudinary(File(pickedFile.path));
-        if (result != null) {
-          if (user.profileImagePublicId.isNotEmpty) {
-            await deleteImageFromCloudinary(user.profileImagePublicId);
-          }
-          await FirebaseDatabase.instance
-              .ref()
-              .child('Patients')
-              .child(FirebaseAuth.instance.currentUser!.uid)
-              .update({
-            'profileImageUrl': result['secure_url'],
-            'profileImagePublicId': result['public_id'],
-          });
-          CustomSnackBarWidget.show(
-            context: context,
-            text: 'Profile image updated successfully.',
-          );
-        } else {
-          CustomSnackBarWidget.show(
-            context: context,
-            text: 'Failed to update profile image.',
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _deleteProfileImage(BuildContext context, WidgetRef ref) async {
-    final user = ref.read(currentSignInPatientDataProvider).value;
-    if (user != null && user.profileImagePublicId.isNotEmpty) {
-      await deleteImageFromCloudinary(user.profileImagePublicId);
-      await FirebaseDatabase.instance
-          .ref()
-          .child('Patients')
-          .child(FirebaseAuth.instance.currentUser!.uid)
-          .update({
-        'profileImageUrl': '',
-        'profileImagePublicId': '',
-      });
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'Profile image deleted successfully.',
-      );
-    } else {
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'No profile image to delete.',
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,7 +36,7 @@ class PatientDrawerView extends ConsumerWidget {
       body: userAsync.when(
         data: (user) {
           if (user == null) {
-            return const CustomCenteredTextWidget(text: 'Please log in');
+            return const CustomCenteredTextWidget(text: 'Please Sign in');
           }
 
           return Stack(
@@ -115,25 +61,11 @@ class PatientDrawerView extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundImage: NetworkImage(user.profileImageUrl),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.green,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.edit, size: 14, color: Colors.white),
-                                    onPressed: () => _pickImage(context, ref),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundImage: NetworkImage(
+                              user.profileImageUrl,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -174,27 +106,16 @@ class PatientDrawerView extends ConsumerWidget {
                             onTap: () => Navigator.pop(context),
                             child: const CircleAvatar(
                               maxRadius: 15,
-                              backgroundColor: Colors.red,
-                              child: Icon(Icons.close, color: Colors.white, size: 15),
+                              backgroundColor: AppColors.gradientGreen,
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 15,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      // 20.height,
-                      // Row(
-                      //   children: [
-                      //     ElevatedButton(
-                      //       onPressed: () => _pickImage(context, ref),
-                      //       child: const Text('Change Profile Picture'),
-                      //     ),
-                      //     10.width,
-                      //     ElevatedButton(
-                      //       onPressed: () => _deleteProfileImage(context, ref),
-                      //       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      //       child: const Text('Delete Profile Picture'),
-                      //     ),
-                      //   ],
-                      // ),
                       100.height,
                       Expanded(
                         child: SizedBox(
@@ -204,36 +125,50 @@ class PatientDrawerView extends ConsumerWidget {
                               _buildMenuTile(
                                 context,
                                 Icons.person,
-                                'My Doctors',
+                                'My Profile',
                                     () {
-                                  AppNavigation.push(const MyDoctorsView());
+                                  AppNavigation.push(
+                                    const PatientDrawerProfileViewWidget(),
+                                  );
+                                },
+                              ),
+                              _buildMenuTile(
+                                context,
+                                Icons.person,
+                                'My Doctors',
+                                () {
+                                  AppNavigation.push(
+                                    const PatientDrawerMyDoctorsView(),
+                                  );
                                 },
                               ),
                               _buildMenuTile(
                                 context,
                                 Icons.description,
                                 'Medical Records',
-                                    () {
-                                  AppNavigation.push(const PatientMedicalRecords());
+                                () {
+                                  AppNavigation.push(
+                                    const PatientDrawerMedicalRecordsView(),
+                                  );
                                 },
                               ),
                               _buildMenuTile(
                                 context,
                                 Icons.privacy_tip,
                                 'Privacy & Policy',
-                                    () {},
+                                () {},
                               ),
                               _buildMenuTile(
                                 context,
                                 Icons.help_outline,
                                 'Help Center',
-                                    () {},
+                                () {},
                               ),
                               _buildMenuTile(
                                 context,
                                 Icons.settings,
                                 'Settings',
-                                    () {},
+                                () {},
                               ),
                             ],
                           ),
@@ -246,26 +181,42 @@ class PatientDrawerView extends ConsumerWidget {
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                         onTap: () async {
-                          Navigator.pop(context);
-                          final isNetworkAvailable = ref.read(checkInternetConnectionProvider);
-                          final isConnected = await isNetworkAvailable.whenData((value) => value).value ?? false;
+                          final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) =>const CustomConfirmationDialogWidget(
+                            title: 'Log Out',
+                            content: 'Are you sure you want to logout?',
+                                confirmText: 'Ok',
+                              ),
+                          );
+                          if(confirm==true){
+                            Navigator.pop(context);
+                            final isNetworkAvailable = ref.read(
+                              checkInternetConnectionProvider,
+                            );
+                            final isConnected =
+                                await isNetworkAvailable
+                                    .whenData((value) => value)
+                                    .value ??
+                                    false;
 
-                          if (!isConnected) {
-                            CustomSnackBarWidget.show(
-                              context: context,
-                              backgroundColor: AppColors.gradientGreen,
-                              text: 'No Internet Connection',
-                            );
-                            return;
-                          }
-                          try {
-                            await ref.read(authProvider).logout(context);
-                            AppNavigation.pushReplacement(const SignInView());
-                          } catch (e) {
-                            CustomSnackBarWidget.show(
-                              context: context,
-                              text: '$e',
-                            );
+                            if (!isConnected) {
+                              CustomSnackBarWidget.show(
+                                context: context,
+                                backgroundColor: AppColors.gradientGreen,
+                                text: 'No Internet Connection',
+                              );
+                              return;
+                            }
+                            try {
+                              await ref.read(authProvider).logout(context);
+                              AppNavigation.pushReplacement(const SignInView());
+                            } catch (e) {
+                              CustomSnackBarWidget.show(
+                                context: context,
+                                text: '$e',
+                              );
+                            }
                           }
                         },
                       ),
@@ -276,20 +227,21 @@ class PatientDrawerView extends ConsumerWidget {
             ],
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.gradientGreen),
-        ),
+        loading:
+            () => const Center(
+              child: CircularProgressIndicator(color: AppColors.gradientGreen),
+            ),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }
 
   Widget _buildMenuTile(
-      BuildContext context,
-      IconData icon,
-      String title,
-      VoidCallback onTap,
-      ) {
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(

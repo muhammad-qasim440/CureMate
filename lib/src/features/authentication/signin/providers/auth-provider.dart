@@ -317,7 +317,7 @@ class AuthService {
         _ref.invalidate(typingIndicatorProvider);
         _ref.invalidate(chatSettingsProvider);
         _ref.invalidate(otherUserProfileProvider);
-        _ref.invalidate(formattedLastSeenProvider);
+        _ref.invalidate(formattedStatusProvider);
         _ref.invalidate(unseenMessagesProvider);
         _ref.invalidate(currentUserProvider);
         _ref.invalidate(customDropDownProvider(AppStrings.userTypes));

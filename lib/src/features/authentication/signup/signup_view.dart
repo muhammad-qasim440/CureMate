@@ -23,7 +23,6 @@ import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
 import '../../doctor/doctor_main_view.dart';
-import '../../doctor/home/views/doctor_home_view.dart';
 import '../signin/providers/auth-provider.dart';
 
 class SignUpView extends ConsumerStatefulWidget {

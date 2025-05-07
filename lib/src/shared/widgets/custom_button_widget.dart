@@ -25,6 +25,7 @@ class CustomButtonWidget extends StatefulWidget {
   final double? elevation;
   final bool isEnabled;
   final LinearGradient? gradient;
+  final bool? isLoading;
 
   const CustomButtonWidget({
     super.key,
@@ -49,6 +50,7 @@ class CustomButtonWidget extends StatefulWidget {
     this.elevation = 4.0,
     this.isEnabled = true,
     this.gradient,
+    this.isLoading=false,
   });
 
   @override
@@ -121,7 +123,16 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
                 ),
               if (widget.text != null)
                 Flexible(
-                  child: CustomTextWidget(
+                  child:widget.isLoading == true
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : CustomTextWidget(
                     text: widget.text!,
                     textStyle: TextStyle(
                       fontSize: widget.fontSize ?? 16,

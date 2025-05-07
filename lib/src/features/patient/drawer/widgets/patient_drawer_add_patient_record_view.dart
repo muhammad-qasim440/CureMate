@@ -1,20 +1,14 @@
-import 'dart:io';
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/app.dart';
+import 'package:curemate/src/features/patient/drawer/helpers/drawer_helpers.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
-import '../../../../shared/providers/check_internet_connectivity_provider.dart';
+import '../../../../shared/widgets/custom_alert_dialog_widget.dart';
 import '../../../../shared/widgets/custom_appbar_header_widget.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_form_field_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
@@ -22,14 +16,14 @@ import '../../../../utils/screen_utils.dart';
 import '../../providers/patient_providers.dart';
 import '../providers/drawer_providers.dart';
 
-class AddPatientRecordView extends ConsumerStatefulWidget {
-  const AddPatientRecordView({super.key});
+class PatientDrawerAddPatientRecordView extends ConsumerStatefulWidget {
+  const PatientDrawerAddPatientRecordView({super.key});
 
   @override
-  ConsumerState<AddPatientRecordView> createState() => _AddRecordScreenState();
+  ConsumerState<PatientDrawerAddPatientRecordView> createState() => _PatientDrawerAddPatientRecordViewState();
 }
 
-class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
+class _PatientDrawerAddPatientRecordViewState extends ConsumerState<PatientDrawerAddPatientRecordView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _dateController = TextEditingController();
@@ -56,143 +50,22 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      ref
-          .read(selectedImagesProvider.notifier)
-          .update((state) => [...state, File(pickedFile.path)]);
-      Navigator.pop(context);
-    }
-  }
-
-  Future<void> _showImagePickerBottomSheet() async {
-    showModalBottomSheet(
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          20.height,
-          Row(
-            children: [
-              10.width,
-              CustomTextWidget(
-                text: 'Add a record',
-                textStyle: TextStyle(
-                  fontSize: FontSizes(context).size22,
-                  fontFamily: AppFonts.rubikMedium,
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          ListTile(
-            leading: const Icon(Icons.camera_alt, size: 15),
-            title: CustomTextWidget(
-              text: 'Take a photo',
-              textStyle: TextStyle(
-                fontSize: FontSizes(context).size16,
-                fontFamily: AppFonts.rubik,
-                color: AppColors.subtextcolor,
-              ),
-            ),
-            onTap: () => _pickImage(ImageSource.camera),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library, size: 15),
-            title: CustomTextWidget(
-              text: 'Upload from gallery',
-              textStyle: TextStyle(
-                fontSize: FontSizes(context).size16,
-                fontFamily: AppFonts.rubikMedium,
-                color: AppColors.subtextcolor,
-              ),
-            ),
-            onTap: () => _pickImage(ImageSource.gallery),
-          ),
-          10.height,
-        ],
-      ),
+      initialDate: DateTime.parse(ref.read(recordDateProvider)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
-  }
-
-  Future<void> _uploadRecords() async {
-    final isUploading = ref.read(isUploadingProvider);
-    if (isUploading) return;
-
-    ref.read(isUploadingProvider.notifier).state = true;
-
-    final hasInternet = await ref.read(checkInternetConnectionProvider.future);
-    if (!hasInternet) {
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'No internet connection. Please check your network.',
-      );
-      ref.read(isUploadingProvider.notifier).state = false;
-      return;
+    if (picked != null) {
+      // Format the selected date as dd MMM, yyyy for display
+      final formattedDate = DateFormat('dd MMM, yyyy').format(picked);
+      _dateController.text = formattedDate;
+      // Save the date in ISO 8601 format for Firebase
+      ref.read(recordDateProvider.notifier).state = picked.toIso8601String();
+      // Exit editing mode
+      ref.read(isEditingDateProvider.notifier).state = false;
     }
-
-    final images = ref.read(selectedImagesProvider);
-    final recordType = ref.read(recordTypeProvider);
-    final recordDate = ref.read(recordDateProvider);
-    final patientName = ref.read(patientNameProvider);
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null || images.isEmpty || !_formKey.currentState!.validate()) {
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'Please ensure all fields are valid and images are selected.',
-      );
-      ref.read(isUploadingProvider.notifier).state = false;
-      return;
-    }
-
-    List<Map<String, String>> imageDetails = [];
-    for (var image in images) {
-      final result = await uploadImageToCloudinary(image);
-      if (result != null) {
-        imageDetails.add({
-          'url': result['secure_url']!,
-          'public_id': result['public_id']!,
-        });
-      } else {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: 'Failed to upload one or more images.',
-        );
-      }
-    }
-
-    if (imageDetails.isEmpty) {
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'No images were successfully uploaded.',
-      );
-      ref.read(isUploadingProvider.notifier).state = false;
-      return;
-    }
-
-    final databaseRef = FirebaseDatabase.instance
-        .ref()
-        .child('Patients')
-        .child(user.uid)
-        .child('MedicalRecords')
-        .push();
-    await databaseRef.set({
-      'patientName': patientName,
-      'type': recordType,
-      'images': imageDetails,
-      'createdAt': recordDate,
-    });
-
-    ref.read(selectedImagesProvider.notifier).state = [];
-    ref.read(recordTypeProvider.notifier).state = 'Prescription';
-    ref.read(recordDateProvider.notifier).state =
-        DateTime.now().toIso8601String();
-    ref.read(isUploadingProvider.notifier).state = false;
-    Navigator.pop(context);
   }
 
   @override
@@ -204,14 +77,15 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
     final isEditingDate = ref.watch(isEditingDateProvider);
     final isEditingName = ref.watch(isEditingNameProvider);
     final isUploading = ref.watch(isUploadingProvider);
+    final drawerHelpers = DrawerHelpers();
+
     ref.listen(patientNameProvider, (previous, next) {
       _nameController.text = next;
     });
     ref.listen(recordDateProvider, (previous, next) {
-      _dateController.text = DateFormat(
-        'dd MMM, yyyy',
-      ).format(DateTime.parse(next));
+      _dateController.text = DateFormat('dd MMM, yyyy').format(DateTime.parse(next));
     });
+
     return Scaffold(
       body: Stack(
         children: [
@@ -223,14 +97,31 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 15.0,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomAppBarHeaderWidget(title: 'Add Record',),
+                        Row(
+                          children: [
+                            const CustomAppBarHeaderWidget(title: 'Add Record'),
+                            150.width,
+                            InkWell(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const CustomInfoDialogWidget(
+                                    title: 'Record Upload Information',
+                                    message: 'You can only upload images of prescriptions or medical reports etc.\n\nPDFs, videos, or other file types are not supported.',
+                                  ),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.info,
+                                color: AppColors.gradientGreen,
+                              ),
+                            ),
+                          ],
+                        ),
                         20.height,
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -245,7 +136,13 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: InkWell(
-                                  onTap: _showImagePickerBottomSheet,
+                                  onTap: () {
+                                    drawerHelpers.showImagePickerBottomSheet(
+                                      ref:ref,
+                                      context:context,
+                                      multiImageProvider: selectedImagesProvider,
+                                    );
+                                  },
                                   child: const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -268,7 +165,6 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                   ),
                                 ),
                               ),
-
                               ...selectedImages.map(
                                     (image) => Stack(
                                   children: [
@@ -297,13 +193,8 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                             color: AppColors.gradientGreen,
                                           ),
                                           onTap: () {
-                                            ref
-                                                .read(selectedImagesProvider.notifier)
-                                                .update(
-                                                  (state) =>
-                                                  state
-                                                      .where((i) => i != image)
-                                                      .toList(),
+                                            ref.read(selectedImagesProvider.notifier).update(
+                                                  (state) => state.where((i) => i != image).toList(),
                                             );
                                           },
                                         ),
@@ -342,7 +233,7 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   CustomTextWidget(
-                                    text:'Record for',
+                                    text: 'Record for',
                                     textStyle: TextStyle(
                                       fontSize: FontSizes(context).size16,
                                       color: AppColors.black,
@@ -356,7 +247,7 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                     ),
                                     onPressed: () {
                                       _nameFocusNode.requestFocus();
-                                      ref.read(isEditingNameProvider.notifier).state=true;
+                                      ref.read(isEditingNameProvider.notifier).state = true;
                                     },
                                   ),
                                 ],
@@ -364,17 +255,16 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                             ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              child:isEditingName?CustomTextFormFieldWidget(
-                                contentPadding: const EdgeInsets.only(left:10),
+                              child: isEditingName
+                                  ? CustomTextFormFieldWidget(
+                                contentPadding: const EdgeInsets.only(left: 10),
                                 focusNode: _nameFocusNode,
                                 initialValue: patientName,
-                                validator: (value) =>
-                                value!.isEmpty ? 'Name is required' : null,
-                                onFieldSubmitted: (_) => ref
-                                    .read(isEditingNameProvider.notifier)
-                                    .state = false,
-                                onChanged:(value)=> ref.read(patientNameProvider.notifier).state=value,
-                              ) :CustomTextWidget(
+                                validator: (value) => value!.isEmpty ? 'Name is required' : null,
+                                onFieldSubmitted: (_) => ref.read(isEditingNameProvider.notifier).state = false,
+                                onChanged: (value) => ref.read(patientNameProvider.notifier).state = value,
+                              )
+                                  : CustomTextWidget(
                                 text: patientName,
                                 textStyle: TextStyle(
                                   fontSize: FontSizes(context).size18,
@@ -383,14 +273,14 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                 ),
                               ),
                             ),
-                            const Divider(height: 1,indent: 20,endIndent: 20,),
+                            const Divider(height: 1, indent: 20, endIndent: 20),
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CustomTextWidget(
-                                    text:'Type of record',
+                                    text: 'Type of record',
                                     textStyle: TextStyle(
                                       fontSize: FontSizes(context).size16,
                                       color: Colors.black87,
@@ -424,16 +314,16 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                 ],
                               ),
                             ),
-                            const Divider(height: 1,indent: 20,endIndent: 20,),
+                            const Divider(height: 1, indent: 20, endIndent: 20),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   CustomTextWidget(
-                                    text:'Record created on',
+                                    text: 'Record created on',
                                     textStyle: TextStyle(
-                                      fontSize:FontSizes(context).size16 ,
+                                      fontSize: FontSizes(context).size16,
                                       fontFamily: AppFonts.rubik,
                                       color: AppColors.black,
                                     ),
@@ -447,6 +337,7 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                     onPressed: () {
                                       ref.read(isEditingDateProvider.notifier).state = true;
                                       _dateFocusNode.requestFocus();
+                                      _selectDate(context); // Open date picker immediately
                                     },
                                   ),
                                 ],
@@ -458,30 +349,17 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                                   ? CustomTextFormFieldWidget(
                                 controller: _dateController,
                                 focusNode: _dateFocusNode,
-                                initialValue:DateFormat('dd MMM, yyyy').format(DateTime.parse(recordDate)) ,
-                                onChanged: (value) {
-                                  try {
-                                    final date = DateFormat(
-                                      'dd MMM, yyyy',
-                                    ).parse(value);
-                                    ref
-                                        .read(recordDateProvider.notifier)
-                                        .state = date.toIso8601String();
-                                  } catch (e) {}
-                                },
-                                onFieldSubmitted: (_) => ref
-                                    .read(isEditingDateProvider.notifier)
-                                    .state = false,
-                                validator: (value) =>
-                                value!.isEmpty ? 'Date is required' : null,
+                                readOnly: true,
+                                onTap: () => _selectDate(context),
+                                validator: (value) => value!.isEmpty ? 'Date is required' : null,
                                 textStyle: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.black,
                                 ),
                               )
                                   : CustomTextWidget(
-                                text:DateFormat('dd MMM, yyyy').format(DateTime.parse(recordDate)),
-                                textStyle:  TextStyle(
+                                text: DateFormat('dd MMM, yyyy').format(DateTime.parse(recordDate)),
+                                textStyle: TextStyle(
                                   fontSize: FontSizes(context).size18,
                                   fontFamily: AppFonts.rubik,
                                   color: AppColors.gradientGreen,
@@ -492,15 +370,17 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
                             30.height,
                             Center(
                               child: CustomButtonWidget(
-                                width:ScreenUtil.scaleWidth(context,270),
-                                height:ScreenUtil.scaleHeight(context,54),
+                                width: ScreenUtil.scaleWidth(context, 270),
+                                height: ScreenUtil.scaleHeight(context, 54),
                                 text: isUploading ? 'Uploading...' : 'Upload record',
-                                onPressed:
-                                selectedImages.isEmpty || isUploading ? null : _uploadRecords,
-                                backgroundColor: Colors.green,
-                                textColor: Colors.white,
+                                onPressed: isUploading
+                                    ? null
+                                    : () {
+                                  drawerHelpers.uploadRecords(ref, context, _formKey);
+                                },
+                                backgroundColor: selectedImages.isEmpty ? AppColors.subtextcolor : AppColors.gradientGreen,
+                                textColor: selectedImages.isEmpty ? AppColors.black : AppColors.gradientWhite,
                                 borderRadius: 6,
-                                isEnabled: selectedImages.isNotEmpty && !isUploading,
                               ),
                             ),
                           ],
@@ -517,7 +397,12 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
     );
   }
 
-  Widget _buildRecordTypeOption(String type, IconData icon, bool isSelected, Color color) {
+  Widget _buildRecordTypeOption(
+      String type,
+      IconData icon,
+      bool isSelected,
+      Color color,
+      ) {
     return Expanded(
       child: InkWell(
         onTap: () {
@@ -534,7 +419,7 @@ class _AddRecordScreenState extends ConsumerState<AddPatientRecordView> {
             ),
             const SizedBox(height: 8),
             CustomTextWidget(
-              text:type,
+              text: type,
               textStyle: TextStyle(
                 fontSize: FontSizes(context).size13,
                 fontFamily: AppFonts.rubik,

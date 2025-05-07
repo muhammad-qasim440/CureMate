@@ -15,10 +15,12 @@ import 'custom_text_widget.dart';
 class CustomAppBarHeaderWidget extends ConsumerWidget {
   final bool? isAllNearByDoctorsView;
   final String? title;
+  final TextStyle? textStyle;
 
   const CustomAppBarHeaderWidget({
     super.key,
     this.title,
+    this.textStyle,
     this.isAllNearByDoctorsView,
   });
 
@@ -46,10 +48,10 @@ class CustomAppBarHeaderWidget extends ConsumerWidget {
           19.width,
           CustomTextWidget(
             text: title!,
-            textStyle: TextStyle(
+            textStyle:textStyle?? TextStyle(
               fontSize: FontSizes(context).size18,
               fontFamily: AppFonts.rubik,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.bold,
               color: AppColors.black,
             ),
           ),
