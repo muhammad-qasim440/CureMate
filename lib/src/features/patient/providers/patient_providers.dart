@@ -40,6 +40,21 @@ class Patient {
   });
 
   factory Patient.fromMap(Map<dynamic, dynamic> map, String uid) {
+    // Helper function to safely convert favorites to Map<String, bool>
+    Map<String, bool> parseFavorites(dynamic favorites) {
+      if (favorites == null) return {};
+      if (favorites is! Map) {
+        print('Warning: favorites is not a Map, received: $favorites');
+        return {};
+      }
+      return favorites.map((key, value) {
+        return MapEntry(
+          key.toString(),
+          value is bool ? value : false, // Convert non-boolean values to false
+        );
+      });
+    }
+
     return Patient(
       uid: uid,
       fullName: map['fullName'] ?? '',
@@ -53,9 +68,9 @@ class Patient {
       latitude: (map['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (map['longitude'] as num?)?.toDouble() ?? 0.0,
       createdAt: map['createdAt'] ?? '',
-      favorites: Map<String, bool>.from(map['favorites'] as Map<dynamic, dynamic>? ?? {}),
+      favorites: parseFavorites(map['favorites']),
       medicalRecords: Map<String, Map<String, dynamic>>.from(
-          (map['MedicalRecords'] as Map<dynamic, dynamic>?)?.map((key, value) => MapEntry(key.toString(), Map<String, dynamic>.from(value))) ?? {}
+        (map['MedicalRecords'] as Map<dynamic, dynamic>?)?.map((key, value) => MapEntry(key.toString(), Map<String, dynamic>.from(value))) ?? {},
       ),
     );
   }

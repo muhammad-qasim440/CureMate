@@ -106,7 +106,6 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
   }
 });
 
-
 final patientDataByUidProvider = FutureProvider.family<Patient?, String>((ref, patientUid) async {
   final database = ref.read(firebaseDatabaseProvider);
   final patientRef = database.child('Patients').child(patientUid);
@@ -114,27 +113,17 @@ final patientDataByUidProvider = FutureProvider.family<Patient?, String>((ref, p
   final snapshot = await patientRef.get();
   if (snapshot.exists) {
     final data = snapshot.value as Map<dynamic, dynamic>;
-    return Patient(
-      uid: patientUid,
-      fullName: data['fullName'] ?? 'Unknown Patient',
-      email: data['email'] ?? '',
-      city: data['city'] ?? '',
-      dob: data['dob'] ?? '',
-      phoneNumber: data['phoneNumber'] ?? '',
-      profileImageUrl: data['profileImageUrl'] ?? '',
-      profileImagePublicId: data['profileImagePublicId'] ?? '',
-      userType: data['userType'] ?? 'Patient',
-      latitude: (data['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: (data['longitude'] as num?)?.toDouble() ?? 0.0,
-      createdAt: data['createdAt'] ?? '',
-      favorites: data['favorites']??[],
-      medicalRecords: data['MedicalRecords']??[],
-    );
+    try {
+      return Patient.fromMap(data, patientUid);
+    } catch (e) {
+      print('Error parsing patient data for UID $patientUid: $e');
+      rethrow;
+    }
   }
   return null;
 });
-final appointmentsFilterOptionProvider = StateProvider<String>((ref) => 'All');
 
+final appointmentsFilterOptionProvider = StateProvider<String>((ref) => 'All');
 final bookingViewSelectedPatientLabelProvider = StateProvider<String>((ref) => 'My Self');
 final bookingViewPatientNameProvider = StateProvider<String>((ref) => '');
 final bookingViewPatientNumberProvider = StateProvider<String>((ref) => '');
@@ -143,50 +132,52 @@ final bookingViewPatientNoteProvider = StateProvider<String>((ref) => '');
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
   return BookingRepository();
 });
+
 class BookingRepository {
   Future<void> updateBooking(AppointmentModel newAppointment) async {
     final database = FirebaseDatabase.instance.ref();
     final appointmentRef = database.child('Appointments').child(newAppointment.id);
 
     try {
-      final updates = <String, dynamic>{};
+      logDebug('Updating appointmentxsxsxsdsdsdsdsdsd: ${newAppointment.id}');
 
-      void addIfChanged(String key, dynamic oldVal, dynamic newVal) {
-        if (oldVal != newVal) updates[key] = newVal;
+      final updates = {
+        'patientUid': newAppointment.patientUid,
+        'doctorUid': newAppointment.doctorUid,
+        'doctorName': newAppointment.doctorName,
+        'doctorCategory': newAppointment.doctorCategory,
+        'hospital': newAppointment.hospital,
+        'date': newAppointment.date,
+        'timeSlot': newAppointment.timeSlot,
+        'slotType': newAppointment.slotType,
+        'status': newAppointment.status,
+        'consultationFee': newAppointment.consultationFee,
+        'createdAt': newAppointment.createdAt,
+        'bookerName': newAppointment.bookerName,
+        'patientName': newAppointment.patientName,
+        'patientNumber': newAppointment.patientNumber,
+        'patientType': newAppointment.patientType,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+      if (newAppointment.patientNotes != null) {
+        updates['patientNotes'] = newAppointment.patientNotes!;
       }
-
-      final snapshot = await appointmentRef.get();
-      if (!snapshot.exists) throw Exception('Appointment does not exist');
-      final data = snapshot.value as Map;
-
-      addIfChanged('date', data['date'], newAppointment.date);
-      addIfChanged('timeSlot', data['timeSlot'], newAppointment.timeSlot);
-      addIfChanged('slotType', data['slotType'], newAppointment.slotType);
-      addIfChanged('patientNotes', data['patientNotes'], newAppointment.patientNotes);
-      addIfChanged('patientName', data['patientName'], newAppointment.patientName);
-      addIfChanged('patientNumber', data['patientNumber'], newAppointment.patientNumber);
-      addIfChanged('patientType', data['patientType'], newAppointment.patientType);
-      addIfChanged('status', data['status'], newAppointment.status);
-
-      if (updates.isEmpty) {
-        throw Exception('No changes to update');
-      }
-
-      updates['updatedAt'] = DateTime.now().toIso8601String();
-
+      logDebug('new updates: $updates');
       await appointmentRef.update(updates);
-      logDebug('Updated appointment with: $updates');
+      logDebug('Successfully updated appointment: ${newAppointment.id}');
     } catch (e, stack) {
       logDebug('Error during updateBooking: $e');
       logDebug('Stack: $stack');
       rethrow;
     }
   }
+
   Future<void> createBooking(AppointmentModel appointment) async {
     final database = FirebaseDatabase.instance.ref();
     logDebug('Creating appointment: ${appointment.toMap()}');
     await database.child('Appointments').child(appointment.id).set(appointment.toMap());
   }
+
   Future<void> cancelBooking(String appointmentId, String updatedAt) async {
     final database = FirebaseDatabase.instance.ref();
     logDebug('Cancelling appointment: $appointmentId');

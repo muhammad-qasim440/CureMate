@@ -34,7 +34,7 @@ class CustomInfoDialogWidget extends StatelessWidget {
         textStyle: TextStyle(
           fontFamily: AppFonts.rubik,
           fontSize: FontSizes(context).size14,
-          color: AppColors.subtextcolor,
+          color: AppColors.subTextColor,
         ),
       ),
       actions: [

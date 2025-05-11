@@ -1,5 +1,7 @@
 class AppStrings {
   static const appName = 'CureMate';
+  static const String feedbackEmail = 'ranamqasim440@gmail.com';
+  
    /// splash view texts
   static const aSmartHealthSolution='A Smart Health Solution';
   static const loading='Loading...';
@@ -28,6 +30,7 @@ class AppStrings {
   static const subtextOfWelcomeBack='Sign in to manage care, appointments, and\n   connect with professionals or patients.';
   static const email='Email';
   static const enterEmail='enter an email';
+  static const enterValidEmail='enter valid email';
   static const password='Password';
   static const enterValidPassword='Enter valid password';
   static const passwordHint='enter password';
@@ -138,5 +141,25 @@ class AppStrings {
     'Accepted',
     'Completed',
     'Rejected',
+  ];
+
+
+
+// Feedback strings for Cure Mate
+  static const List<String> feedbackOptions = [
+    'Doctor search results are inaccurate',
+    'No doctors found in my area',
+    'Unable to schedule an appointment',
+    'Appointment details not displaying correctly',
+    'Profile information not updating',
+    'App crashing or freezing',
+    'Slow performance when searching for doctors',
+    'Location services not working for nearby doctors',
+    'Error message displayed when logging in',
+    'Difficulty navigating the app interface',
+    'Appointment reminders not received',
+    'Unable to delete or edit my profile',
+    'Issues with marking doctors as favorites',
+    'Other (Please Specify)',
   ];
 }

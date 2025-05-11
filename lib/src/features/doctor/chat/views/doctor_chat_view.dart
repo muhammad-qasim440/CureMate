@@ -10,6 +10,7 @@ import '../../../../shared/chat/views/chat_screen.dart';
 import '../../../../shared/chat/widgets/chat_list_item_widget.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
+import '../../../../theme/app_colors.dart';
 
 class DoctorChatView extends ConsumerStatefulWidget {
   const DoctorChatView({super.key});
@@ -39,7 +40,7 @@ class _DoctorChatViewState extends ConsumerState<DoctorChatView> {
                     child: Text('Please log in to view chats.'),
                   )
                       : ref.watch(chatListProvider).when(
-                    data: (_) => filteredChats.isEmpty
+                    data: (data) => data.isEmpty
                         ? const Center(
                       child: Text(
                         'No chats found. Start a conversation!',
@@ -90,12 +91,12 @@ class _DoctorChatViewState extends ConsumerState<DoctorChatView> {
                       },
                     ),
                     loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                     const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
                     error: (error, _) =>
                         Center(child: Text('Error: $error')),
                   ),
                   loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+                  const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
                   error: (error, _) => Center(child: Text('Error: $error')),
                 ),
               ),

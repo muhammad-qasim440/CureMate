@@ -59,7 +59,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                 style: TextStyle(
                   fontFamily: AppFonts.rubik,
                   fontSize: 14,
-                  color: AppColors.subtextcolor,
+                  color: AppColors.subTextColor,
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -110,7 +110,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                           style: const TextStyle(
                             fontFamily: AppFonts.rubik,
                             fontSize: 14,
-                            color: AppColors.subtextcolor,
+                            color: AppColors.subTextColor,
                           ),
                         ),
                       ] else ...[
@@ -120,7 +120,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                             style: const TextStyle(
                               fontFamily: AppFonts.rubik,
                               fontSize: 14,
-                              color: AppColors.subtextcolor,
+                              color: AppColors.subTextColor,
                             ),
                           ),
                           4.height,
@@ -131,7 +131,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                             style: const TextStyle(
                               fontFamily: AppFonts.rubik,
                               fontSize: 14,
-                              color: AppColors.subtextcolor,
+                              color: AppColors.subTextColor,
                             ),
                           ),
                           4.height,
@@ -142,7 +142,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                             style: const TextStyle(
                               fontFamily: AppFonts.rubik,
                               fontSize: 14,
-                              color: AppColors.subtextcolor,
+                              color: AppColors.subTextColor,
                             ),
                           ),
                         ],
@@ -217,7 +217,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   },
                   selectedColor: AppColors.gradientGreen,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.subtextcolor,
+                    color: isSelected ? Colors.white : AppColors.subTextColor,
                     fontFamily: AppFonts.rubik,
                   ),
                 );
@@ -261,7 +261,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   style: TextStyle(
                     fontFamily: AppFonts.rubik,
                     fontSize: 14,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
               ],
@@ -317,7 +317,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   style: TextStyle(
                     fontFamily: AppFonts.rubik,
                     fontSize: 14,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
               ],
@@ -373,7 +373,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   style: TextStyle(
                     fontFamily: AppFonts.rubik,
                     fontSize: 14,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
               ],
@@ -429,7 +429,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   style: TextStyle(
                     fontFamily: AppFonts.rubik,
                     fontSize: 14,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
               ],
@@ -771,7 +771,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
               'Cancel',
               style: TextStyle(
                 fontFamily: AppFonts.rubik,
-                color: AppColors.subtextcolor,
+                color: AppColors.subTextColor,
               ),
             ),
           ),
@@ -849,7 +849,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                 colorScheme: const ColorScheme.light(
                   primary: AppColors.btnBgColor,
                   onPrimary: AppColors.gradientWhite,
-                  onSurface: AppColors.subtextcolor,
+                  onSurface: AppColors.subTextColor,
                 ),
                 textButtonTheme: TextButtonThemeData(
                   style: TextButton.styleFrom(
@@ -894,7 +894,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
           fontWeight: FontWeight.w400,
           fontSize: 14,
           fontFamily: AppFonts.rubik,
-          color: AppColors.subtextcolor,
+          color: AppColors.subTextColor,
         ),
       ),
     );

@@ -378,7 +378,7 @@ class _PatientDrawerAddPatientRecordViewState extends ConsumerState<PatientDrawe
                                     : () {
                                   drawerHelpers.uploadRecords(ref, context, _formKey);
                                 },
-                                backgroundColor: selectedImages.isEmpty ? AppColors.subtextcolor : AppColors.gradientGreen,
+                                backgroundColor: selectedImages.isEmpty ? AppColors.subTextColor : AppColors.gradientGreen,
                                 textColor: selectedImages.isEmpty ? AppColors.black : AppColors.gradientWhite,
                                 borderRadius: 6,
                               ),

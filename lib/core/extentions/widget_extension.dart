@@ -27,7 +27,7 @@ extension DateFormatExtension on String {
   }
 
   /// Returns date like: 04\nMAY
-  String get dayMonthDisplay {
+  String get dayBYMonthDisplay {
     try {
       final dateTime = DateTime.parse(this);
       final day = DateFormat('dd').format(dateTime);
@@ -37,6 +37,19 @@ extension DateFormatExtension on String {
       return 'Invalid\ndate';
     }
   }
+
+  /// Returns date like: 04 MAY
+  String get dayMonthDisplay {
+    try {
+      final dateTime = DateTime.parse(this);
+      final day = DateFormat('dd').format(dateTime);
+      final month = DateFormat('MMM').format(dateTime).toUpperCase();
+      return '$day $month';
+    } catch (e) {
+      return 'Invalid date';
+    }
+  }
+
 }
 extension StringExtension on String {
   String capitalize() {

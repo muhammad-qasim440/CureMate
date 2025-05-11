@@ -7,6 +7,7 @@ import 'package:curemate/src/shared/widgets/custom_text_form_field_widget.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../const/app_strings.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../utils/app_utils.dart';
@@ -99,7 +100,7 @@ class _ForgetPasswordBottomSheetState extends ConsumerState<ForgetPasswordBottom
                 fontFamily: AppFonts.rubik,
                 fontWeight: FontWeight.w400,
                 fontSize: 14,
-                color: AppColors.subtextcolor,
+                color: AppColors.subTextColor,
               ),
             ),
             20.height,
@@ -111,6 +112,13 @@ class _ForgetPasswordBottomSheetState extends ConsumerState<ForgetPasswordBottom
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your email';
+                }
+                const pattern =
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+
+                final regex = RegExp(pattern);
+                if (!regex.hasMatch(value)) {
+                  return AppStrings.enterValidEmail;
                 }
                 return null;
               },
@@ -132,7 +140,7 @@ class _ForgetPasswordBottomSheetState extends ConsumerState<ForgetPasswordBottom
                 fontWeight: FontWeight.w400,
                 fontSize: 14,
                 fontFamily: AppFonts.rubik,
-                color: AppColors.subtextcolor,
+                color: AppColors.subTextColor,
               ),
             ),
             30.height,

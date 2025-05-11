@@ -604,7 +604,7 @@ class _PatientDrawerProfileViewWidgetState
                                       isUpdating
                                           ? null
                                           : () { clearChanges(ref);},
-                                  backgroundColor: AppColors.subtextcolor,
+                                  backgroundColor: AppColors.subTextColor,
                                   textColor: Colors.white,
                                   borderRadius: 8,
                                   width: ScreenUtil.scaleWidth(context, 150),
@@ -680,7 +680,7 @@ class PersonalInfoCardsWidget extends StatelessWidget {
                     textStyle: TextStyle(
                       fontFamily: AppFonts.rubik,
                       fontSize: FontSizes(context).size16,
-                      color: AppColors.subtextcolor,
+                      color: AppColors.subTextColor,
                     ),
                   ),
                 ],
@@ -691,7 +691,7 @@ class PersonalInfoCardsWidget extends StatelessWidget {
             IconButton(
               icon: const Icon(
                 Icons.edit,
-                color: AppColors.subtextcolor,
+                color: AppColors.subTextColor,
                 size: 20,
               ),
               onPressed: onEditPress,

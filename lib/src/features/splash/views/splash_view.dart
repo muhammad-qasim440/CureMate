@@ -23,8 +23,8 @@ class SplashView extends ConsumerWidget {
       canPop: false,
       child: Scaffold(
         body: Container(
-          width: ScreenUtil.baseWidth,
-          height: ScreenUtil.baseHeight,
+          width: ScreenUtil.fullWidth(context),
+          height: ScreenUtil.fullHeight(context),
           decoration: const BoxDecoration(
             gradient: AppColors.backgroundLinearGradient,
           ),

@@ -6,6 +6,7 @@ import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/src/theme/app_colors.dart';
+import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../utils/screen_utils.dart';
 
@@ -209,7 +210,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                               textStyle: TextStyle(
                                 fontFamily: AppFonts.rubik,
                                 fontSize: FontSizes(context).size16,
-                                color: AppColors.subtextcolor,
+                                color: AppColors.subTextColor,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -236,7 +237,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                             .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return AppStrings.enterValidEmail;
                         }
                         return null;
                       },

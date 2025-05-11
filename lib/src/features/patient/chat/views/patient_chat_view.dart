@@ -9,6 +9,7 @@ import '../../../../shared/chat/widgets/chat_list_item_widget.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../../shared/chat/providers/chat_list_search_query_provider.dart';
+import '../../../../theme/app_colors.dart';
 import '../widgets/patient_chat_view_header.dart';
 
 class PatientChatView extends ConsumerStatefulWidget {
@@ -87,12 +88,12 @@ class _ChatViewState extends ConsumerState<PatientChatView> {
                       },
                     ),
                     loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                     const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
                     error: (error, _) =>
                         Center(child: Text('Error: $error')),
                   ),
                   loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+                  const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
                   error: (error, _) => Center(child: Text('Error: $error')),
                 ),
               ),

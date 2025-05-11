@@ -56,7 +56,7 @@ class CustomDropdown extends ConsumerWidget {
               fontFamily: AppFonts.rubik,
               fontWeight: FontWeight.w400,
               fontSize: FontSizes(context).size14,
-              color: AppColors.subtextcolor,
+              color: AppColors.subTextColor,
             ),
         contentPadding: EdgeInsets.zero,
         filled: true,
@@ -79,7 +79,7 @@ class CustomDropdown extends ConsumerWidget {
         scrollbarTheme: scrollbarThemeData ??
             ScrollbarThemeData(
               thumbColor: MaterialStateProperty.all(AppColors.gradientGreen),
-              trackColor: MaterialStateProperty.all(AppColors.subtextcolor),
+              trackColor: MaterialStateProperty.all(AppColors.subTextColor),
               thickness: MaterialStateProperty.all(4),
               radius: const Radius.circular(8),
             ),
@@ -103,7 +103,7 @@ class CustomDropdown extends ConsumerWidget {
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
                   fontFamily: AppFonts.rubik,
-                  color: AppColors.subtextcolor,
+                  color: AppColors.subTextColor,
                 ),
           ),
         ),

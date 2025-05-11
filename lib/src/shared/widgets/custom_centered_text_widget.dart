@@ -24,7 +24,7 @@ class CustomCenteredTextWidget extends StatelessWidget {
               fontFamily: 'Rubik',
               fontSize: 16,
               fontWeight: FontWeight.w400,
-              color: AppColors.subtextcolor,
+              color: AppColors.subTextColor,
             ),
       ),
     );

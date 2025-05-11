@@ -1,4 +1,4 @@
-// confirmation_view.dart
+// confirmation_dialog.dart
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,114 +9,147 @@ import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
-import '../../patient/providers/patient_providers.dart';
 import '../../patient/views/patient_main_view.dart';
+import '../models/appointment_model.dart';
+import 'appointment_booking_view.dart';
 
-class ConfirmationView extends ConsumerWidget {
-  final Doctor doctor;
+class ConfirmationDialog extends ConsumerWidget {
+  final dynamic doctor;
   final String date;
   final String timeSlot;
-  final bool? isEditing;
+  final bool isEditing;
+  final AppointmentModel? appointment;
 
-  const ConfirmationView({
+  const ConfirmationDialog({
     super.key,
     required this.doctor,
     required this.date,
     required this.timeSlot,
-    required this.isEditing,
+    this.isEditing = false,
+    this.appointment,
   });
 
+  static Future<void> show({
+    required BuildContext context,
+    required dynamic doctor,
+    required String date,
+    required String timeSlot,
+    bool isEditing = false,
+    dynamic appointment,
+  }) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: ConfirmationDialog(
+          doctor: doctor,
+          date: date,
+          timeSlot: timeSlot,
+          isEditing: isEditing,
+          appointment: appointment,
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
-    return Scaffold(
-      body: Stack(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      width: ScreenUtil.scaleWidth(context, 335),
+      height: ScreenUtil.scaleHeight(context, 520),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.gradientWhite,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.gradientWhite,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.thumb_up,
-                    color: AppColors.gradientGreen,
-                    size: 48,
-                  ),
-                  16.height,
-                  const CustomTextWidget(
-                    text: 'THANK YOU!',
-                    textStyle: TextStyle(
-                      fontFamily: AppFonts.rubik,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.black,
-                    ),
-                  ),
-                  8.height,
-                   CustomTextWidget(
-                    text:isEditing!?'Your appointment update successful': 'Your appointment successful',
-                    textStyle: const TextStyle(
-                      fontFamily: AppFonts.rubik,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.subtextcolor,
-                    ),
-                  ),
-                  16.height,
-                  CustomTextWidget(
-                    text: 'You booked an appointment with ${doctor.fullName} on $date at $timeSlot.',
-                    textStyle: const TextStyle(
-                      fontFamily: AppFonts.rubik,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.subtextcolor,
-                    ),
-                    textAlignment: TextAlign.center,
-                  ),
-                  24.height,
-                  CustomButtonWidget(
-                    text: 'Done',
-                    height: ScreenUtil.scaleHeight(context, 50),
-                    width: double.infinity,
-                    backgroundColor: AppColors.gradientGreen,
-                    fontFamily: AppFonts.rubik,
-                    fontSize: FontSizes(context).size16,
-                    fontWeight: FontWeight.w500,
-                    textColor: Colors.white,
-                    onPressed: () {
-                      AppNavigation.pushReplacement(const PatientMainView());
-                    },
-                  ),
-                  16.height,
-                  CustomButtonWidget(
-                    text: 'Edit your appointment',
-                    height: ScreenUtil.scaleHeight(context, 50),
-                    width: double.infinity,
-                    backgroundColor: Colors.transparent,
-                    fontFamily: AppFonts.rubik,
-                    fontSize: FontSizes(context).size16,
-                    fontWeight: FontWeight.w500,
-                    textColor: AppColors.gradientGreen,
-                    border: const BorderSide(color: AppColors.gradientGreen),
-                    onPressed: () {
-                      AppNavigation.pop(context);
-                    },
-                  ),
-                ],
-              ),
+          const CircleAvatar(
+              radius: 80,
+            backgroundColor: AppColors.lightGreen,
+            child: Icon(
+              Icons.thumb_up_off_alt_sharp,
+              color: AppColors.gradientGreen,
+              size: 60,
             ),
+          ),
+          const SizedBox(height: 16),
+           CustomTextWidget(
+            text: 'THANK YOU!',
+            textStyle: TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size30,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 5),
+          CustomTextWidget(
+            textAlignment: TextAlign.center,
+            text: isEditing ? 'Your appointment update successful' : 'Your appointment successful',
+            textStyle: TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size20,
+              fontWeight: FontWeight.w400,
+              color: AppColors.subTextColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          CustomTextWidget(
+            textAlignment:TextAlign.center,
+            text: 'You booked an appointment with ${doctor.fullName} ${doctor.category} on ${date.dayMonthDisplay} at $timeSlot.',
+            textStyle:  TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.subTextColor,
+            ),
+          ),
+          const SizedBox(height: 24),
+          CustomButtonWidget(
+            text: 'Done',
+            height: ScreenUtil.scaleHeight(context, 50),
+            width: double.infinity,
+            backgroundColor: AppColors.gradientGreen,
+            fontFamily: AppFonts.rubik,
+            fontSize: FontSizes(context).size16,
+            fontWeight: FontWeight.w500,
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.of(context).pop();
+              ref.read(bottomNavIndexProvider.notifier).state=2;
+              AppNavigation.pushReplacement(const PatientMainView());
+            },
+          ),
+          5.height,
+          CustomButtonWidget(
+            text: 'Edit your appointment',
+            height: ScreenUtil.scaleHeight(context, 50),
+            width: double.infinity,
+            backgroundColor: Colors.transparent,
+            fontFamily: AppFonts.rubik,
+            fontSize: FontSizes(context).size14,
+            fontWeight: FontWeight.w500,
+            textColor: AppColors.subTextColor,
+            onPressed: () {
+              Navigator.of(context).pop();
+              AppNavigation.push(
+                AppointmentBookingView(
+                  doctor: doctor,
+                  appointment: appointment,
+                ),
+              );
+            },
           ),
         ],
       ),

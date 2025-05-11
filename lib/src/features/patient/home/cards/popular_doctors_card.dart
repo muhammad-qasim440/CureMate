@@ -82,7 +82,7 @@ class PopularDoctorCard extends StatelessWidget {
                 fontWeight: FontWeight.w400,
                 fontFamily: AppFonts.rubik,
                 fontSize: FontSizes(context).size12,
-                color: AppColors.subtextcolor,
+                color: AppColors.subTextColor,
               ),
             ),
             4.height,

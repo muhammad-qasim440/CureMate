@@ -30,7 +30,7 @@ class DoctorSearchBarWidget extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 16),
-              const Icon(Icons.search, color: AppColors.subtextcolor, size: 20),
+              const Icon(Icons.search, color: AppColors.subTextColor, size: 20),
               5.width,
               CustomTextWidget(
                 text: 'Search...',
@@ -38,11 +38,11 @@ class DoctorSearchBarWidget extends StatelessWidget {
                   fontSize: FontSizes(context).size15,
                   fontWeight: FontWeight.w400,
                   fontFamily: AppFonts.rubik,
-                  color: AppColors.subtextcolor,
+                  color: AppColors.subTextColor,
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.close, color: AppColors.subtextcolor, size: 20),
+              const Icon(Icons.close, color: AppColors.subTextColor, size: 20),
               const SizedBox(width: 16),
             ],
           ),

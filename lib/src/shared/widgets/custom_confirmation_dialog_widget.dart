@@ -38,7 +38,7 @@ class CustomConfirmationDialogWidget extends StatelessWidget {
         text: content,
         textAlignment: TextAlign.center,
         textStyle: TextStyle(
-          color: AppColors.subtextcolor,
+          color: AppColors.subTextColor,
           fontSize: FontSizes(context).size14,
           fontFamily: AppFonts.rubik,
         ),

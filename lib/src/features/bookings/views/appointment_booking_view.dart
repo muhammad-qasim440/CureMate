@@ -223,7 +223,7 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.gradientGreen : AppColors.subtextcolor),
+            Icon(icon, color: isSelected ? AppColors.gradientGreen : AppColors.subTextColor),
             8.width,
             CustomTextWidget(
               text: label,
@@ -231,7 +231,7 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                 fontFamily: AppFonts.rubik,
                 fontSize: FontSizes(context).size14,
                 fontWeight: FontWeight.w400,
-                color: isSelected ? AppColors.gradientGreen : AppColors.subtextcolor,
+                color: isSelected ? AppColors.gradientGreen : AppColors.subTextColor,
               ),
             ),
           ],

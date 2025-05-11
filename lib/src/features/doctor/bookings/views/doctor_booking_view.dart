@@ -217,7 +217,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                                         .size14,
                                                     fontWeight: FontWeight.w400,
                                                     color:
-                                                    AppColors.subtextcolor,
+                                                    AppColors.subTextColor,
                                                   ),
                                                 ),
                                                 4.height,
@@ -235,7 +235,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                                     fontWeight:
                                                     FontWeight.w400,
                                                     color: AppColors
-                                                        .subtextcolor,
+                                                        .subTextColor,
                                                   ),
                                                 )
                                                     : const SizedBox.shrink(),
@@ -252,7 +252,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                           fontFamily: AppFonts.rubik,
                                           fontSize: FontSizes(context).size14,
                                           fontWeight: FontWeight.w400,
-                                          color: AppColors.subtextcolor,
+                                          color: AppColors.subTextColor,
                                         ),
                                       ),
                                       4.height,
@@ -263,7 +263,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                           fontFamily: AppFonts.rubik,
                                           fontSize: FontSizes(context).size14,
                                           fontWeight: FontWeight.w400,
-                                          color: AppColors.subtextcolor,
+                                          color: AppColors.subTextColor,
                                         ),
                                       ),
                                       4.height,
@@ -274,7 +274,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                           fontFamily: AppFonts.rubik,
                                           fontSize: FontSizes(context).size14,
                                           fontWeight: FontWeight.w400,
-                                          color: AppColors.subtextcolor,
+                                          color: AppColors.subTextColor,
                                         ),
                                       ),
                                       4.height,
@@ -298,7 +298,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
                                             fontWeight: FontWeight.w400,
-                                            color: AppColors.subtextcolor,
+                                            color: AppColors.subTextColor,
                                           ),
                                         ),
                                       ],
@@ -490,7 +490,7 @@ class DoctorBookingsView extends ConsumerWidget {
       case 'completed':
         return Colors.blue;
       default:
-        return AppColors.subtextcolor;
+        return AppColors.subTextColor;
     }
   }
 }

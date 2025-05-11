@@ -66,7 +66,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
           textStyle: TextStyle(
             fontFamily: AppFonts.rubik,
             fontSize: FontSizes(context).size16,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
@@ -101,7 +101,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
                     textStyle: TextStyle(
                       fontFamily: AppFonts.rubik,
                       fontSize: FontSizes(context).size16,
-                      color: AppColors.subtextcolor,
+                      color: AppColors.subTextColor,
                     ),
                   ),
                 ],
@@ -109,7 +109,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.edit, color: AppColors.subtextcolor, size: 20),
+            icon: const Icon(Icons.edit, color: AppColors.subTextColor, size: 20),
             onPressed: isEnabled
                 ? () => ref.read(isEditingProvider.notifier).state = true
                 : null,

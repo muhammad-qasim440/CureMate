@@ -187,7 +187,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                                   fontWeight: FontWeight.w400,
                                                   color: isCancelled
                                                       ? Colors.grey
-                                                      : AppColors.subtextcolor,
+                                                      : AppColors.subTextColor,
                                                 ),
                                               ),
                                             ],
@@ -203,7 +203,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       fontFamily: AppFonts.rubik,
                                       fontSize: FontSizes(context).size14,
                                       fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subtextcolor,
+                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                     ),
                                   ),
                                   4.height,
@@ -213,7 +213,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       fontFamily: AppFonts.rubik,
                                       fontSize: FontSizes(context).size14,
                                       fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subtextcolor,
+                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                     ),
                                   ),
                                   4.height,
@@ -223,9 +223,21 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       fontFamily: AppFonts.rubik,
                                       fontSize: FontSizes(context).size14,
                                       fontWeight: FontWeight.w400,
-                                      color: AppColors.subtextcolor,
+                                      color: AppColors.subTextColor,
                                     ),
                                   ),
+                                  if(appointment.updatedAt!=null)...[
+                                    4.height,
+                                    CustomTextWidget(
+                                      text: 'Updated At: ${appointment.updatedAt!.formattedDate}',
+                                      textStyle: TextStyle(
+                                        fontFamily: AppFonts.rubik,
+                                        fontSize: FontSizes(context).size14,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.subTextColor,
+                                      ),
+                                    ),
+                                  ],
                                   4.height,
                                   CustomTextWidget(
                                     text: 'Appointment Date: ${appointment.date}',
@@ -233,7 +245,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       fontFamily: AppFonts.rubik,
                                       fontSize: FontSizes(context).size14,
                                       fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subtextcolor,
+                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                     ),
                                   ),
                                   4.height,
@@ -243,7 +255,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       fontFamily: AppFonts.rubik,
                                       fontSize: FontSizes(context).size14,
                                       fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subtextcolor,
+                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                     ),
                                   ),
                                   4.height,
@@ -266,7 +278,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                         fontWeight: FontWeight.w400,
                                         color: isCancelled
                                             ? Colors.grey
-                                            : AppColors.subtextcolor,
+                                            : AppColors.subTextColor,
                                       ),
                                     ),
                                   ],
@@ -285,9 +297,9 @@ class PatientAppointmentsView extends ConsumerWidget {
                                           fontWeight: FontWeight.w500,
                                           textColor: Colors.white,
                                           onPressed: () {
-                                            // ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = appointment.patientType;
-                                            // ref.read(bookingViewPatientNameProvider.notifier).state = appointment.patientName;
-                                            // ref.read(bookingViewPatientNumberProvider.notifier).state = appointment.patientNumber;
+                                            ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = appointment.patientType;
+                                            ref.read(bookingViewPatientNameProvider.notifier).state = appointment.patientName;
+                                            ref.read(bookingViewPatientNumberProvider.notifier).state = appointment.patientNumber;
                                             AppNavigation.push(
                                               AppointmentBookingView(
                                                 doctor: doctor,
@@ -367,7 +379,7 @@ class PatientAppointmentsView extends ConsumerWidget {
       case 'completed':
         return Colors.blue;
       default:
-        return AppColors.subtextcolor;
+        return AppColors.subTextColor;
     }
   }
 }

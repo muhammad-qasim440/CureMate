@@ -34,6 +34,13 @@ class CredentialsFormSection extends ConsumerWidget {
             if (value == null || value.isEmpty) {
               return AppStrings.enterEmail;
             }
+            const pattern =
+                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+
+            final regex = RegExp(pattern);
+            if (!regex.hasMatch(value)) {
+              return AppStrings.enterValidEmail;
+            }
             return null;
           },
           onChanged: (value) => ref.read(emailProvider.notifier).state = value,
@@ -55,7 +62,7 @@ class CredentialsFormSection extends ConsumerWidget {
             fontWeight: FontWeight.w400,
             fontSize: 14,
             fontFamily: AppFonts.rubik,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
         ),
         const SizedBox(height: 20),
@@ -90,7 +97,7 @@ class CredentialsFormSection extends ConsumerWidget {
             fontFamily: AppFonts.rubik,
             fontWeight: FontWeight.w400,
             fontSize: FontSizes(context).size14,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
           obscureText: isPasswordHidden,
           suffixIcon:

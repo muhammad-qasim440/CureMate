@@ -117,7 +117,7 @@ class DrawerHelpers {
                   textStyle: TextStyle(
                     fontSize: FontSizes(context).size16,
                     fontFamily: AppFonts.rubik,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
                 onTap: () async {
@@ -151,7 +151,7 @@ class DrawerHelpers {
                   textStyle: TextStyle(
                     fontSize: FontSizes(context).size16,
                     fontFamily: AppFonts.rubikMedium,
-                    color: AppColors.subtextcolor,
+                    color: AppColors.subTextColor,
                   ),
                 ),
                 onTap: () async {

@@ -19,9 +19,11 @@ import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../authentication/signin/providers/auth-provider.dart';
 import '../../../authentication/signin/views/signin_view.dart';
+import '../widgets/patient_drawer_feedback_widget.dart';
 import '../widgets/patient_drawer_my_doctors_view.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
+import '../widgets/patient_drawer_privacy_policy_widget.dart';
 import '../widgets/patient_drawer_profile_view_widget.dart';
 
 class PatientDrawerView extends ConsumerWidget {
@@ -156,13 +158,17 @@ class PatientDrawerView extends ConsumerWidget {
                                 context,
                                 Icons.privacy_tip,
                                 'Privacy & Policy',
-                                () {},
+                                () {
+                                  AppNavigation.push(const PrivacyPolicyScreen());
+                                },
                               ),
                               _buildMenuTile(
                                 context,
-                                Icons.help_outline,
-                                'Help Center',
-                                () {},
+                                Icons.feedback_outlined,
+                                'Feedback',
+                                () {
+                                  AppNavigation.push(const PatientDrawerFeedBackWidget());
+                                },
                               ),
                               _buildMenuTile(
                                 context,

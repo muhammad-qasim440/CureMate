@@ -97,7 +97,7 @@ class NoInternetView extends StatelessWidget {
                       fontFamily: AppFonts.rubik,
                       fontSize: FontSizes(context).size22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.subtextcolor,
+                      color: AppColors.subTextColor,
                     ),
                   ),
                   15.height,

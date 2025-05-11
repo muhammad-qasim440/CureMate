@@ -54,7 +54,7 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
         hintText: 'Search...',
         prefixIcon: const Icon(
           Icons.search,
-          color: AppColors.subtextcolor,
+          color: AppColors.subTextColor,
           size: 20,
         ),
         suffixIcon: InkWell(
@@ -63,7 +63,7 @@ class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
             FocusScope.of(context).unfocus();
             ref.read(widget.provider.notifier).state = '';
           },
-          child: const Icon(Icons.close, color: AppColors.subtextcolor, size: 20),
+          child: const Icon(Icons.close, color: AppColors.subTextColor, size: 20),
         ),
         filled: true,
         fillColor: Colors.grey[200],

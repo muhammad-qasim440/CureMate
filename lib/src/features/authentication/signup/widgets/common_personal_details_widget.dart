@@ -71,7 +71,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
             fontWeight: FontWeight.w400,
             fontSize: 14,
             fontFamily: AppFonts.rubik,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
         ),
         23.height,
@@ -113,7 +113,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
             fontWeight: FontWeight.w400,
             fontSize: 14,
             fontFamily: AppFonts.rubik,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
         ),
         23.height,
@@ -150,7 +150,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
             fontWeight: FontWeight.w400,
             fontSize: 14,
             fontFamily: AppFonts.rubik,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
           suffixIcon: IconButton(
             icon: const Icon(Icons.calendar_today, size: 20),
@@ -222,7 +222,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
             fontWeight: FontWeight.w400,
             fontSize: FontSizes(context).size14,
             fontFamily: AppFonts.rubik,
-            color: AppColors.subtextcolor,
+            color: AppColors.subTextColor,
           ),
           onChanged: (value) {
             locationController.text = value;

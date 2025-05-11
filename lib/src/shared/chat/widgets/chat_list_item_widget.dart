@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:curemate/const/font_sizes.dart';
-import 'package:curemate/core/utils/debug_print.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -53,8 +52,6 @@ class ChatListItem extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider).value;
     final isCurrentUserSender = senderId != null && currentUser != null && senderId == currentUser.uid;
     final unseenCount = ref.watch(unseenMessagesProvider(chatId));
-    
-    logDebug('lassssss $lastMessage');
     
     return ListTile(
       leading: profile.when(

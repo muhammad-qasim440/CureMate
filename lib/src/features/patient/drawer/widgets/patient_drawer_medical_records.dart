@@ -80,7 +80,7 @@ class _PatientDrawerMedicalRecordsViewState
                                           text:
                                               'A detailed health history helps a doctor diagnose you better.',
                                           textStyle: TextStyle(
-                                            color: AppColors.subtextcolor,
+                                            color: AppColors.subTextColor,
                                             fontSize: FontSizes(context).size14,
                                             fontFamily: AppFonts.rubik,
                                           ),
