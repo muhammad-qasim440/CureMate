@@ -1,13 +1,8 @@
 import 'dart:io';
-import 'dart:math';
-
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/core/utils/debug_print.dart';
-import 'package:curemate/src/features/patient/drawer/helpers/drawer_helpers.dart';
-import 'package:curemate/src/features/patient/drawer/providers/drawer_providers.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_editable_personal_info_field_widget.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_update_email_view_widget.dart';
+import 'package:curemate/src/features/drawer/widgets/patient_drawer_editable_personal_info_field_widget.dart';
+import 'package:curemate/src/features/drawer/widgets/patient_drawer_update_email_view_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
@@ -18,11 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:location/location.dart' as loc;
 import '../../../../../const/font_sizes.dart';
-import '../../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
-import '../../../../shared/widgets/custom_text_form_field_widget.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../utils/screen_utils.dart';
-import '../../providers/patient_providers.dart';
+import '../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/screen_utils.dart';
+import '../../patient/providers/patient_providers.dart';
+import '../helpers/drawer_helpers.dart';
+import '../providers/drawer_providers.dart';
 
 final isUpdatingProfileProvider = StateProvider<bool>((ref) => false);
 final hasChangesProvider = StateProvider<bool>((ref) => false);
@@ -131,27 +127,9 @@ class _PatientDrawerProfileViewWidgetState
   }
 
   void _saveChanges() async {
-    logDebug('nskjfnsdkjfndskjfn');
     await drawerHelpers.updatePatientProfile(context, ref);
-    _checkForChanges(ref);
   }
 
-  void clearChanges(WidgetRef ref) {
-    final user = ref.read(currentSignInPatientDataProvider).value;
-    if (user != null) {
-      ref.read(userUpdatedNameProvider.notifier).state = user.fullName;
-      ref.read(userUpdatedPhoneNumberProvider.notifier).state =
-          user.phoneNumber;
-      ref.read(userUpdatedCityProvider.notifier).state = user.city;
-      ref.read(userUpdatedLatitudeProvider.notifier).state =
-          user.latitude.toString();
-      ref.read(userUpdatedLongitudeProvider.notifier).state =
-          user.longitude.toString();
-      ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
-       ref.read(profileImagePickerProvider.notifier).reset(ref);
-    }
-    ref.read(hasChangesProvider.notifier).state = false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,8 +137,6 @@ class _PatientDrawerProfileViewWidgetState
     final isUpdating = ref.watch(isUpdatingProfileProvider);
     final hasChanges = ref.watch(hasChangesProvider);
     final profileImageState = ref.watch(profileImagePickerProvider);
-    logDebug('dssdsfsdfsd$isUpdating');
-
     return Scaffold(
       body: userAsync.when(
         data: (user) {
@@ -342,7 +318,7 @@ class _PatientDrawerProfileViewWidgetState
                               return null;
                             },
                             isEnabled: !isUpdating,
-                            onChangeDetected: () => _checkForChanges(ref),
+                            onChangeDetected: () {_checkForChanges(ref);},
                           ),
                           EditablePersonalInfoField(
                             title: 'Date of Birth',
@@ -383,7 +359,8 @@ class _PatientDrawerProfileViewWidgetState
                               },
                             ),
                             isEnabled: !isUpdating,
-                            onChangeDetected: () => _checkForChanges(ref),
+                            onChangeDetected: () {_checkForChanges(ref);},
+
                           ),
                           EditablePersonalInfoField(
                             title: 'Contact Number',
@@ -405,7 +382,8 @@ class _PatientDrawerProfileViewWidgetState
                             },
                             keyboardType: TextInputType.phone,
                             isEnabled: !isUpdating,
-                            onChangeDetected: () => _checkForChanges(ref),
+                            onChangeDetected: () {_checkForChanges(ref);},
+
                           ),
                           EditablePersonalInfoField(
                             title: 'City',
@@ -423,7 +401,8 @@ class _PatientDrawerProfileViewWidgetState
                               return null;
                             },
                             isEnabled: !isUpdating,
-                            onChangeDetected: () => _checkForChanges(ref),
+                            onChangeDetected: () {_checkForChanges(ref);},
+
                           ),
                           EditablePersonalInfoField(
                             title: 'Location',
@@ -581,7 +560,8 @@ class _PatientDrawerProfileViewWidgetState
                               },
                             ),
                             isEnabled: !isUpdating,
-                            onChangeDetected: () => _checkForChanges(ref),
+                            onChangeDetected: () {_checkForChanges(ref);},
+
                           ),
                           30.height,
 
@@ -603,7 +583,7 @@ class _PatientDrawerProfileViewWidgetState
                                   onPressed:
                                       isUpdating
                                           ? null
-                                          : () { clearChanges(ref);},
+                                          : () { drawerHelpers.clearChanges(ref);},
                                   backgroundColor: AppColors.subTextColor,
                                   textColor: Colors.white,
                                   borderRadius: 8,

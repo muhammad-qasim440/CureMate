@@ -8,9 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../utils/screen_utils.dart';
+import '../../../utils/screen_utils.dart';
 
-// State management with Riverpod
 final updateEmailProvider =
 StateNotifierProvider<UpdateEmailNotifier, UpdateEmailState>((ref) {
   return UpdateEmailNotifier();

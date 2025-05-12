@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/core/utils/debug_print.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
         final pages = ref.read(onboardingPagesProvider);
         final currentPage = ref.read(currentOnboardingPageProvider);
         int nextPage = (currentPage + 1) % pages.length; // Loop back to 0
-        print('Auto-scroll: currentPage=$currentPage, nextPage=$nextPage');
+        logDebug('Auto-scroll: currentPage=$currentPage, nextPage=$nextPage');
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -69,14 +70,14 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
     final currentPage = ref.read(currentOnboardingPageProvider);
 
     if (currentPage < pages.length - 1) {
-      print('Next button: Moving to page ${currentPage + 1}');
+      logDebug('Next button: Moving to page ${currentPage + 1}');
       _pageController.animateToPage(
         currentPage + 1,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOutQuint,
       );
     } else {
-      print('Next button: Finishing onboarding');
+      logDebug('Next button: Finishing onboarding');
       _skipOnboarding();
     }
   }
@@ -106,7 +107,7 @@ class _OnBoardingCarouselViewState extends ConsumerState<OnBoardingCarouselView>
                 controller: _pageController,
                 physics: const ClampingScrollPhysics(),
                 onPageChanged: (index) {
-                  print('Page changed to: $index');
+                  logDebug('Page changed to: $index');
                   ref.read(currentOnboardingPageProvider.notifier).state = index;
                 },
                 itemCount: pages.length,

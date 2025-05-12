@@ -54,7 +54,7 @@ class CustomButtonWidget extends StatefulWidget {
   });
 
   @override
-  _CustomButtonWidgetState createState() => _CustomButtonWidgetState();
+  State<CustomButtonWidget> createState() => _CustomButtonWidgetState();
 }
 
 class _CustomButtonWidgetState extends State<CustomButtonWidget> {

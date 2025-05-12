@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
+import '../../../../core/utils/debug_print.dart';
 import '../../../features/authentication/signup/providers/signup_form_provider.dart';
 
 class ProfileImageState {
@@ -184,7 +185,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
       final file = File(path)..writeAsBytesSync(img.encodeJpg(resized, quality: 90));
       return XFile(file.path);
     } catch (e) {
-      print("Error in face processing: $e");
+      logDebug("Error in face processing: $e");
       return null;
     }
   }

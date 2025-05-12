@@ -1,12 +1,9 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../const/app_fonts.dart';
-import '../../../const/app_strings.dart';
 import '../../../const/font_sizes.dart';
 import '../../features/patient/home/widgets/near_by_doctors_searching_radius_provider_widget.dart';
-import '../../features/patient/providers/patient_providers.dart';
 import '../../router/nav.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/screen_utils.dart';

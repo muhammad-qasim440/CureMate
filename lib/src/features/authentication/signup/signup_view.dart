@@ -23,7 +23,7 @@ import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
 import '../../doctor/doctor_main_view.dart';
-import '../signin/providers/auth-provider.dart';
+import '../signin/providers/auth_provider.dart';
 
 class SignUpView extends ConsumerStatefulWidget {
   const SignUpView({super.key});
@@ -125,10 +125,10 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
     final userType = ref.read(customDropDownProvider(AppStrings.userTypes));
     final user = userType.selected;
     if (profileImage == null) {
-      CustomSnackBarWidget.show(
-        context: context,
-        text: "Please upload a profile image",
-      );
+        CustomSnackBarWidget.show(
+          context: context,
+          text: "Please upload a profile image",
+        );
       return;
     }
     if (!isConnected) {

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/home/views/all_near_by_doctor_view.dart';
 import 'package:curemate/src/router/nav.dart';
@@ -7,7 +5,6 @@ import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../theme/app_colors.dart';

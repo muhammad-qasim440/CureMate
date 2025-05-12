@@ -5,9 +5,9 @@ import 'package:curemate/src/features/patient/favorites/views/patient_favorite_d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
 import '../../../theme/app_colors.dart';
-import '../drawer/views/patient_drawer_view.dart';
 import '../home/views/patient_home_view.dart';
 
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
@@ -34,7 +34,7 @@ class _PatientMainViewState extends ConsumerState<PatientMainView> {
       onWillPop: () async {
         if (selectedIndex != 0) {
           ref.read(bottomNavIndexProvider.notifier).state = 0;
-          print('WillPopScope: Set bottomNavIndex to 0 from $selectedIndex');
+          logDebug('WillPopScope: Set bottomNavIndex to 0 from $selectedIndex');
           return false;
         }
         ExitAppBottomSheet(
@@ -50,7 +50,7 @@ class _PatientMainViewState extends ConsumerState<PatientMainView> {
           currentIndex: selectedIndex,
           onTap: (index) {
             ref.read(bottomNavIndexProvider.notifier).state = index;
-            print('BottomNavigationBar: Changed index to $index');
+            logDebug('BottomNavigationBar: Changed index to $index');
           },
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,

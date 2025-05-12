@@ -15,11 +15,11 @@ class NoInternetView extends StatelessWidget {
   final String subtitle;
 
   const NoInternetView({
-    Key? key,
+    super.key,
     this.onTryAgain,
     this.title = "No Internet Connection",
     this.subtitle = "Please check your connection and try again",
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -13,7 +13,7 @@ class HeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       // height: keyboardHeight > 0 ? 80 : 200,
       child: Stack(

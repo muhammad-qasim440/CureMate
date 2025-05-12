@@ -1,5 +1,6 @@
-import 'package:curemate/src/features/authentication/signin/providers/auth-provider.dart';
+import 'package:curemate/src/features/authentication/signin/providers/auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../core/utils/debug_print.dart';
@@ -44,13 +45,13 @@ class Patient {
     Map<String, bool> parseFavorites(dynamic favorites) {
       if (favorites == null) return {};
       if (favorites is! Map) {
-        print('Warning: favorites is not a Map, received: $favorites');
+        logDebug('Warning: favorites is not a Map, received: $favorites');
         return {};
       }
       return favorites.map((key, value) {
         return MapEntry(
           key.toString(),
-          value is bool ? value : false, // Convert non-boolean values to false
+          value is bool ? value : false,
         );
       });
     }
@@ -226,7 +227,7 @@ final currentSignInPatientDataProvider = StreamProvider<Patient?>((ref) async* {
       ref.state.whenData((value) => value);
     });
     authService.addRealtimeDbListener(subscription);
-    yield ref.state.value ?? null;
+    yield ref.state.value;
   }
 });
 final nearByDoctorsProvider = FutureProvider<List<Doctor>>((ref) async {
@@ -419,5 +420,22 @@ final featuredDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
     });
 
     authService.addRealtimeDbListener(subscription);
+  }
+});
+final isPhoneCallsAllowedByUserProvider = FutureProvider.family<bool, String>((ref, userId) async {
+  if (userId.isEmpty) {
+    return false;
+  }
+
+  try {
+    final database = ref.read(firebaseDatabaseProvider);
+    final dbRef = database.child('Users/$userId/settings/allowCall');
+    final snapshot = await dbRef.get();
+    if (snapshot.exists) {
+      return snapshot.value as bool;
+    }
+    return false;
+  } catch (e) {
+    return false;
   }
 });

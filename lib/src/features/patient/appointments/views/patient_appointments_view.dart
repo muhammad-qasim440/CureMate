@@ -17,7 +17,6 @@ import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../../bookings/providers/booking_providers.dart';
 import '../../../bookings/views/appointment_booking_view.dart';
-import '../../../bookings/views/edit_booking_view.dart';
 import '../../providers/patient_providers.dart';
 import '../../../../../const/app_strings.dart';
 

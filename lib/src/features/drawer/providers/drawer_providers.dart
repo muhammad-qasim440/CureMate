@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../authentication/signin/providers/auth-provider.dart';
+import '../../authentication/signin/providers/auth_provider.dart';
+
 
 ///  patient medical records view provider
 final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) async* {
@@ -31,7 +32,7 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
             record['images'] = (record['images'] as List).map((item) {
               if (item is Map) {
                 return Map<String, String>.fromEntries(
-                  (item as Map).entries.map((e) => MapEntry(e.key.toString(), e.value.toString())),
+                  (item).entries.map((e) => MapEntry(e.key.toString(), e.value.toString())),
                 );
               }
               return {'url': '', 'public_id': ''}; // Default fallback
@@ -46,6 +47,8 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
     }
   }
 });
+
+
 
 
 /// add patient record view providers

@@ -3,7 +3,7 @@ import 'package:curemate/core/utils/debug_print.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/format_last_seen_time.dart';
-import '../../../features/authentication/signin/providers/auth-provider.dart';
+import '../../../features/authentication/signin/providers/auth_provider.dart';
 import 'chatting_auth_providers.dart';
 
 final chatListProvider = StreamProvider<List<Map<String, dynamic>>>((ref) async* {
@@ -234,7 +234,7 @@ final formattedStatusProvider = StreamProvider.family<String, String>((ref, user
     // If user is offline, start timer to update every minute
     periodicTimer?.cancel();
     if (!isOnline && lastSeenTimestamp != null) {
-      periodicTimer = Timer.periodic(Duration(minutes: 1), (_) {
+      periodicTimer = Timer.periodic(const Duration(minutes: 1), (_) {
         updateStatus();
       });
     }

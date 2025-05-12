@@ -15,7 +15,7 @@ class SignInLinkSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: () {
-        AppNavigation.pushReplacement(SignInView());
+        AppNavigation.pushReplacement(const SignInView());
       },
       child: CustomTextWidget(
         text: AppStrings.haveAccount,

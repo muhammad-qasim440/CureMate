@@ -1,7 +1,5 @@
-// Doctor Card Widget (Reusable for all doctor lists)
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';

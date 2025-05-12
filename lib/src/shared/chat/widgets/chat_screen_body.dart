@@ -13,7 +13,6 @@ import '../../widgets/lower_background_effects_widgets.dart';
 import '../chat_services.dart';
 import '../models/models_for_patient_and_doctors_for_chatting.dart';
 import '../providers/chatting_providers.dart';
-import '../views/chat_screen.dart';
 import 'chat_input_widget.dart';
 import 'message_bubble_widget.dart';
 

@@ -11,7 +11,7 @@ import '../../../../../const/app_strings.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../utils/app_utils.dart';
-import '../../signin/providers/auth-provider.dart';
+import '../../signin/providers/auth_provider.dart';
 import '../providers/password_reset_providers.dart';
 final inSheetNotificationProvider = StateProvider.autoDispose<String?>((ref) => null);
 
@@ -287,7 +287,7 @@ class _ForgetPasswordBottomSheetState extends ConsumerState<ForgetPasswordBottom
 // import '../../../shared/providers/check_internet_connectivity_provider.dart';
 // import '../../../shared/widgets/custom_text_widget.dart';
 // import '../../../utils/app_utils.dart';
-// import '../../signin/providers/auth-provider.dart';
+// import '../../signin/providers/auth_provider.dart';
 // import '../providers/password_reset_providers.dart';
 //
 // class ForgetPasswordBottomSheet extends ConsumerWidget {

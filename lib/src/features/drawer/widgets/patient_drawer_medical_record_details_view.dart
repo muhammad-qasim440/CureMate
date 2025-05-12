@@ -1,5 +1,4 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/drawer/helpers/drawer_helpers.dart';
 import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
@@ -8,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/src/theme/app_colors.dart';
+import '../helpers/drawer_helpers.dart';
 import '../providers/drawer_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 

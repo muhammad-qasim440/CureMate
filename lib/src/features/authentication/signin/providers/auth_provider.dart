@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../../core/lifecycle/observers/app_lifecycle_observer.dart';
+import '../../../../../core/utils/debug_print.dart';
 import '../../../../shared/chat/providers/chatting_auth_providers.dart';
 import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
@@ -135,6 +136,7 @@ class AuthService {
         },
         'settings': {
           'allowChat': true,
+          'allowCall':true,
         },
       });
 
@@ -333,18 +335,22 @@ class AuthService {
             'lastSeen': ServerValue.timestamp,
           });
         }
-        CustomSnackBarWidget.show(
-          backgroundColor: AppColors.gradientGreen,
-          context: context,
-          text: 'You have been logged out successfully.',
-        );
+         if(context.mounted) {
+           CustomSnackBarWidget.show(
+             backgroundColor: AppColors.gradientGreen,
+             context: context,
+             text: 'You have been logged out successfully.',
+           );
+         }
         AppNavigation.pushAndRemoveUntil(const SignInView());
     } catch (e) {
-      print("Logout error: $e");
-      CustomSnackBarWidget.show(
-        context: context,
-        text: 'Failed to log out: $e',
-      );
+      logDebug("Logout error: $e");
+      if (context.mounted) {
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Failed to log out: $e',
+        );
+      }
     }
   }
 }

@@ -7,7 +7,6 @@ import '../../../features/patient/views/patient_main_view.dart';
 import '../../../router/nav.dart';
 import '../../providers/check_internet_connectivity_provider.dart';
 import '../chat_services.dart';
-import '../models/models_for_patient_and_doctors_for_chatting.dart';
 import '../providers/chatting_auth_providers.dart';
 import '../widgets/chat_screen_appbar.dart';
 import '../widgets/chat_screen_body.dart';
@@ -34,14 +33,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
-  AppUser? _currentUser;
   Timer? _typingTimer;
 
   @override
   void initState() {
     super.initState();
     _messageController.addListener(_handleTyping);
-    _currentUser = ref.read(currentUserProvider).value;
   }
 
   void _handleTyping() async {

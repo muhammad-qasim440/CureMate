@@ -151,7 +151,7 @@ class _DaySlotSelectorWidgetState extends ConsumerState<DaySlotSelectorWidget> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
             10.height,
           ],
           // Add Availability Time Button

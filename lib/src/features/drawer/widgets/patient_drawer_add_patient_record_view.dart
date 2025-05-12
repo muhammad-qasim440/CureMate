@@ -1,19 +1,19 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/drawer/helpers/drawer_helpers.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../shared/widgets/custom_alert_dialog_widget.dart';
-import '../../../../shared/widgets/custom_appbar_header_widget.dart';
-import '../../../../shared/widgets/custom_button_widget.dart';
-import '../../../../shared/widgets/custom_text_form_field_widget.dart';
-import '../../../../shared/widgets/custom_text_widget.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../utils/screen_utils.dart';
-import '../../providers/patient_providers.dart';
+import '../../../shared/widgets/custom_alert_dialog_widget.dart';
+import '../../../shared/widgets/custom_appbar_header_widget.dart';
+import '../../../shared/widgets/custom_button_widget.dart';
+import '../../../shared/widgets/custom_text_form_field_widget.dart';
+import '../../../shared/widgets/custom_text_widget.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/screen_utils.dart';
+import '../../patient/providers/patient_providers.dart';
+import '../helpers/drawer_helpers.dart';
 import '../providers/drawer_providers.dart';
 
 class PatientDrawerAddPatientRecordView extends ConsumerStatefulWidget {

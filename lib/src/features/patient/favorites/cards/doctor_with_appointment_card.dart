@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/shared/views/doctor_details_view.dart';
 import 'package:curemate/src/router/nav.dart';

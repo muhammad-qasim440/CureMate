@@ -24,7 +24,7 @@ class DoctorProfileView extends ConsumerStatefulWidget {
 
   const DoctorProfileView({super.key, required this.doctor});
   @override
-  _DoctorProfileViewState createState() => _DoctorProfileViewState();
+  ConsumerState<DoctorProfileView> createState() => _DoctorProfileViewState();
 }
 
 class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with SingleTickerProviderStateMixin {
@@ -112,11 +112,12 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
   Widget build(BuildContext context) {
     final favoriteDocids = ref.watch(favoriteDoctorUidsProvider).value ?? [];
     final isFavorite = favoriteDocids.contains(widget.doctor.uid);
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 220, // Adjusted height to fit the new layout
+            expandedHeight: 220,
             pinned: true,
             backgroundColor: AppColors.gradientGreen,
             flexibleSpace: FlexibleSpaceBar(
@@ -323,7 +324,7 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem('${widget.doctor.yearsOfExperience}', 'Years Exp', Icons.work),
+          _buildStatItem(widget.doctor.yearsOfExperience, 'Years Exp', Icons.work),
           _buildStatItem('${widget.doctor.totalPatientConsulted}', 'Patients', Icons.people),
           _buildStatItem('${widget.doctor.profileViews}', 'Views', Icons.visibility),
         ],
@@ -585,6 +586,14 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
   }
 
   Widget _buildContactActions() {
+    final currentUser = ref.watch(currentSignInPatientDataProvider).when<Patient?>(
+      data: (data) => data,
+      error: (err, stack) => null,
+      loading: () => null,
+    );
+    final isPhoneCallsAllowedByDoctor = ref.watch(isPhoneCallsAllowedByUserProvider(widget.doctor.uid));
+    final isPhoneCallsAllowedByCurrentUser = ref.watch(isPhoneCallsAllowedByUserProvider(currentUser?.uid ?? ''));
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -627,7 +636,56 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                 label: 'Call',
                 color: Colors.green,
                 onTap: () {
-                  AppUtils.openPhone(widget.doctor.phoneNumber);
+                  if (currentUser == null) {
+                    CustomSnackBarWidget.show(
+                      context: context,
+                      text: 'Please log in to make a call.',
+                    );
+                    return;
+                  }
+
+                  isPhoneCallsAllowedByDoctor.when(
+                    data: (doctorAllowed) {
+                      isPhoneCallsAllowedByCurrentUser.when(
+                        data: (userAllowed) {
+                          if (doctorAllowed && userAllowed) {
+                            AppUtils.openPhone(widget.doctor.phoneNumber);
+                          } else if (!doctorAllowed && !userAllowed) {
+                            CustomSnackBarWidget.show(
+                              context: context,
+                              text: 'Both you and the doctor have disabled phone calls.',
+                            );
+                          } else if (!doctorAllowed) {
+                            CustomSnackBarWidget.show(
+                              context: context,
+                              text: 'The doctor has disabled phone calls.',
+                            );
+                          } else {
+                            CustomSnackBarWidget.show(
+                              context: context,
+                              text: 'You have disabled phone calls in your settings.',
+                            );
+                          }
+                        },
+                        loading: () => CustomSnackBarWidget.show(
+                          context: context,
+                          text: 'Checking call permissions...',
+                        ),
+                        error: (e, _) => CustomSnackBarWidget.show(
+                          context: context,
+                          text: 'Error checking your call permissions.',
+                        ),
+                      );
+                    },
+                    loading: () => CustomSnackBarWidget.show(
+                      context: context,
+                      text: 'Checking call permissions...',
+                    ),
+                    error: (e, _) => CustomSnackBarWidget.show(
+                      context: context,
+                      text: 'Error checking doctor call permissions.',
+                    ),
+                  );
                 },
               ),
               _buildActionButton(

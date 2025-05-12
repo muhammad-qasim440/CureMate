@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +10,6 @@ import 'models/models_for_patient_and_doctors_for_chatting.dart';
 
 class ChatService {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> initChat({
     required AppUser user,
@@ -181,7 +179,7 @@ class ChatService {
           .child('Chats/${user.uid}/$otherUserId/typing')
           .set(isTyping)
           .catchError((e) {
-        print('Error updating typing status: $e');
+        logDebug('Error updating typing status: $e');
       });
 
       if (isTyping) {
@@ -190,7 +188,7 @@ class ChatService {
               .child('Chats/${user.uid}/$otherUserId/typing')
               .set(false)
               .catchError((e) {
-            print('Error stopping typing status: $e');
+            logDebug('Error stopping typing status: $e');
           });
         });
       }
@@ -199,7 +197,7 @@ class ChatService {
           .onDisconnect()
           .set(false);
     } catch (e) {
-      print('Error handling typing: $e');
+      logDebug('Error handling typing: $e');
     }
   }
 
@@ -213,7 +211,7 @@ class ChatService {
         .child('Messages/$chatId/$messageId')
         .update({'seen': true})
         .catchError((e) {
-      print('Error marking message as seen: $e');
+      logDebug('Error marking message as seen: $e');
     });
   }
 

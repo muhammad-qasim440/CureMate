@@ -18,7 +18,7 @@ import '../../../../theme/app_colors.dart';
 import '../../../doctor/doctor_main_view.dart';
 import '../../../patient/providers/patient_providers.dart';
 import '../../../patient/views/patient_main_view.dart';
-import '../providers/auth-provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/signin_form_providers.dart';
 import '../views/signin_view.dart';
 
@@ -185,7 +185,9 @@ class SignInFormWidget extends ConsumerWidget {
 
   Future<void> _signIn(BuildContext context, WidgetRef ref) async {
     await wait(const Duration(milliseconds: 100));
-    FocusScope.of(context).unfocus();
+    if(context.mounted) {
+      FocusScope.of(context).unfocus();
+    }
     if (!formKey.currentState!.validate()) return;
 
     final isConnected = await ref.read(checkInternetConnectionProvider.future);
@@ -210,28 +212,34 @@ class SignInFormWidget extends ConsumerWidget {
       await wait(const Duration(seconds: 3));
       ref.read(isSigningInProvider.notifier).state = false;
       if (result['success']) {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: result['message'],
-        );
+        if(context.mounted) {
+          CustomSnackBarWidget.show(
+            context: context,
+            text: result['message'],
+          );
+        }
         if (result['userType'] == 'Doctor') {
           AppNavigation.pushReplacement(const DoctorMainView());
         } else if (result['userType'] == 'Patient') {
           ref.refresh(currentSignInPatientDataProvider);
           ref.refresh(doctorsProvider);
           ref.refresh(favoriteDoctorUidsProvider);
-          AppNavigation.pushReplacement( PatientMainView());
+          AppNavigation.pushReplacement( const PatientMainView());
         } else {
-          CustomSnackBarWidget.show(
-            context: context,
-            text: 'User type not identified',
-          );
+          if (context.mounted) {
+            CustomSnackBarWidget.show(
+              context: context,
+              text: 'User type not identified',
+            );
+          }
         }
       } else {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: result['message'],
-        );
+        if(context.mounted) {
+          CustomSnackBarWidget.show(
+            context: context,
+            text: result['message'],
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {

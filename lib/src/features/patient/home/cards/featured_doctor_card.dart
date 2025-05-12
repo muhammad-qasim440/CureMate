@@ -2,12 +2,8 @@ import 'dart:ui';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/shared/views/doctor_details_view.dart';
 import 'package:curemate/src/router/nav.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
@@ -15,7 +11,6 @@ import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../providers/patient_providers.dart';
-import '../../views/rate_doctor/views/star_rating.dart';
 
 class FeaturedDoctorCard extends ConsumerWidget {
   final Doctor doctor;
@@ -165,74 +160,74 @@ class FeaturedDoctorCard extends ConsumerWidget {
     );
   }
 
-  void _showRatingDialog(BuildContext context, WidgetRef ref) {
-    double rating = 0.0; // Rating out of 5, will convert to 10
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${doctor.fullName}',textAlign: TextAlign.center,),
-        contentPadding: EdgeInsets.all(10),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Please provide your rating (out of 5 stars)',textAlign: TextAlign.center),
-            16.height,
-            StarRating(
-              rating: rating,
-              onRatingChanged: (newRating) => rating = newRating,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (rating > 0) {
-                _submitRating(context,ref, rating * 2);
-                Navigator.pop(context);
-              } else {
-                CustomSnackBarWidget.show(context: context, text: 'Please select a rating');
-              }
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _submitRating(BuildContext context, WidgetRef ref, double rating) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      CustomSnackBarWidget.show(context: context, text: 'Please sign in to rate');
-      return;
-    }
-
-    // Check if the user is a patient
-    final database = FirebaseDatabase.instance.ref();
-    final userTypeSnapshot = await database.child('Patients').child(user.uid).child('userType').get();
-    if (!userTypeSnapshot.exists || userTypeSnapshot.value != 'Patient') {
-      CustomSnackBarWidget.show(context: context, text: 'Only patients can submit ratings');
-      return;
-    }
-
-    final ratingRef = database.child('Doctors').child(doctor.uid).child('ratings').child(user.uid);
-
-    try {
-      await ratingRef.set({
-        'rating': rating, // Rating out of 10
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-      CustomSnackBarWidget.show(context: context, text: 'Rating submitted successfully');
-    } catch (e) {
-      String errorMessage = 'Error submitting rating: $e';
-      if (e.toString().contains('PERMISSION_DENIED')) {
-        errorMessage = 'Permission denied. Ensure you are a patient and signed in.';
-      }
-      CustomSnackBarWidget.show(context: context, text: errorMessage);
-    }
-  }
+  // void _showRatingDialog(BuildContext context, WidgetRef ref) {
+  //   double rating = 0.0; // Rating out of 5, will convert to 10
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('${doctor.fullName}',textAlign: TextAlign.center,),
+  //       contentPadding: EdgeInsets.all(10),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           const Text('Please provide your rating (out of 5 stars)',textAlign: TextAlign.center),
+  //           16.height,
+  //           StarRating(
+  //             rating: rating,
+  //             onRatingChanged: (newRating) => rating = newRating,
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             if (rating > 0) {
+  //               _submitRating(context,ref, rating * 2);
+  //               Navigator.pop(context);
+  //             } else {
+  //               CustomSnackBarWidget.show(context: context, text: 'Please select a rating');
+  //             }
+  //           },
+  //           child: const Text('Submit'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  //
+  // void _submitRating(BuildContext context, WidgetRef ref, double rating) async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) {
+  //     CustomSnackBarWidget.show(context: context, text: 'Please sign in to rate');
+  //     return;
+  //   }
+  //
+  //   // Check if the user is a patient
+  //   final database = FirebaseDatabase.instance.ref();
+  //   final userTypeSnapshot = await database.child('Patients').child(user.uid).child('userType').get();
+  //   if (!userTypeSnapshot.exists || userTypeSnapshot.value != 'Patient') {
+  //     CustomSnackBarWidget.show(context: context, text: 'Only patients can submit ratings');
+  //     return;
+  //   }
+  //
+  //   final ratingRef = database.child('Doctors').child(doctor.uid).child('ratings').child(user.uid);
+  //
+  //   try {
+  //     await ratingRef.set({
+  //       'rating': rating, // Rating out of 10
+  //       'timestamp': DateTime.now().toIso8601String(),
+  //     });
+  //     CustomSnackBarWidget.show(context: context, text: 'Rating submitted successfully');
+  //   } catch (e) {
+  //     String errorMessage = 'Error submitting rating: $e';
+  //     if (e.toString().contains('PERMISSION_DENIED')) {
+  //       errorMessage = 'Permission denied. Ensure you are a patient and signed in.';
+  //     }
+  //     CustomSnackBarWidget.show(context: context, text: errorMessage);
+  //   }
+  // }
 }

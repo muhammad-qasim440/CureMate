@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../../core/utils/debug_print.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_drop_down_menu_widget.dart';
@@ -122,7 +123,7 @@ class DoctorBookingsView extends ConsumerWidget {
                                 now.difference(appointmentDateTime);
                                 canComplete = difference.inMinutes >= 30;
                               } catch (e) {
-                                print('Error parsing date/time: $e');
+                                logDebug('Error parsing date/time: $e');
                               }
                             }
 
@@ -451,7 +452,7 @@ class DoctorBookingsView extends ConsumerWidget {
                               loading: () =>
                               const SizedBox.shrink(),
                               error: (error, stack) {
-                                print('Error loading patient data: $error');
+                                logDebug('Error loading patient data: $error');
                                 return Center(
                                   child: Text('Error loading patient: $error'),
                                 );
@@ -463,7 +464,7 @@ class DoctorBookingsView extends ConsumerWidget {
                       loading: () =>
                       const Center(child: CircularProgressIndicator(color: AppColors.gradientGreen,)),
                       error: (error, stack) {
-                        print('Error loading appointments: $error');
+                        logDebug('Error loading appointments: $error');
                         return Center(child: Text('Error: $error'));
                       },
                     ),

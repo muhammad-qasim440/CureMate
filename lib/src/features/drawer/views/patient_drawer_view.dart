@@ -1,28 +1,24 @@
-import 'dart:io';
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_medical_records.dart';
+import 'package:curemate/src/features/drawer/widgets/patient_drawer_settings_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_confirmation_dialog_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/assets/app_assets.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../router/nav.dart';
-import '../../../../shared/providers/check_internet_connectivity_provider.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
-import '../../../../shared/widgets/custom_text_widget.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../authentication/signin/providers/auth-provider.dart';
-import '../../../authentication/signin/views/signin_view.dart';
+import '../../../router/nav.dart';
+import '../../../shared/providers/check_internet_connectivity_provider.dart';
+import '../../../shared/widgets/custom_snackbar_widget.dart';
+import '../../../shared/widgets/custom_text_widget.dart';
+import '../../../theme/app_colors.dart';
+import '../../authentication/signin/providers/auth_provider.dart';
+import '../../authentication/signin/views/signin_view.dart';
 import '../widgets/patient_drawer_feedback_widget.dart';
+import '../widgets/patient_drawer_medical_records.dart';
 import '../widgets/patient_drawer_my_doctors_view.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
 import '../widgets/patient_drawer_privacy_policy_widget.dart';
 import '../widgets/patient_drawer_profile_view_widget.dart';
 
@@ -174,7 +170,10 @@ class PatientDrawerView extends ConsumerWidget {
                                 context,
                                 Icons.settings,
                                 'Settings',
-                                () {},
+                                () {
+                                  AppNavigation.push(const PatientDrawerSettingsWidget());
+
+                                },
                               ),
                             ],
                           ),
@@ -201,7 +200,7 @@ class PatientDrawerView extends ConsumerWidget {
                               checkInternetConnectionProvider,
                             );
                             final isConnected =
-                                await isNetworkAvailable
+                                isNetworkAvailable
                                     .whenData((value) => value)
                                     .value ??
                                     false;

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/debug_print.dart';
-import '../../authentication/signin/providers/auth-provider.dart';
+import '../../authentication/signin/providers/auth_provider.dart';
 import '../../patient/providers/patient_providers.dart';
 import '../models/appointment_model.dart';
 
@@ -38,7 +38,7 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
           final bDateTime = DateTime.parse(b.createdAt);
           return bDateTime.compareTo(aDateTime); // Descending
         } catch (e) {
-          print('Error parsing createdAt for sorting: $e');
+          logDebug('Error parsing createdAt for sorting: $e');
           return 0;
         }
       });
@@ -116,7 +116,7 @@ final patientDataByUidProvider = FutureProvider.family<Patient?, String>((ref, p
     try {
       return Patient.fromMap(data, patientUid);
     } catch (e) {
-      print('Error parsing patient data for UID $patientUid: $e');
+      logDebug('Error parsing patient data for UID $patientUid: $e');
       rethrow;
     }
   }

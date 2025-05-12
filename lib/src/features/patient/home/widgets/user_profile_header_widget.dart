@@ -8,7 +8,7 @@ import '../../../../../const/font_sizes.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
-import '../../drawer/views/patient_drawer_view.dart';
+import '../../../drawer/views/patient_drawer_view.dart';
 import '../../providers/patient_providers.dart';
 
 class UserProfileHeaderWidget extends ConsumerWidget {

@@ -5,10 +5,11 @@ import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/widgets/lower_background_effects_widgets.dart';
-import '../../../../shared/widgets/search_bar_widget.dart';
-import '../../providers/patient_providers.dart';
-import '../../shared/doctors_searching/widgets/doctors_list_widget.dart';
+import '../../../shared/widgets/lower_background_effects_widgets.dart';
+import '../../../shared/widgets/search_bar_widget.dart';
+import '../../patient/providers/patient_providers.dart';
+import '../../patient/shared/doctors_searching/widgets/doctors_list_widget.dart';
+
 class PatientDrawerMyDoctorsView extends ConsumerStatefulWidget {
   const PatientDrawerMyDoctorsView({super.key});
 

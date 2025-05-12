@@ -9,7 +9,7 @@ Future<bool> checkInternetConnection({
   bool showSnackbar = true,
 }) async {
   final connectivity = await ref.read(checkInternetConnectionProvider.future);
-  if (!connectivity && showSnackbar) {
+  if (!connectivity && showSnackbar && context.mounted) {
     CustomSnackBarWidget.show(
       context: context,
       text: "No internet connection. Please check your network.",

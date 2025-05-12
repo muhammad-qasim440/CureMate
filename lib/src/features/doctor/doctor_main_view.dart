@@ -11,7 +11,7 @@ import '../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
 import '../../shared/widgets/custom_button_widget.dart';
 import '../../theme/app_colors.dart';
-import '../authentication/signin/providers/auth-provider.dart';
+import '../authentication/signin/providers/auth_provider.dart';
 import 'bookings/views/doctor_booking_view.dart';
 
 
@@ -108,7 +108,7 @@ class DummyScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$title screen', style: TextStyle(fontSize: 20)),
+          Text('$title screen', style: const TextStyle(fontSize: 20)),
           const SizedBox(height: 20),
           CustomButtonWidget(
             text: 'logout',
@@ -124,7 +124,7 @@ class DummyScreen extends ConsumerWidget {
                 checkInternetConnectionProvider,
               );
               final isConnected =
-                  await isNetworkAvailable.whenData((value) => value).value ??
+                  isNetworkAvailable.whenData((value) => value).value ??
                       false;
 
               if (!isConnected) {

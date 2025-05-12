@@ -2,6 +2,7 @@ import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/doctor/chat/widgets/doctor_chat_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/utils/debug_print.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/chat/providers/chat_list_search_query_provider.dart';
 import '../../../../shared/chat/providers/chatting_auth_providers.dart';
@@ -53,7 +54,7 @@ class _DoctorChatViewState extends ConsumerState<DoctorChatView> {
                         final otherUserName =
                             chat['otherUserName']?.trim() ??
                                 'Unknown';
-                        print(
+                        logDebug(
                           'ChatListItem $index: otherUserId=${chat['otherUserId']}, otherUserName=$otherUserName',
                         );
                         return ChatListItem(

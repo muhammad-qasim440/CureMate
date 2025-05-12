@@ -1,9 +1,7 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/core/utils/debug_print.dart';
-import 'package:curemate/src/features/patient/drawer/helpers/drawer_helpers.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_medical_record_details_view.dart';
-import 'package:curemate/src/features/patient/drawer/widgets/patient_drawer_pop_up_menu_button_widget.dart';
+import 'package:curemate/src/features/drawer/widgets/patient_drawer_medical_record_details_view.dart';
+import 'package:curemate/src/features/drawer/widgets/patient_drawer_pop_up_menu_button_widget.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
@@ -13,11 +11,10 @@ import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../../../../assets/app_icons.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../theme/app_colors.dart';
+import '../../../theme/app_colors.dart';
+import '../helpers/drawer_helpers.dart';
 import '../providers/drawer_providers.dart';
 import 'patient_drawer_add_patient_record_view.dart';
 

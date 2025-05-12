@@ -1,11 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import 'package:flutter/foundation.dart';
-
 import '../shared/widgets/custom_snackbar_widget.dart';
 
 abstract class AppUtils {
@@ -39,10 +35,12 @@ abstract class AppUtils {
     } catch (e) {
       // FirebaseCrashlytics.instance
       //     .recordError(e, StackTrace.current, reason: 'Error in sending e-mail ');
-      CustomSnackBarWidget.show(
-        context:context,
-        text:'Unable to send email. Please try again later.',
-      );
+      if(context.mounted) {
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Unable to send email. Please try again later.',
+        );
+      }
       rethrow;
 
     }

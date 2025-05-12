@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../const/font_sizes.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../utils/screen_utils.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/screen_utils.dart';
+
 
 class EditablePersonalInfoField extends ConsumerWidget {
   final String title;
@@ -35,7 +36,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isEditing = ref.watch(isEditingProvider);
-    final subtitle = ref.watch(subtitleProvider) ?? '';
+    final subtitle = ref.watch(subtitleProvider);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

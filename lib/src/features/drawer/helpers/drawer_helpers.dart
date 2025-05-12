@@ -11,13 +11,13 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
-import '../../../../router/nav.dart';
-import '../../../../shared/providers/check_internet_connectivity_provider.dart';
-import '../../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
-import '../../../../shared/widgets/custom_text_widget.dart';
-import '../../../../theme/app_colors.dart';
-import '../../providers/patient_providers.dart';
+import '../../../router/nav.dart';
+import '../../../shared/providers/check_internet_connectivity_provider.dart';
+import '../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
+import '../../../shared/widgets/custom_snackbar_widget.dart';
+import '../../../shared/widgets/custom_text_widget.dart';
+import '../../../theme/app_colors.dart';
+import '../../patient/providers/patient_providers.dart';
 import '../providers/drawer_providers.dart';
 import '../widgets/patient_drawer_profile_view_widget.dart';
 import '../widgets/patient_drawer_show_full_screen_image_widget.dart';
@@ -131,8 +131,8 @@ class DrawerHelpers {
                       );
                     }
                   } else if (isProfileImagePicking) {
-                    await notifier.pickImage(ref: ref, source: ImageSource.camera);
                     AppNavigation.pop(context);
+                    await notifier.pickImage(ref: ref, source: ImageSource.camera);
                   } else {
                     if (multiImageProvider != null) {
                       clickORPickMultiImages(
@@ -165,8 +165,9 @@ class DrawerHelpers {
                       );
                     }
                   }else if (isProfileImagePicking) {
-                   await notifier.pickImage(ref:ref,source: ImageSource.gallery);
                     AppNavigation.pop(context);
+
+                   await notifier.pickImage(ref:ref,source: ImageSource.gallery);
 
                   }  else {
                     if (multiImageProvider != null) {
@@ -353,7 +354,7 @@ class DrawerHelpers {
     if (currentDob != userData.dob) updatedData['dob'] = currentDob;
 
     final profileImageState = ref.read(profileImagePickerProvider);
-    if (profileImageState.croppedImage != null && userData != null) {
+    if (profileImageState.croppedImage != null) {
       if (userData.profileImagePublicId.isNotEmpty) {
         await deleteImageFromCloudinary(userData.profileImagePublicId);
       }
@@ -368,7 +369,7 @@ class DrawerHelpers {
           context: context,
           text: 'Failed to upload new profile image.',
         );
-        ref.read(isUpdatingProfileProvider.notifier).state = false;
+        clearChanges(ref);
         return;
       }
     }
@@ -377,7 +378,8 @@ class DrawerHelpers {
         context: context,
         text: 'No changes to save.',
       );
-      ref.read(isUpdatingProfileProvider.notifier).state = false;
+      clearChanges(ref);
+
       return;
     }
     await FirebaseDatabase.instance
@@ -385,6 +387,20 @@ class DrawerHelpers {
         .child('Patients')
         .child(user.uid)
         .update(updatedData);
+
+    Map<String, dynamic> userUpdates = {};
+    if (updatedData.containsKey('fullName') && updatedData['fullName'] != null) {
+      userUpdates['fullName'] = updatedData['fullName'];
+    }
+
+    if (updatedData.containsKey('profileImageUrl') && updatedData['profileImageUrl'] != null) {
+      userUpdates['profileImageUrl'] = updatedData['profileImageUrl'];
+    }
+
+    if (userUpdates.isNotEmpty) {
+      await FirebaseDatabase.instance.ref().child('Users').child(user.uid).update(userUpdates);
+    }
+
 
     if (profileImageState.croppedImage != null) {
       ref.read(profileImagePickerProvider.notifier).reset(ref);
@@ -394,7 +410,8 @@ class DrawerHelpers {
       context: context,
       text: 'Profile updated successfully.',
     );
-    ref.read(isUpdatingProfileProvider.notifier).state = false;
+    clearChanges(ref);
+
   }
   Future<void> updatePatientEmail({
     required BuildContext context,
@@ -446,6 +463,12 @@ class DrawerHelpers {
           .child('Patients')
           .child(user.uid)
           .update({'email': newEmail});
+      final userRef = FirebaseDatabase.instance.ref().child('Users').child(user.uid);
+      final snapshot = await userRef.child('email').get();
+
+      if (snapshot.exists && snapshot.value != newEmail) {
+        await userRef.update({'email': newEmail});
+      }
 
       CustomSnackBarWidget.show(
         context: context,
@@ -479,5 +502,22 @@ class DrawerHelpers {
     } finally {
       ref.read(isUpdatingProfileProvider.notifier).state = false;
     }
+  }
+  void clearChanges(WidgetRef ref) {
+    final user = ref.read(currentSignInPatientDataProvider).value;
+    if (user != null) {
+      ref.read(userUpdatedNameProvider.notifier).state = user.fullName;
+      ref.read(userUpdatedPhoneNumberProvider.notifier).state =
+          user.phoneNumber;
+      ref.read(userUpdatedCityProvider.notifier).state = user.city;
+      ref.read(userUpdatedLatitudeProvider.notifier).state =
+          user.latitude.toString();
+      ref.read(userUpdatedLongitudeProvider.notifier).state =
+          user.longitude.toString();
+      ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
+      ref.read(profileImagePickerProvider.notifier).reset(ref);
+    }
+    ref.read(hasChangesProvider.notifier).state = false;
+    ref.read(isUpdatingProfileProvider.notifier).state = false;
   }
 }

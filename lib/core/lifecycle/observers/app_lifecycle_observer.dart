@@ -46,7 +46,7 @@ class AppLifecycleObserver with WidgetsBindingObserver {
     try {
       final userRef = _db.child('Users/$uid');
       final statusRef = userRef.child('status');
-      final timestamp = ServerValue.timestamp;
+      const timestamp = ServerValue.timestamp;
 
       await statusRef.update({
         'isOnline': isOnline,

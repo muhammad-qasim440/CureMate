@@ -942,10 +942,10 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                                   // Retrieve and trim input values with null safety
                                   final selectedTimeSlot = ref.read(selectedTimeSlotProvider)?.trim();
                                   final selectedSlotType = ref.read(selectedSlotTypeProvider)?.trim();
-                                  final patientName = ref.read(bookingViewPatientNameProvider)?.trim() ?? '';
-                                  final patientNumber = ref.read(bookingViewPatientNumberProvider)?.trim() ?? '';
-                                  final patientType = ref.read(bookingViewSelectedPatientLabelProvider)?.trim() ?? '';
-                                  final patientNotes = ref.read(bookingViewPatientNoteProvider)?.trim();
+                                  final patientName = ref.read(bookingViewPatientNameProvider).trim();
+                                  final patientNumber = ref.read(bookingViewPatientNumberProvider).trim();
+                                  final patientType = ref.read(bookingViewSelectedPatientLabelProvider).trim();
+                                  final patientNotes = ref.read(bookingViewPatientNoteProvider).trim();
 
                                   // Log input values
                                   logDebug('Input values:');
@@ -954,7 +954,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                                   logDebug('  patientType: "$patientType" (length: ${patientType.length})');
                                   logDebug('  slotType: "$selectedSlotType"');
                                   logDebug('  timeSlot: "$selectedTimeSlot"');
-                                  logDebug('  patientNotes: "${patientNotes ?? "null"}"');
+                                  logDebug('  patientNotes: "$patientNotes"');
                                   logDebug('  selectedDay: ${selectedDay?.toIso8601String() ?? "null"}');
 
                                   // Validate inputs
@@ -1111,7 +1111,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                                         date: DateFormat('yyyy-MM-dd').format(selectedDay),
                                         timeSlot: selectedTimeSlot,
                                         slotType: selectedSlotType,
-                                        patientNotes: patientNotes?.isEmpty ?? true ? null : patientNotes,
+                                        patientNotes: patientNotes.isEmpty ? null : patientNotes,
                                         patientName: patientName,
                                         patientNumber: patientNumber,
                                         patientType: patientType,
@@ -1175,7 +1175,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                                         status: 'pending',
                                         consultationFee: widget.doctor.consultationFee,
                                         createdAt: DateTime.now().toIso8601String(),
-                                        patientNotes: patientNotes?.isEmpty ?? true ? null : patientNotes,
+                                        patientNotes: patientNotes.isEmpty ? null : patientNotes,
                                         bookerName: bookerName,
                                         patientName: patientName,
                                         patientNumber: patientNumber,
@@ -1241,16 +1241,14 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                           ] else ...[
                             100.height,
                             Center(
-                              child: Container(
-                                child: CustomTextWidget(
-                                  textAlignment: TextAlign.center,
-                                  text:
-                                  'Not Available Now, Next Available on ${findNextAvailableDay(availableDays, widget.doctor.availability).toString().dayMonthDisplay}',
-                                  textStyle: TextStyle(
-                                    color: AppColors.gradientGreen,
-                                    fontFamily: AppFonts.rubik,
-                                    fontSize: FontSizes(context).size16,
-                                  ),
+                              child: CustomTextWidget(
+                                textAlignment: TextAlign.center,
+                                text:
+                                'Not Available Now, Next Available on ${findNextAvailableDay(availableDays, widget.doctor.availability).toString().dayMonthDisplay}',
+                                textStyle: TextStyle(
+                                  color: AppColors.gradientGreen,
+                                  fontFamily: AppFonts.rubik,
+                                  fontSize: FontSizes(context).size16,
                                 ),
                               ),
                             ),

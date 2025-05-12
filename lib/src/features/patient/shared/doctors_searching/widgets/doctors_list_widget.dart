@@ -1,8 +1,6 @@
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../home/widgets/featured_doctors_list_widget.dart';
 import '../../../providers/patient_providers.dart';
 
 class DoctorsListWidget extends ConsumerWidget {

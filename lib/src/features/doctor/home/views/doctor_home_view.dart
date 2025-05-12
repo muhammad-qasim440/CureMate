@@ -8,7 +8,7 @@ import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
-import '../../../authentication/signin/providers/auth-provider.dart';
+import '../../../authentication/signin/providers/auth_provider.dart';
 
 class DoctorHomeView extends ConsumerWidget {
   const DoctorHomeView({super.key});
@@ -39,7 +39,7 @@ class DoctorHomeView extends ConsumerWidget {
                     checkInternetConnectionProvider,
                   );
                   final isConnected =
-                      await isNetworkAvailable
+                      isNetworkAvailable
                           .whenData((value) => value)
                           .value ??
                           false;

@@ -22,7 +22,7 @@ Future<Map<String, String>?> uploadImageToCloudinary(File imageFile) async {
       'public_id': resJson['public_id'],
     };
   } else {
-    print('Cloudinary upload failed: ${response.statusCode}');
+    logDebug('Cloudinary upload failed: ${response.statusCode}');
     return null;
   }
 }
@@ -37,9 +37,9 @@ Future<void> deleteImageFromCloudinary(String publicId) async {
   var response = await request.send();
 
   if (response.statusCode == 200) {
-    print('Image deleted successfully');
+    logDebug('Image deleted successfully');
   } else {
-    print('Failed to delete image: ${response.statusCode}');
+    logDebug('Failed to delete image: ${response.statusCode}');
   }
 }
 

@@ -1,14 +1,11 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/favorites/widgets/favorite_view_patient_appointment_with_doctors_cards_list_widget.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
-import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../home/cards/all_near_by_doctors_view_card.dart';
-import '../../home/widgets/featured_doctors_list_widget.dart';
 import '../../shared/doctors_searching/providers/doctors_searching_providers.dart';
 import '../../shared/doctors_searching/widgets/doctors_list_widget.dart';
 

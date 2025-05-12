@@ -2,12 +2,10 @@ import 'package:curemate/src/shared/providers/check_internet_connectivity_provid
 import 'package:curemate/src/shared/widgets/custom_confirmation_dialog_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';import '../../../../../const/app_strings.dart';
-import '../../../../theme/app_colors.dart';
-
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../const/app_strings.dart';
+import '../../../theme/app_colors.dart';
 import '../helpers/drawer_helpers.dart';
-import '../providers/drawer_providers.dart';
 import '../providers/patient_drawer_medical_records_pop_menu_more_menu_items_provider.dart';
 
 

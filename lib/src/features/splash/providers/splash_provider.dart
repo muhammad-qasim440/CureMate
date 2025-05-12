@@ -58,7 +58,7 @@ class SplashNotifier extends StateNotifier<SplashState> {
   Future<void> checkAuthUser() async {
     User? user = _auth.currentUser;
     if (user == null) {
-      AppNavigation.pushReplacement(SignInView(),
+      AppNavigation.pushReplacement(const SignInView(),
       );
     } else {
       DatabaseReference userRef = _database.child('Doctors').child(user.uid);
@@ -73,7 +73,7 @@ class SplashNotifier extends StateNotifier<SplashState> {
           AppNavigation.pushReplacement(const PatientMainView(),
           );
         } else {
-          AppNavigation.pushReplacement(SignInView(),
+          AppNavigation.pushReplacement(const SignInView(),
           );
         }
       }

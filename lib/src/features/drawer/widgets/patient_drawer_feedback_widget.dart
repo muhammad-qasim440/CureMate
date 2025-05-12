@@ -4,13 +4,12 @@ import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../const/app_strings.dart';
-import '../../../../shared/widgets/custom_appbar_header_widget.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
-import '../../../../shared/widgets/lower_background_effects_widgets.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../utils/app_utils.dart';
+import '../../../shared/widgets/custom_appbar_header_widget.dart';
+import '../../../shared/widgets/custom_snackbar_widget.dart';
+import '../../../shared/widgets/lower_background_effects_widgets.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/app_utils.dart';
 
 class PatientDrawerFeedBackWidget extends ConsumerStatefulWidget {
   const PatientDrawerFeedBackWidget({super.key});

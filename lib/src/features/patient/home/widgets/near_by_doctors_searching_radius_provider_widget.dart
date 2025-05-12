@@ -14,11 +14,10 @@ class RadiusSelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(radiusProvider);
 
-    // Add an "All" option to the list
     final radiusOptions = [0, ...AppStrings.doctorSearchingAreaRadius];
 
     return PopupMenuButton<int>(
-      offset: Offset(0, 40),
+      offset: const Offset(0, 40),
       onSelected: (value) {
         ref.read(radiusProvider.notifier).state = value;
       },
