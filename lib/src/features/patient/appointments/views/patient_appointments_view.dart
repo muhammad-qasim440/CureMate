@@ -4,6 +4,7 @@ import 'package:curemate/src/features/patient/shared/views/doctor_details_view.d
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
@@ -22,6 +23,11 @@ import '../../../../../const/app_strings.dart';
 
 class PatientAppointmentsView extends ConsumerWidget {
   const PatientAppointmentsView({super.key});
+
+  Future<void> _cancelNotification(String appointmentId) async {
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    await flutterLocalNotificationsPlugin.cancel(appointmentId.hashCode);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,21 +54,21 @@ class PatientAppointmentsView extends ConsumerWidget {
           ),
         ),
         actions: [
-            Padding(
-              padding: EdgeInsets.only(right: ScreenUtil.scaleWidth(context, 5.0)),
-              child: SizedBox(
-                width: ScreenUtil.scaleWidth(context, 110),
-                height: ScreenUtil.scaleHeight(context, 35),
-                child: CustomDropdown(
-                  items: AppStrings.appointmentFilterOptions,
-                  label: '',
-                  onChanged: (value) {
-                    ref.read(appointmentsFilterOptionProvider.notifier).state = value;
-                  },
-                  backgroundColor: AppColors.gradientWhite,
-                ),
+          Padding(
+            padding: EdgeInsets.only(right: ScreenUtil.scaleWidth(context, 5.0)),
+            child: SizedBox(
+              width: ScreenUtil.scaleWidth(context, 110),
+              height: ScreenUtil.scaleHeight(context, 35),
+              child: CustomDropdown(
+                items: AppStrings.appointmentFilterOptions,
+                label: '',
+                onChanged: (value) {
+                  ref.read(appointmentsFilterOptionProvider.notifier).state = value;
+                },
+                backgroundColor: AppColors.gradientWhite,
               ),
             ),
+          ),
         ],
       ),
       body: Stack(
@@ -120,10 +126,10 @@ class PatientAppointmentsView extends ConsumerWidget {
                                 availability: [],
                               ),
                             );
-                        
+
                             final isPending = appointment.status == 'pending';
                             final isCancelled = appointment.status == 'cancelled';
-                        
+
                             return Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               padding: const EdgeInsets.all(16),
@@ -281,6 +287,20 @@ class PatientAppointmentsView extends ConsumerWidget {
                                       ),
                                     ),
                                   ],
+                                  if (appointment.reminderTime != null) ...[
+                                    4.height,
+                                    CustomTextWidget(
+                                      text: 'Reminder: ${appointment.reminderTime} before',
+                                      textStyle: TextStyle(
+                                        fontFamily: AppFonts.rubik,
+                                        fontSize: FontSizes(context).size14,
+                                        fontWeight: FontWeight.w400,
+                                        color: isCancelled
+                                            ? Colors.grey
+                                            : AppColors.subTextColor,
+                                      ),
+                                    ),
+                                  ],
                                   16.height,
                                   if (isPending)
                                     Row(
@@ -328,13 +348,14 @@ class PatientAppointmentsView extends ConsumerWidget {
                                               );
                                               return;
                                             }
-                        
+
                                             try {
                                               await ref.read(bookingRepositoryProvider).cancelBooking(
                                                 appointment.id,
                                                 DateTime.now().toIso8601String(),
                                               );
-                        
+                                              await _cancelNotification(appointment.id);
+
                                               CustomSnackBarWidget.show(
                                                 context: context,
                                                 text: 'Booking cancelled successfully',

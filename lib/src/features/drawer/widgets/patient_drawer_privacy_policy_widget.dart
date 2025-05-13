@@ -54,7 +54,7 @@ class _PrivacyPolicyScreenState extends ConsumerState<PrivacyPolicyScreen> {
                           10.height,
                           const Center(
                             child: Text(
-                              'Last Updated: May 12, 2025',
+                              'Last Updated: May 13, 2025',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontStyle: FontStyle.italic,

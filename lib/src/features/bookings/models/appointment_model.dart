@@ -17,6 +17,7 @@ class AppointmentModel {
   final String patientName;
   final String patientNumber;
   final String patientType;
+  final String? reminderTime; // New field
 
   AppointmentModel({
     required this.id,
@@ -37,6 +38,7 @@ class AppointmentModel {
     required this.patientName,
     required this.patientNumber,
     required this.patientType,
+    this.reminderTime,
   });
 
   factory AppointmentModel.fromMap(Map<dynamic, dynamic> map, String id) {
@@ -59,6 +61,7 @@ class AppointmentModel {
       patientName: map['patientName'] ?? '',
       patientNumber: map['patientNumber'] ?? '',
       patientType: map['patientType'] ?? 'Myself',
+      reminderTime: map['reminderTime'],
     );
   }
 
@@ -81,6 +84,7 @@ class AppointmentModel {
       'patientName': patientName,
       'patientNumber': patientNumber,
       'patientType': patientType,
+      'reminderTime': reminderTime,
     };
   }
 
@@ -103,6 +107,7 @@ class AppointmentModel {
     String? patientName,
     String? patientNumber,
     String? patientType,
+    String? reminderTime,
   }) {
     return AppointmentModel(
       id: id ?? this.id,
@@ -123,6 +128,7 @@ class AppointmentModel {
       patientName: patientName ?? this.patientName,
       patientNumber: patientNumber ?? this.patientNumber,
       patientType: patientType ?? this.patientType,
+      reminderTime: reminderTime ?? this.reminderTime,
     );
   }
 }
