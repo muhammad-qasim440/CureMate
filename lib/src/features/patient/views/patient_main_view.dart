@@ -10,7 +10,7 @@ import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart
 import '../../../theme/app_colors.dart';
 import '../home/views/patient_home_view.dart';
 
-final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
+final patientBottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
 class PatientMainView extends ConsumerStatefulWidget {
   const PatientMainView({super.key});
@@ -29,11 +29,11 @@ class _PatientMainViewState extends ConsumerState<PatientMainView> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = ref.watch(bottomNavIndexProvider);
+    final selectedIndex = ref.watch(patientBottomNavIndexProvider);
     return WillPopScope(
       onWillPop: () async {
         if (selectedIndex != 0) {
-          ref.read(bottomNavIndexProvider.notifier).state = 0;
+          ref.read(patientBottomNavIndexProvider.notifier).state = 0;
           logDebug('WillPopScope: Set bottomNavIndex to 0 from $selectedIndex');
           return false;
         }
@@ -49,7 +49,7 @@ class _PatientMainViewState extends ConsumerState<PatientMainView> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: selectedIndex,
           onTap: (index) {
-            ref.read(bottomNavIndexProvider.notifier).state = index;
+            ref.read(patientBottomNavIndexProvider.notifier).state = index;
             logDebug('BottomNavigationBar: Changed index to $index');
           },
           selectedItemColor: Colors.white,

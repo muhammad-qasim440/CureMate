@@ -106,7 +106,7 @@ void _handleNotificationTap(String? payload) {
       final context = AppNavigation.navigatorKey.currentContext;
       if (context != null) {
         final container = ProviderScope.containerOf(context, listen: false);
-        container.read(bottomNavIndexProvider.notifier).state = 2;
+        container.read(patientBottomNavIndexProvider.notifier).state = 2;
       }
     });
   }

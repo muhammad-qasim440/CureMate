@@ -127,7 +127,7 @@ class ConfirmationDialog extends ConsumerWidget {
             textColor: Colors.white,
             onPressed: () {
               Navigator.of(context).pop();
-              ref.read(bottomNavIndexProvider.notifier).state=2;
+              ref.read(patientBottomNavIndexProvider.notifier).state=2;
               AppNavigation.pushReplacement(const PatientMainView());
             },
           ),

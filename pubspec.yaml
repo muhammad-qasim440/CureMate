@@ -21,7 +21,8 @@ dependencies:
   riverpod_annotation: ^2.1.1
   freezed_annotation: ^3.0.0
 
-  # 🔹 Utility Packages
+  # �� Utility Packages
+  fl_chart: ^0.70.0
   connectivity_plus: ^6.1.3
   image_picker: ^1.1.2
   flutter_svg: ^2.0.17

@@ -325,7 +325,7 @@ class AuthService {
         _ref.invalidate(customDropDownProvider(AppStrings.userTypes));
         _ref.invalidate(emailProvider);
         _ref.invalidate(passwordProvider);
-        _ref.read(bottomNavIndexProvider.notifier).state = 0;
+        _ref.read(patientBottomNavIndexProvider.notifier).state = 0;
         _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
            await auth.signOut();
         final userId = auth.currentUser?.uid;

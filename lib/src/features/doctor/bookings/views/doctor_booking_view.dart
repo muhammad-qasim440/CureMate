@@ -19,6 +19,9 @@ import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../../bookings/providers/booking_providers.dart';
 import '../../../patient/providers/patient_providers.dart';
+import 'patient_details_view.dart';
+import 'doctor_appointment_details_view.dart';
+import '../../../../router/nav.dart';
 
 class DoctorBookingsView extends ConsumerWidget {
   const DoctorBookingsView({super.key});
@@ -50,6 +53,7 @@ class DoctorBookingsView extends ConsumerWidget {
               height: ScreenUtil.scaleHeight(context, 35),
               child: CustomDropdown(
                 items: AppStrings.appointmentFilterOptions,
+                initialValue: ref.watch(appointmentsFilterOptionProvider),
                 label: '',
                 onChanged: (value) {
                   ref.read(appointmentsFilterOptionProvider.notifier).state = value;
@@ -147,154 +151,125 @@ class DoctorBookingsView extends ConsumerWidget {
                                       medicalRecords: {},
                                     );
 
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.gradientWhite,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                        AppColors.black.withOpacity(0.05),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                            BorderRadius.circular(8),
-                                            child: SizedBox(
-                                              width: ScreenUtil.scaleWidth(
-                                                  context, 60),
-                                              height: ScreenUtil.scaleHeight(
-                                                  context, 60),
-                                              child: displayPatient
-                                                  .profileImageUrl.isNotEmpty
-                                                  ? Image.network(
-                                                displayPatient
-                                                    .profileImageUrl,
-                                                fit: BoxFit.cover,
-                                              )
-                                                  : Image.asset(
-                                                  'assets/default_patient.png'),
-                                            ),
-                                          ),
-                                          12.width,
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                              children: [
-                                                CustomTextWidget(
-                                                  text: displayPatient.fullName,
-                                                  textStyle: TextStyle(
-                                                    fontFamily: AppFonts.rubik,
-                                                    fontSize:
-                                                    FontSizes(context)
-                                                        .size18,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.black,
-                                                  ),
-                                                ),
-                                                4.height,
-                                                CustomTextWidget(
-                                                  text: appointment
-                                                      .patientType ==
-                                                      'My Self'
-                                                      ? 'Patient: My Self'
-                                                      : 'Patient: ${appointment.patientName}',
-                                                  textStyle: TextStyle(
-                                                    fontFamily: AppFonts.rubik,
-                                                    fontSize:
-                                                    FontSizes(context)
-                                                        .size14,
-                                                    fontWeight: FontWeight.w400,
-                                                    color:
-                                                    AppColors.subTextColor,
-                                                  ),
-                                                ),
-                                                4.height,
-                                                appointment.patientType !=
-                                                    'My Self'
-                                                    ? CustomTextWidget(
-                                                  text:
-                                                  'Relation with patient: ${appointment.patientType}',
-                                                  textStyle: TextStyle(
-                                                    fontFamily:
-                                                    AppFonts.rubik,
-                                                    fontSize:
-                                                    FontSizes(context)
-                                                        .size14,
-                                                    fontWeight:
-                                                    FontWeight.w400,
-                                                    color: AppColors
-                                                        .subTextColor,
-                                                  ),
-                                                )
-                                                    : const SizedBox.shrink(),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      12.height,
-                                      CustomTextWidget(
-                                        text:
-                                        'Created At: ${appointment.createdAt.formattedDate}',
-                                        textStyle: TextStyle(
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppColors.subTextColor,
-                                        ),
-                                      ),
-                                      4.height,
-                                      CustomTextWidget(
-                                        text:
-                                        'Appointment Date: ${appointment.date}',
-                                        textStyle: TextStyle(
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppColors.subTextColor,
-                                        ),
-                                      ),
-                                      4.height,
-                                      CustomTextWidget(
-                                        text:
-                                        'Time: ${appointment.slotType} ${appointment.timeSlot}',
-                                        textStyle: TextStyle(
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppColors.subTextColor,
-                                        ),
-                                      ),
-                                      4.height,
-                                      CustomTextWidget(
-                                        text:
-                                        'Status: ${appointment.status.capitalize()}',
-                                        textStyle: TextStyle(
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w500,
+                                return GestureDetector(
+                                  onTap: () {
+                                    AppNavigation.push(DoctorAppointmentDetailsView(
+                                      appointment: appointment,
+                                      patient: displayPatient,
+                                    ));
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.gradientWhite,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
                                           color:
-                                          _getStatusColor(appointment.status),
+                                          AppColors.black.withOpacity(0.05),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
                                         ),
-                                      ),
-                                      if (appointment.patientNotes != null) ...[
-                                        4.height,
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                              BorderRadius.circular(8),
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  AppNavigation.push(PatientDetailsView(patient: displayPatient));
+                                                },
+                                                child: SizedBox(
+                                                  width: ScreenUtil.scaleWidth(
+                                                      context, 60),
+                                                  height: ScreenUtil.scaleHeight(
+                                                      context, 60),
+                                                  child: displayPatient
+                                                      .profileImageUrl.isNotEmpty
+                                                      ? Image.network(
+                                                    displayPatient
+                                                        .profileImageUrl,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                      : Image.asset(
+                                                      'assets/default_patient.png'),
+                                                ),
+                                              ),
+                                            ),
+                                            12.width,
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  AppNavigation.push(PatientDetailsView(patient: displayPatient));
+                                                },
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                                  children: [
+                                                    CustomTextWidget(
+                                                      text: displayPatient.fullName,
+                                                      textStyle: TextStyle(
+                                                        fontFamily: AppFonts.rubik,
+                                                        fontSize:
+                                                        FontSizes(context)
+                                                            .size18,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: AppColors.black,
+                                                      ),
+                                                    ),
+                                                    4.height,
+                                                    CustomTextWidget(
+                                                      text: appointment
+                                                          .patientType ==
+                                                          'My Self'
+                                                          ? 'Patient: My Self'
+                                                          : 'Patient: ${appointment.patientName}',
+                                                      textStyle: TextStyle(
+                                                        fontFamily: AppFonts.rubik,
+                                                        fontSize:
+                                                        FontSizes(context)
+                                                            .size14,
+                                                        fontWeight: FontWeight.w400,
+                                                        color:
+                                                        AppColors.subTextColor,
+                                                      ),
+                                                    ),
+                                                    4.height,
+                                                    appointment.patientType !=
+                                                        'My Self'
+                                                        ? CustomTextWidget(
+                                                      text:
+                                                      'Relation with patient: ${appointment.patientType}',
+                                                      textStyle: TextStyle(
+                                                        fontFamily:
+                                                        AppFonts.rubik,
+                                                        fontSize:
+                                                        FontSizes(context)
+                                                            .size14,
+                                                        fontWeight:
+                                                        FontWeight.w400,
+                                                        color: AppColors
+                                                            .subTextColor,
+                                                      ),
+                                                    )
+                                                        : const SizedBox.shrink(),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        12.height,
                                         CustomTextWidget(
                                           text:
-                                          'Notes: ${appointment.patientNotes}',
+                                          'Created At: ${appointment.createdAt.formattedDate}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
@@ -302,150 +277,197 @@ class DoctorBookingsView extends ConsumerWidget {
                                             color: AppColors.subTextColor,
                                           ),
                                         ),
-                                      ],
-                                      16.height,
-                                      if (appointment.status == 'pending') ...[
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            CustomButtonWidget(
-                                              text: 'Accept',
-                                              height: ScreenUtil.scaleHeight(
-                                                  context, 40),
-                                              width: ScreenUtil.scaleWidth(
-                                                  context, 100),
-                                              backgroundColor:
-                                              AppColors.gradientGreen,
-                                              fontFamily: AppFonts.rubik,
-                                              fontSize:
-                                              FontSizes(context).size14,
-                                              fontWeight: FontWeight.w500,
-                                              textColor: Colors.white,
-                                              onPressed: () async {
-                                                final isConnected = await ref
-                                                    .read(
-                                                    checkInternetConnectionProvider
-                                                        .future);
-                                                if (!isConnected) {
-                                                  CustomSnackBarWidget.show(
-                                                    context: context,
-                                                    text:
-                                                    'No Internet Connection',
-                                                  );
-                                                  return;
-                                                }
-
-                                                final database = FirebaseDatabase
-                                                    .instance
-                                                    .ref();
-                                                await database
-                                                    .child('Appointments')
-                                                    .child(appointment.id)
-                                                    .update({
-                                                  'status': 'accepted',
-                                                });
-
-                                                CustomSnackBarWidget.show(
-                                                  context: context,
-                                                  text:
-                                                  'Booking accepted successfully',
-                                                );
-                                              },
-                                            ),
-                                            CustomButtonWidget(
-                                              text: 'Reject',
-                                              height: ScreenUtil.scaleHeight(
-                                                  context, 40),
-                                              width: ScreenUtil.scaleWidth(
-                                                  context, 100),
-                                              backgroundColor:
-                                              Colors.transparent,
-                                              fontFamily: AppFonts.rubik,
-                                              fontSize:
-                                              FontSizes(context).size14,
-                                              fontWeight: FontWeight.w500,
-                                              textColor: Colors.red,
-                                              border: const BorderSide(
-                                                  color: Colors.red),
-                                              onPressed: () async {
-                                                final isConnected = await ref
-                                                    .read(
-                                                    checkInternetConnectionProvider
-                                                        .future);
-                                                if (!isConnected) {
-                                                  CustomSnackBarWidget.show(
-                                                    context: context,
-                                                    text:
-                                                    'No Internet Connection',
-                                                  );
-                                                  return;
-                                                }
-
-                                                final database = FirebaseDatabase
-                                                    .instance
-                                                    .ref();
-                                                await database
-                                                    .child('Appointments')
-                                                    .child(appointment.id)
-                                                    .update({
-                                                  'status': 'rejected',
-                                                });
-
-                                                CustomSnackBarWidget.show(
-                                                  context: context,
-                                                  text:
-                                                  'Booking rejected successfully',
-                                                );
-                                              },
-                                            ),
-                                          ],
+                                        4.height,
+                                        CustomTextWidget(
+                                          text:
+                                          'Appointment Date: ${appointment.date}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.subTextColor,
+                                          ),
                                         ),
-                                      ],
-                                      if (appointment.status == 'accepted' &&
-                                          canComplete) ...[
-                                        8.height,
-                                        CustomButtonWidget(
-                                          text: 'Complete',
-                                          height:
-                                          ScreenUtil.scaleHeight(context, 40),
-                                          width:
-                                          ScreenUtil.scaleWidth(context, 100),
-                                          backgroundColor: Colors.blue,
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w500,
-                                          textColor: Colors.white,
-                                          onPressed: () async {
-                                            final isConnected = await ref.read(
-                                                checkInternetConnectionProvider
-                                                    .future);
-                                            if (!isConnected) {
+                                        4.height,
+                                        CustomTextWidget(
+                                          text:
+                                          'Time: ${appointment.slotType} ${appointment.timeSlot}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.subTextColor,
+                                          ),
+                                        ),
+                                        4.height,
+                                        CustomTextWidget(
+                                          text:
+                                          'Status: ${appointment.status.capitalize()}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w500,
+                                            color:
+                                            _getStatusColor(appointment.status),
+                                          ),
+                                        ),
+                                        if (appointment.patientNotes != null) ...[
+                                          4.height,
+                                          CustomTextWidget(
+                                            text:
+                                            'Notes: ${appointment.patientNotes}',
+                                            textStyle: TextStyle(
+                                              fontFamily: AppFonts.rubik,
+                                              fontSize: FontSizes(context).size14,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.subTextColor,
+                                            ),
+                                          ),
+                                        ],
+                                        16.height,
+                                        if (appointment.status == 'pending') ...[
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              CustomButtonWidget(
+                                                text: 'Accept',
+                                                height: ScreenUtil.scaleHeight(
+                                                    context, 40),
+                                                width: ScreenUtil.scaleWidth(
+                                                    context, 100),
+                                                backgroundColor:
+                                                AppColors.gradientGreen,
+                                                fontFamily: AppFonts.rubik,
+                                                fontSize:
+                                                FontSizes(context).size14,
+                                                fontWeight: FontWeight.w500,
+                                                textColor: Colors.white,
+                                                onPressed: () async {
+                                                  final isConnected = await ref
+                                                      .read(
+                                                      checkInternetConnectionProvider
+                                                          .future);
+                                                  if (!isConnected) {
+                                                    CustomSnackBarWidget.show(
+                                                      context: context,
+                                                      text:
+                                                      'No Internet Connection',
+                                                    );
+                                                    return;
+                                                  }
+                                  
+                                                  final database = FirebaseDatabase
+                                                      .instance
+                                                      .ref();
+                                                  await database
+                                                      .child('Appointments')
+                                                      .child(appointment.id)
+                                                      .update({
+                                                    'status': 'accepted',
+                                                  });
+                                  
+                                                  CustomSnackBarWidget.show(
+                                                    context: context,
+                                                    text:
+                                                    'Booking accepted successfully',
+                                                  );
+                                                },
+                                              ),
+                                              CustomButtonWidget(
+                                                text: 'Reject',
+                                                height: ScreenUtil.scaleHeight(
+                                                    context, 40),
+                                                width: ScreenUtil.scaleWidth(
+                                                    context, 100),
+                                                backgroundColor:
+                                                Colors.transparent,
+                                                fontFamily: AppFonts.rubik,
+                                                fontSize:
+                                                FontSizes(context).size14,
+                                                fontWeight: FontWeight.w500,
+                                                textColor: Colors.red,
+                                                border: const BorderSide(
+                                                    color: Colors.red),
+                                                onPressed: () async {
+                                                  final isConnected = await ref
+                                                      .read(
+                                                      checkInternetConnectionProvider
+                                                          .future);
+                                                  if (!isConnected) {
+                                                    CustomSnackBarWidget.show(
+                                                      context: context,
+                                                      text:
+                                                      'No Internet Connection',
+                                                    );
+                                                    return;
+                                                  }
+                                  
+                                                  final database = FirebaseDatabase
+                                                      .instance
+                                                      .ref();
+                                                  await database
+                                                      .child('Appointments')
+                                                      .child(appointment.id)
+                                                      .update({
+                                                    'status': 'rejected',
+                                                  });
+                                  
+                                                  CustomSnackBarWidget.show(
+                                                    context: context,
+                                                    text:
+                                                    'Booking rejected successfully',
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                        if (appointment.status == 'accepted' &&
+                                            canComplete) ...[
+                                          8.height,
+                                          CustomButtonWidget(
+                                            text: 'Complete',
+                                            height:
+                                            ScreenUtil.scaleHeight(context, 40),
+                                            width:
+                                            ScreenUtil.scaleWidth(context, 100),
+                                            backgroundColor: Colors.blue,
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w500,
+                                            textColor: Colors.white,
+                                            onPressed: () async {
+                                              final isConnected = await ref.read(
+                                                  checkInternetConnectionProvider
+                                                      .future);
+                                              if (!isConnected) {
+                                                CustomSnackBarWidget.show(
+                                                  context: context,
+                                                  text: 'No Internet Connection',
+                                                );
+                                                return;
+                                              }
+                                  
+                                              final database =
+                                              FirebaseDatabase.instance.ref();
+                                              await database
+                                                  .child('Appointments')
+                                                  .child(appointment.id)
+                                                  .update({
+                                                'status': 'completed',
+                                              });
+                                  
                                               CustomSnackBarWidget.show(
                                                 context: context,
-                                                text: 'No Internet Connection',
+                                                text:
+                                                'Appointment marked as completed',
                                               );
-                                              return;
-                                            }
-
-                                            final database =
-                                            FirebaseDatabase.instance.ref();
-                                            await database
-                                                .child('Appointments')
-                                                .child(appointment.id)
-                                                .update({
-                                              'status': 'completed',
-                                            });
-
-                                            CustomSnackBarWidget.show(
-                                              context: context,
-                                              text:
-                                              'Appointment marked as completed',
-                                            );
-                                          },
-                                        ),
+                                            },
+                                          ),
+                                        ],
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 );
                               },

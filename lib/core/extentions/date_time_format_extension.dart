@@ -22,3 +22,8 @@ extension DateTimeFormatExtension1 on String {
   }
 
 }
+extension StringToDateTime on String {
+  DateTime toDateTime({String pattern = 'yyyy-MM-dd'}) {
+    return DateFormat(pattern).parse(this);
+  }
+}

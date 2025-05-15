@@ -1,5 +1,6 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/bookings/models/appointment_model.dart';
+import 'package:curemate/src/features/patient/appointments/views/patient_appointment_details_view.dart';
 import 'package:curemate/src/features/patient/shared/views/doctor_details_view.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
@@ -131,111 +132,104 @@ class PatientAppointmentsView extends ConsumerWidget {
                             final isPending = appointment.status == 'pending';
                             final isCancelled = appointment.status == 'cancelled';
 
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isCancelled ? Colors.grey[200] : AppColors.gradientWhite,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    onTap:(){
-                                      AppNavigation.push(DoctorProfileView(doctor: doctor));
-                                    },
-                                    child: Row(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: SizedBox(
-                                            width: ScreenUtil.scaleWidth(context, 60),
-                                            height: ScreenUtil.scaleHeight(context, 60),
-                                            child: doctor!.profileImageUrl.isNotEmpty
-                                                ? Image.network(
-                                              doctor.profileImageUrl,
-                                              fit: BoxFit.cover,
-                                            )
-                                                : Image.asset(
-                                              'assets/default_doctor.png',
-                                              fit: BoxFit.cover,
+                            return GestureDetector(
+                              onTap: () {
+                                AppNavigation.push(PatientAppointmentDetailsView(appointment: appointment));
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isCancelled ? Colors.grey[200] : AppColors.gradientWhite,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    GestureDetector(
+                                      onTap:(){
+                                        AppNavigation.push(DoctorProfileView(doctor: doctor));
+                                      },
+                                      child: Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: SizedBox(
+                                              width: ScreenUtil.scaleWidth(context, 60),
+                                              height: ScreenUtil.scaleHeight(context, 60),
+                                              child: doctor!.profileImageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                doctor.profileImageUrl,
+                                                fit: BoxFit.cover,
+                                              )
+                                                  : Image.asset(
+                                                'assets/default_doctor.png',
+                                                fit: BoxFit.cover,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        12.width,
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              CustomTextWidget(
-                                                text: doctor.fullName,
-                                                textStyle: TextStyle(
-                                                  fontFamily: AppFonts.rubik,
-                                                  fontSize: FontSizes(context).size18,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: isCancelled ? Colors.grey : AppColors.black,
+                                          12.width,
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                CustomTextWidget(
+                                                  text: doctor.fullName,
+                                                  textStyle: TextStyle(
+                                                    fontFamily: AppFonts.rubik,
+                                                    fontSize: FontSizes(context).size18,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isCancelled ? Colors.grey : AppColors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                              4.height,
-                                              CustomTextWidget(
-                                                text: doctor.category,
-                                                textStyle: TextStyle(
-                                                  fontFamily: AppFonts.rubik,
-                                                  fontSize: FontSizes(context).size14,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: isCancelled
-                                                      ? Colors.grey
-                                                      : AppColors.subTextColor,
+                                                4.height,
+                                                CustomTextWidget(
+                                                  text: doctor.category,
+                                                  textStyle: TextStyle(
+                                                    fontFamily: AppFonts.rubik,
+                                                    fontSize: FontSizes(context).size14,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: isCancelled
+                                                        ? Colors.grey
+                                                        : AppColors.subTextColor,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  12.height,
-                                  CustomTextWidget(
-                                    text: 'Patient: ${appointment.patientName} (${appointment.patientType})',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
+                                    12.height,
+                                    CustomTextWidget(
+                                      text: 'Patient: ${appointment.patientName} (${appointment.patientType})',
+                                      textStyle: TextStyle(
+                                        fontFamily: AppFonts.rubik,
+                                        fontSize: FontSizes(context).size14,
+                                        fontWeight: FontWeight.w400,
+                                        color: isCancelled ? Colors.grey : AppColors.subTextColor,
+                                      ),
                                     ),
-                                  ),
-                                  4.height,
-                                  CustomTextWidget(
-                                    text: 'Booked by: ${appointment.bookerName}',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
-                                    ),
-                                  ),
-                                  4.height,
-                                  CustomTextWidget(
-                                    text: 'Created At: ${appointment.createdAt.formattedDate}',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.subTextColor,
-                                    ),
-                                  ),
-                                  if(appointment.updatedAt!=null)...[
                                     4.height,
                                     CustomTextWidget(
-                                      text: 'Updated At: ${appointment.updatedAt!.formattedDate}',
+                                      text: 'Booked by: ${appointment.bookerName}',
+                                      textStyle: TextStyle(
+                                        fontFamily: AppFonts.rubik,
+                                        fontSize: FontSizes(context).size14,
+                                        fontWeight: FontWeight.w400,
+                                        color: isCancelled ? Colors.grey : AppColors.subTextColor,
+                                      ),
+                                    ),
+                                    4.height,
+                                    CustomTextWidget(
+                                      text: 'Created At: ${appointment.createdAt.formattedDate}',
                                       textStyle: TextStyle(
                                         fontFamily: AppFonts.rubik,
                                         fontSize: FontSizes(context).size14,
@@ -243,135 +237,147 @@ class PatientAppointmentsView extends ConsumerWidget {
                                         color: AppColors.subTextColor,
                                       ),
                                     ),
-                                  ],
-                                  4.height,
-                                  CustomTextWidget(
-                                    text: 'Appointment Date: ${appointment.date}',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
-                                    ),
-                                  ),
-                                  4.height,
-                                  CustomTextWidget(
-                                    text: 'Time: ${appointment.timeSlot}',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w400,
-                                      color: isCancelled ? Colors.grey : AppColors.subTextColor,
-                                    ),
-                                  ),
-                                  4.height,
-                                  CustomTextWidget(
-                                    text: 'Status: ${appointment.status.capitalize()}',
-                                    textStyle: TextStyle(
-                                      fontFamily: AppFonts.rubik,
-                                      fontSize: FontSizes(context).size14,
-                                      fontWeight: FontWeight.w500,
-                                      color: _getStatusColor(appointment.status),
-                                    ),
-                                  ),
-                                  if (appointment.patientNotes != null) ...[
+                                    if(appointment.updatedAt!=null)...[
+                                      4.height,
+                                      CustomTextWidget(
+                                        text: 'Updated At: ${appointment.updatedAt!.formattedDate}',
+                                        textStyle: TextStyle(
+                                          fontFamily: AppFonts.rubik,
+                                          fontSize: FontSizes(context).size14,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.subTextColor,
+                                        ),
+                                      ),
+                                    ],
                                     4.height,
                                     CustomTextWidget(
-                                      text: 'Notes: ${appointment.patientNotes}',
+                                      text: 'Appointment Date: ${appointment.date}',
                                       textStyle: TextStyle(
                                         fontFamily: AppFonts.rubik,
                                         fontSize: FontSizes(context).size14,
                                         fontWeight: FontWeight.w400,
-                                        color: isCancelled
-                                            ? Colors.grey
-                                            : AppColors.subTextColor,
+                                        color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                       ),
                                     ),
-                                  ],
-                                  if (appointment.reminderTime != null) ...[
                                     4.height,
                                     CustomTextWidget(
-                                      text: 'Reminder: ${appointment.reminderTime} before',
+                                      text: 'Time: ${appointment.timeSlot}',
                                       textStyle: TextStyle(
                                         fontFamily: AppFonts.rubik,
                                         fontSize: FontSizes(context).size14,
                                         fontWeight: FontWeight.w400,
-                                        color: isCancelled
-                                            ? Colors.grey
-                                            : AppColors.subTextColor,
+                                        color: isCancelled ? Colors.grey : AppColors.subTextColor,
                                       ),
                                     ),
-                                  ],
-                                  16.height,
-                                  if (isPending)
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        CustomButtonWidget(
-                                          text: 'Edit',
-                                          height: ScreenUtil.scaleHeight(context, 40),
-                                          width: ScreenUtil.scaleWidth(context, 100),
-                                          backgroundColor: AppColors.gradientGreen,
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w500,
-                                          textColor: Colors.white,
-                                          onPressed: () {
-                                            ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = appointment.patientType;
-                                            ref.read(bookingViewPatientNameProvider.notifier).state = appointment.patientName;
-                                            ref.read(bookingViewPatientNumberProvider.notifier).state = appointment.patientNumber;
-                                            AppNavigation.push(
-                                              AppointmentBookingView(
-                                                doctor: doctor,
-                                                appointment: appointment,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        CustomButtonWidget(
-                                          text: 'Cancel',
-                                          height: ScreenUtil.scaleHeight(context, 40),
-                                          width: ScreenUtil.scaleWidth(context, 100),
-                                          backgroundColor: Colors.transparent,
-                                          fontFamily: AppFonts.rubik,
-                                          fontSize: FontSizes(context).size14,
-                                          fontWeight: FontWeight.w500,
-                                          textColor: Colors.red,
-                                          border: const BorderSide(color: Colors.red),
-                                          onPressed: () async {
-                                            final isConnected = await ref.read(
-                                              checkInternetConnectionProvider.future,
-                                            );
-                                            if (!isConnected) {
-                                              CustomSnackBarWidget.show(
-                                                context: context,
-                                                text: 'No Internet Connection',
-                                              );
-                                              return;
-                                            }
-
-                                            try {
-                                              await ref.read(bookingRepositoryProvider).cancelBooking(
-                                                appointment.id,
-                                                DateTime.now().toIso8601String(),
-                                              );
-                                              await _cancelNotification(appointment.id);
-
-                                              CustomSnackBarWidget.show(
-                                                context: context,
-                                                text: 'Booking cancelled successfully',
-                                              );
-                                            } catch (e) {
-                                              CustomSnackBarWidget.show(
-                                                context: context,
-                                                text: 'Failed to cancel booking: $e',
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      ],
+                                    4.height,
+                                    CustomTextWidget(
+                                      text: 'Status: ${appointment.status.capitalize()}',
+                                      textStyle: TextStyle(
+                                        fontFamily: AppFonts.rubik,
+                                        fontSize: FontSizes(context).size14,
+                                        fontWeight: FontWeight.w500,
+                                        color: _getStatusColor(appointment.status),
+                                      ),
                                     ),
-                                ],
+                                    if (appointment.patientNotes != null) ...[
+                                      4.height,
+                                      CustomTextWidget(
+                                        text: 'Notes: ${appointment.patientNotes}',
+                                        textStyle: TextStyle(
+                                          fontFamily: AppFonts.rubik,
+                                          fontSize: FontSizes(context).size14,
+                                          fontWeight: FontWeight.w400,
+                                          color: isCancelled
+                                              ? Colors.grey
+                                              : AppColors.subTextColor,
+                                        ),
+                                      ),
+                                    ],
+                                    if (appointment.reminderTime != null) ...[
+                                      4.height,
+                                      CustomTextWidget(
+                                        text: 'Reminder: ${appointment.reminderTime} before',
+                                        textStyle: TextStyle(
+                                          fontFamily: AppFonts.rubik,
+                                          fontSize: FontSizes(context).size14,
+                                          fontWeight: FontWeight.w400,
+                                          color: isCancelled
+                                              ? Colors.grey
+                                              : AppColors.subTextColor,
+                                        ),
+                                      ),
+                                    ],
+                                    16.height,
+                                    if (isPending)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CustomButtonWidget(
+                                            text: 'Edit',
+                                            height: ScreenUtil.scaleHeight(context, 40),
+                                            width: ScreenUtil.scaleWidth(context, 100),
+                                            backgroundColor: AppColors.gradientGreen,
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w500,
+                                            textColor: Colors.white,
+                                            onPressed: () {
+                                              ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = appointment.patientType;
+                                              ref.read(bookingViewPatientNameProvider.notifier).state = appointment.patientName;
+                                              ref.read(bookingViewPatientNumberProvider.notifier).state = appointment.patientNumber;
+                                              AppNavigation.push(
+                                                AppointmentBookingView(
+                                                  doctor: doctor,
+                                                  appointment: appointment,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          CustomButtonWidget(
+                                            text: 'Cancel',
+                                            height: ScreenUtil.scaleHeight(context, 40),
+                                            width: ScreenUtil.scaleWidth(context, 100),
+                                            backgroundColor: Colors.transparent,
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w500,
+                                            textColor: Colors.red,
+                                            border: const BorderSide(color: Colors.red),
+                                            onPressed: () async {
+                                              final isConnected = await ref.read(
+                                                checkInternetConnectionProvider.future,
+                                              );
+                                              if (!isConnected) {
+                                                CustomSnackBarWidget.show(
+                                                  context: context,
+                                                  text: 'No Internet Connection',
+                                                );
+                                                return;
+                                              }
+
+                                              try {
+                                                await ref.read(bookingRepositoryProvider).cancelBooking(
+                                                  appointment.id,
+                                                  DateTime.now().toIso8601String(),
+                                                );
+                                                await _cancelNotification(appointment.id);
+
+                                                CustomSnackBarWidget.show(
+                                                  context: context,
+                                                  text: 'Booking cancelled successfully',
+                                                );
+                                              } catch (e) {
+                                                CustomSnackBarWidget.show(
+                                                  context: context,
+                                                  text: 'Failed to cancel booking: $e',
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
                               ),
                             );
                           },

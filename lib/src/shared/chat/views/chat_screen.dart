@@ -80,7 +80,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           if (!widget.isPatient) {
             ref.read(doctorBottomNavIndexProvider.notifier).state = 3;
           } else {
-            ref.read(bottomNavIndexProvider.notifier).state = 3;
+            ref.read(patientBottomNavIndexProvider.notifier).state = 3;
           }
           if (widget.fromDoctorDetails) {
             Navigator.of(context).popUntil((route) => route.isFirst);
