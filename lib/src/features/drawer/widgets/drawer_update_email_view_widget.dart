@@ -14,7 +14,9 @@ final updateEmailProvider =
 StateNotifierProvider<UpdateEmailNotifier, UpdateEmailState>((ref) {
   return UpdateEmailNotifier();
 });
-
+final hideCurrentPassword=StateProvider<bool>((ref)=>false);
+final hideNewPasswordPassword=StateProvider<bool>((ref)=>false);
+final hideConfirmNewPassword=StateProvider<bool>((ref)=>false);
 class UpdateEmailState {
   final String newEmail;
   final String currentPassword;
@@ -50,7 +52,6 @@ class UpdateEmailState {
     );
   }
 }
-
 class UpdateEmailNotifier extends StateNotifier<UpdateEmailState> {
   UpdateEmailNotifier() : super(UpdateEmailState());
 
@@ -89,7 +90,6 @@ class UpdateEmailNotifier extends StateNotifier<UpdateEmailState> {
     }
   }
 }
-
 class UpdateEmailScreen extends ConsumerStatefulWidget {
   final String currentEmail;
   final Future<void> Function(
@@ -107,7 +107,6 @@ class UpdateEmailScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<UpdateEmailScreen> createState() => _UpdateEmailScreenState();
 }
-
 class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController newEmailController;
@@ -115,14 +114,15 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
   late final TextEditingController newPasswordController;
   late final TextEditingController confirmNewPasswordController;
 
-
   @override
   void initState() {
     super.initState();
-    newEmailController = TextEditingController(text: '');
-    currentPasswordController = TextEditingController(text: '');
-    newPasswordController = TextEditingController(text: '');
-    confirmNewPasswordController = TextEditingController(text: '');
+    newEmailController = TextEditingController();
+    currentPasswordController = TextEditingController();
+    newPasswordController = TextEditingController();
+    confirmNewPasswordController = TextEditingController();
+
+    // Initialize controller texts from provider state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(updateEmailProvider);
       newEmailController.text = state.newEmail;
@@ -145,11 +145,6 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(updateEmailProvider);
     final notifier = ref.read(updateEmailProvider.notifier);
-
-    newEmailController.text = state.newEmail;
-    currentPasswordController.text = state.currentPassword;
-    newPasswordController.text = state.newPassword;
-    confirmNewPasswordController.text = state.confirmNewPassword;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,7 +183,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Current Email Display
+                  /// Current Email Display
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -220,21 +215,21 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                   ),
                   24.height,
 
-                  // New Email Field
+                  /// New Email Field
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     child: CustomTextFormFieldWidget(
                       label: 'New Email',
                       hintText: 'Enter new email address',
-                      controller: newEmailController
-                        ..addListener(() {
-                          notifier.updateNewEmail(newEmailController.text);
-                        }),
+                      controller: newEmailController,
+                      onChanged: (value) {
+                        notifier.updateNewEmail(value);
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a new email';
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
                             .hasMatch(value)) {
                           return AppStrings.enterValidEmail;
                         }
@@ -250,16 +245,16 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                   ),
                   16.height,
 
-                  // Current Password Field
+                  /// Current Password Field
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     child: CustomTextFormFieldWidget(
                       label: 'Current Password',
                       hintText: 'Enter your current password',
-                      controller: currentPasswordController
-                        ..addListener(() {
-                          notifier.updateCurrentPassword(currentPasswordController.text);
-                        }),
+                      controller: currentPasswordController,
+                      onChanged: (value) {
+                        notifier.updateCurrentPassword(value);
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your current password';
@@ -269,7 +264,18 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                         }
                         return null;
                       },
-                      obscureText: true,
+                      obscureText: ref.watch(hideCurrentPassword),
+
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          ref.watch(hideCurrentPassword) ? Icons.visibility_off : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          ref.read(hideCurrentPassword.notifier).state =
+                          !ref.read(hideCurrentPassword);
+                        },
+                      ),
                       prefixIcon: const Icon(
                         Icons.lock_outline,
                         color: AppColors.gradientGreen,
@@ -279,16 +285,16 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                   ),
                   16.height,
 
-                  // New Password Field
+                  /// New Password Field
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     child: CustomTextFormFieldWidget(
                       label: 'New Password',
                       hintText: 'Enter new password',
-                      controller: newPasswordController
-                        ..addListener(() {
-                          notifier.updateNewPassword(newPasswordController.text);
-                        }),
+                      controller: newPasswordController,
+                      onChanged: (value) {
+                        notifier.updateNewPassword(value);
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a new password';
@@ -298,26 +304,37 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                         }
                         return null;
                       },
-                      obscureText: true,
+                      obscureText: ref.watch(hideNewPasswordPassword),
+
                       prefixIcon: const Icon(
                         Icons.lock_outline,
                         color: AppColors.gradientGreen,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          ref.watch(hideNewPasswordPassword) ? Icons.visibility_off : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          ref.read(hideNewPasswordPassword.notifier).state =
+                          !ref.read(hideNewPasswordPassword);
+                        },
                       ),
                       fillColor: Colors.white.withOpacity(0.9),
                     ),
                   ),
                   16.height,
 
-                  // Confirm New Password Field
+                  /// Confirm New Password Field
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     child: CustomTextFormFieldWidget(
                       label: 'Confirm New Password',
                       hintText: 'Confirm your new password',
-                      controller: confirmNewPasswordController
-                        ..addListener(() {
-                          notifier.updateConfirmNewPassword(confirmNewPasswordController.text);
-                        }),
+                      controller: confirmNewPasswordController,
+                      onChanged: (value) {
+                        notifier.updateConfirmNewPassword(value);
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please confirm your new password';
@@ -327,17 +344,27 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                         }
                         return null;
                       },
-                      obscureText: true,
+                      obscureText: ref.watch(hideConfirmNewPassword),
                       prefixIcon: const Icon(
                         Icons.lock_outline,
                         color: AppColors.gradientGreen,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          ref.watch(hideConfirmNewPassword) ? Icons.visibility_off : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          ref.read(hideConfirmNewPassword.notifier).state =
+                          !ref.read(hideConfirmNewPassword);
+                        },
                       ),
                       fillColor: Colors.white.withOpacity(0.9),
                     ),
                   ),
                   24.height,
 
-                  // Error Message
+                  /// Error Message
                   if (state.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
@@ -370,9 +397,9 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                     borderRadius: 12,
                     isLoading: state.isLoading,
                     height: 56,
-                      fontSize: FontSizes(context).size16,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: AppFonts.rubik,
+                    fontSize: FontSizes(context).size16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: AppFonts.rubik,
                     elevation: 2,
                   ),
                 ],

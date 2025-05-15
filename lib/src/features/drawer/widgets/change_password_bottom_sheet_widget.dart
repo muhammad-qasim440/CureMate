@@ -59,7 +59,7 @@ class _CustomChangePasswordSheetState extends ConsumerState<CustomChangePassword
         alignment: Alignment.bottomCenter,
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7, // Limit to 70% of screen height
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
           ),
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -158,7 +158,6 @@ class _CustomChangePasswordSheetState extends ConsumerState<CustomChangePassword
                               onPressed: () {
                                 ref.read(hideCurrentPasswordProvider.notifier).state =
                                 !ref.read(hideCurrentPasswordProvider);
-                                print('Current Password Visibility Toggled: ${ref.read(hideCurrentPasswordProvider)}');
                               },
                             ),
                           ),
@@ -205,7 +204,6 @@ class _CustomChangePasswordSheetState extends ConsumerState<CustomChangePassword
                               onPressed: () {
                                 ref.read(hideNewPasswordProvider.notifier).state =
                                 !ref.read(hideNewPasswordProvider);
-                                print('New Password Visibility Toggled: ${ref.read(hideNewPasswordProvider)}');
                               },
                             ),
                           ),

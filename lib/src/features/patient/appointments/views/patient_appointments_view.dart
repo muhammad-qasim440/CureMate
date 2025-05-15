@@ -108,6 +108,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                 dob: '',
                                 phoneNumber: '',
                                 profileImageUrl: '',
+                                profileImagePublicId: '',
                                 userType: 'Doctor',
                                 latitude: 0.0,
                                 longitude: 0.0,

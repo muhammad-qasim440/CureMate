@@ -1,6 +1,7 @@
 import 'package:curemate/assets/app_icons.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/doctor/providers/doctor_providers.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
@@ -13,23 +14,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../theme/app_colors.dart';
 import '../providers/settings_providers.dart';
-import 'about_us_widget.dart';
+import 'drawer_about_us_widget.dart';
 import 'change_password_bottom_sheet_widget.dart';
 import 'custom_toggle_swicth_widget.dart';
 
-class PatientDrawerSettingsWidget extends ConsumerStatefulWidget {
-  const PatientDrawerSettingsWidget({super.key});
+class DrawerSettingsWidget extends ConsumerStatefulWidget {
+  final bool? isDoctor;
+  const DrawerSettingsWidget({super.key,this.isDoctor});
 
   @override
-  ConsumerState<PatientDrawerSettingsWidget> createState() =>
+  ConsumerState<DrawerSettingsWidget> createState() =>
       _PatientDrawerSettingsWidgetState();
 }
 
 class _PatientDrawerSettingsWidgetState
-    extends ConsumerState<PatientDrawerSettingsWidget> {
+    extends ConsumerState<DrawerSettingsWidget> {
   @override
   Widget build(BuildContext context) {
-    final currentUser = ref.watch(currentSignInPatientDataProvider).when<Patient?>(data: (data) => data, error: (err, stack) => null, loading: () => null,);
+    final dynamic currentUser =widget.isDoctor!?ref.watch(currentSignInDoctorDataProvider).when<Doctor?>(data: (data) => data, error: (err, stack) => null, loading: () => null,): ref.watch(currentSignInPatientDataProvider).when<Patient?>(data: (data) => data, error: (err, stack) => null, loading: () => null,);
     return Scaffold(
       body: Stack(
         children: [

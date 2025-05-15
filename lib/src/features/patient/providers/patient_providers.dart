@@ -1,6 +1,5 @@
 import 'package:curemate/src/features/authentication/signin/providers/auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../core/utils/debug_print.dart';
@@ -103,6 +102,8 @@ class Doctor {
   final String dob;
   final String phoneNumber;
   final String profileImageUrl;
+  final String profileImagePublicId;
+
   final String userType;
   final double latitude;
   final double longitude;
@@ -128,6 +129,8 @@ class Doctor {
     required this.dob,
     required this.phoneNumber,
     required this.profileImageUrl,
+    required this.profileImagePublicId,
+
     required this.userType,
     required this.latitude,
     required this.longitude,
@@ -154,6 +157,7 @@ class Doctor {
       dob: map['dob'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       profileImageUrl: map['profileImageUrl'] ?? '',
+      profileImagePublicId: map['profileImagePublicId'] ?? '',
       userType: map['userType'] ?? '',
       latitude: (map['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (map['longitude'] as num?)?.toDouble() ?? 0.0,

@@ -58,12 +58,9 @@ class _PatientDrawerAddPatientRecordViewState extends ConsumerState<PatientDrawe
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      // Format the selected date as dd MMM, yyyy for display
       final formattedDate = DateFormat('dd MMM, yyyy').format(picked);
       _dateController.text = formattedDate;
-      // Save the date in ISO 8601 format for Firebase
       ref.read(recordDateProvider.notifier).state = picked.toIso8601String();
-      // Exit editing mode
       ref.read(isEditingDateProvider.notifier).state = false;
     }
   }

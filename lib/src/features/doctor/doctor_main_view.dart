@@ -1,6 +1,7 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/src/features/doctor/chat/views/doctor_chat_view.dart';
+import 'package:curemate/src/features/doctor/home/views/doctor_home_view.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class DoctorMainView extends ConsumerStatefulWidget {
 
 class _DoctorMainViewState extends ConsumerState<DoctorMainView> {
   final List<Widget> _screens = const [
-    DummyScreen(title: 'Home'),
+    DoctorHomeView(),
     DoctorBookingsView(),
     DoctorChatView(),
     DummyScreen(title: 'Profile'),

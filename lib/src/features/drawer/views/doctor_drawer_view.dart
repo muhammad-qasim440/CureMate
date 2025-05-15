@@ -6,7 +6,6 @@ import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/assets/app_assets.dart';
-import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../router/nav.dart';
@@ -16,18 +15,18 @@ import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../authentication/signin/providers/auth_provider.dart';
 import '../../authentication/signin/views/signin_view.dart';
+import '../../doctor/providers/doctor_providers.dart';
+import '../widgets/doctor_drawer_profile_view_widget.dart';
+import '../widgets/doctor_my_schedule_widget.dart';
 import '../widgets/drawer_feedback_widget.dart';
-import '../widgets/patient_drawer_medical_records.dart';
-import '../widgets/patient_drawer_my_doctors_view.dart';
 import '../widgets/drawer_privacy_policy_widget.dart';
-import '../widgets/patient_drawer_profile_view_widget.dart';
 
-class PatientDrawerView extends ConsumerWidget {
-  const PatientDrawerView({super.key});
+class DoctorDrawerView extends ConsumerWidget {
+  const DoctorDrawerView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentSignInPatientDataProvider);
+    final userAsync = ref.watch(currentSignInDoctorDataProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF536184),
@@ -126,35 +125,23 @@ class PatientDrawerView extends ConsumerWidget {
                                 'My Profile',
                                     () {
                                   AppNavigation.push(
-                                    const PatientDrawerProfileViewWidget(),
+                                    const DoctorDrawerProfileViewWidget(),
                                   );
                                 },
                               ),
                               _buildMenuTile(
                                 context,
-                                Icons.person,
-                                'My Doctors',
-                                () {
-                                  AppNavigation.push(
-                                    const PatientDrawerMyDoctorsView(),
-                                  );
-                                },
-                              ),
-                              _buildMenuTile(
-                                context,
-                                Icons.description,
-                                'Medical Records',
-                                () {
-                                  AppNavigation.push(
-                                    const PatientDrawerMedicalRecordsView(),
-                                  );
+                                Icons.schedule,
+                                'My Schedule',
+                                    () {
+                                      AppNavigation.push(const DoctorMyScheduleViewWidget());
                                 },
                               ),
                               _buildMenuTile(
                                 context,
                                 Icons.privacy_tip,
                                 'Privacy & Policy',
-                                () {
+                                    () {
                                   AppNavigation.push(const PrivacyPolicyScreen());
                                 },
                               ),
@@ -162,7 +149,7 @@ class PatientDrawerView extends ConsumerWidget {
                                 context,
                                 Icons.feedback_outlined,
                                 'Feedback',
-                                () {
+                                    () {
                                   AppNavigation.push(const PatientDrawerFeedBackWidget());
                                 },
                               ),
@@ -170,8 +157,8 @@ class PatientDrawerView extends ConsumerWidget {
                                 context,
                                 Icons.settings,
                                 'Settings',
-                                () {
-                                  AppNavigation.push(const DrawerSettingsWidget(isDoctor: false));
+                                    () {
+                                  AppNavigation.push(const DrawerSettingsWidget(isDoctor: true,));
 
                                 },
                               ),
@@ -187,12 +174,12 @@ class PatientDrawerView extends ConsumerWidget {
                         ),
                         onTap: () async {
                           final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) =>const CustomConfirmationDialogWidget(
-                            title: 'Log Out',
-                            content: 'Are you sure you want to logout?',
-                                confirmText: 'Ok',
-                              ),
+                            context: context,
+                            builder: (ctx) =>const CustomConfirmationDialogWidget(
+                              title: 'Log Out',
+                              content: 'Are you sure you want to logout?',
+                              confirmText: 'Ok',
+                            ),
                           );
                           if(confirm==true){
                             Navigator.pop(context);
@@ -234,19 +221,19 @@ class PatientDrawerView extends ConsumerWidget {
         },
         loading:
             () => const Center(
-              child: CircularProgressIndicator(color: AppColors.gradientGreen),
-            ),
+          child: CircularProgressIndicator(color: AppColors.gradientGreen),
+        ),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }
 
   Widget _buildMenuTile(
-    BuildContext context,
-    IconData icon,
-    String title,
-    VoidCallback onTap,
-  ) {
+      BuildContext context,
+      IconData icon,
+      String title,
+      VoidCallback onTap,
+      ) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(

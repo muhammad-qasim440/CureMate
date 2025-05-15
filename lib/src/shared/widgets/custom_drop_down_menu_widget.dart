@@ -10,6 +10,7 @@ import '../providers/drop_down_provider/custom_drop_down_provider.dart';
 class CustomDropdown extends ConsumerWidget {
   final List<String> items;
   final String label;
+  final String? initialValue;
   final String? validatorText;
   final void Function(String)? onChanged;
 
@@ -27,6 +28,7 @@ class CustomDropdown extends ConsumerWidget {
     super.key,
     required this.items,
     required this.label,
+    this.initialValue,
     this.validatorText,
     this.onChanged,
     this.labelStyle,
@@ -48,7 +50,7 @@ class CustomDropdown extends ConsumerWidget {
 
     return DropdownButtonFormField2<String>(
       isExpanded: true,
-      value: state.selected,
+      value: initialValue != null && items.contains(initialValue) ? initialValue :  state.selected,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: labelStyle ??

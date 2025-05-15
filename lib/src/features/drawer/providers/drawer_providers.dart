@@ -81,3 +81,16 @@ final isEditingPhoneNumberProvider = StateProvider<bool>((ref) => false);
 final isEditingDOBProvider = StateProvider<bool>((ref) => false);
 final isEditingCityProvider = StateProvider<bool>((ref) => false);
 final isEditingLocationProvider = StateProvider<bool>((ref) => false);
+
+
+/// more for doctor profile
+final userUpdatedQualificationProvider = StateProvider<String>((ref) => '');
+final userUpdatedYearsOfExperienceProvider = StateProvider<String>((ref) => '');
+final userUpdatedCategoryProvider = StateProvider<String>((ref) => '');
+final userUpdatedHospitalProvider = StateProvider<String>((ref) => '');
+final userUpdatedConsultationFeeProvider = StateProvider<int>((ref) => 0);
+final isEditingQualificationProvider = StateProvider<bool>((ref) => false);
+final isEditingYearsOfExperienceProvider = StateProvider<bool>((ref) => false);
+final isEditingCategoryProvider = StateProvider<bool>((ref) => false);
+final isEditingHospitalProvider = StateProvider<bool>((ref) => false);
+final isEditingConsultationFeeProvider = StateProvider<bool>((ref) => false);

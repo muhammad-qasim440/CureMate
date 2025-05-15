@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,7 +6,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
@@ -17,11 +15,12 @@ import '../../../shared/providers/profile_image_picker_provider/profile_image_pi
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
+import '../../doctor/providers/doctor_providers.dart';
 import '../../patient/providers/patient_providers.dart';
 import '../providers/drawer_providers.dart';
 import '../widgets/patient_drawer_profile_view_widget.dart';
 import '../widgets/patient_drawer_show_full_screen_image_widget.dart';
-import '../widgets/patient_drawer_update_email_view_widget.dart';
+import '../widgets/drawer_update_email_view_widget.dart';
 
 class DrawerHelpers {
   Future<void> clickORPickMultiImages({
@@ -413,13 +412,14 @@ class DrawerHelpers {
     clearChanges(ref);
 
   }
-  Future<void> updatePatientEmail({
+  Future<void> updateUserEmail({
     required BuildContext context,
     required WidgetRef ref,
     required String newEmail,
     required String currentPassword,
     required String newPassword,
     required String currentEmail,
+    required bool isDoctor,
   }) async {
     final isUpdating = ref.read(isUpdatingProfileProvider);
     if (isUpdating) return;
@@ -458,11 +458,22 @@ class DrawerHelpers {
         await user.updatePassword(newPassword);
       }
 
-      await FirebaseDatabase.instance
-          .ref()
-          .child('Patients')
-          .child(user.uid)
-          .update({'email': newEmail});
+      if(isDoctor){
+        await FirebaseDatabase.instance
+            .ref()
+            .child('Doctors')
+            .child(user.uid)
+            .update({'email': newEmail});
+      }
+      else{
+        await FirebaseDatabase.instance
+            .ref()
+            .child('Patients')
+            .child(user.uid)
+            .update({'email': newEmail});
+      }
+
+
       final userRef = FirebaseDatabase.instance.ref().child('Users').child(user.uid);
       final snapshot = await userRef.child('email').get();
 
@@ -503,20 +514,156 @@ class DrawerHelpers {
       ref.read(isUpdatingProfileProvider.notifier).state = false;
     }
   }
-  void clearChanges(WidgetRef ref) {
-    final user = ref.read(currentSignInPatientDataProvider).value;
-    if (user != null) {
-      ref.read(userUpdatedNameProvider.notifier).state = user.fullName;
-      ref.read(userUpdatedPhoneNumberProvider.notifier).state =
-          user.phoneNumber;
-      ref.read(userUpdatedCityProvider.notifier).state = user.city;
-      ref.read(userUpdatedLatitudeProvider.notifier).state =
-          user.latitude.toString();
-      ref.read(userUpdatedLongitudeProvider.notifier).state =
-          user.longitude.toString();
-      ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
+  Future<void> updateDoctorProfile(BuildContext context, WidgetRef ref) async {
+    final isUpdating = ref.read(isUpdatingProfileProvider);
+    if (isUpdating) return;
+
+    ref.read(isUpdatingProfileProvider.notifier).state = true;
+
+    final hasInternet = await ref.read(checkInternetConnectionProvider.future);
+    if (!hasInternet) {
+      CustomSnackBarWidget.show(
+        context: context,
+        text: 'No internet connection. Please check your network.',
+      );
+      ref.read(isUpdatingProfileProvider.notifier).state = false;
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      CustomSnackBarWidget.show(
+        context: context,
+        text: 'User not authenticated.',
+      );
+      ref.read(isUpdatingProfileProvider.notifier).state = false;
+      return;
+    }
+
+    final userData = ref.read(currentSignInDoctorDataProvider).value;
+    if (userData == null) {
+      CustomSnackBarWidget.show(
+        context: context,
+        text: 'User data not available.',
+      );
+      ref.read(isUpdatingProfileProvider.notifier).state = false;
+      return;
+    }
+
+    final currentName = ref.read(userUpdatedNameProvider);
+    final currentPhone = ref.read(userUpdatedPhoneNumberProvider);
+    final currentCity = ref.read(userUpdatedCityProvider);
+    final currentLatitude = ref.read(userUpdatedLatitudeProvider);
+    final currentLongitude = ref.read(userUpdatedLongitudeProvider);
+    final currentDob = ref.read(userUpdatedDOBProvider);
+    final currentQualification = ref.read(userUpdatedQualificationProvider);
+    final currentYearsOfExperience = ref.read(userUpdatedYearsOfExperienceProvider);
+    final currentCategory = ref.read(userUpdatedCategoryProvider);
+    final currentHospital = ref.read(userUpdatedHospitalProvider);
+    final currentConsultationFee = ref.read(userUpdatedConsultationFeeProvider);
+
+    Map<String, dynamic> updatedData = {};
+    if (currentName != userData.fullName) updatedData['fullName'] = currentName;
+    if (currentPhone != userData.phoneNumber) updatedData['phoneNumber'] = currentPhone;
+    if (currentCity != userData.city) updatedData['city'] = currentCity;
+    if (currentLatitude != userData.latitude.toString()) updatedData['latitude'] = currentLatitude;
+    if (currentLongitude != userData.longitude.toString()) updatedData['longitude'] = currentLongitude;
+    if (currentDob != userData.dob) updatedData['dob'] = currentDob;
+    if (currentQualification != userData.qualification) updatedData['qualification'] = currentQualification;
+    if (currentYearsOfExperience != userData.yearsOfExperience) updatedData['yearsOfExperience'] = currentYearsOfExperience;
+    if (currentCategory != userData.category) updatedData['category'] = currentCategory;
+    if (currentHospital != userData.hospital) updatedData['hospital'] = currentHospital;
+    if (currentConsultationFee != userData.consultationFee) updatedData['consultationFee'] = currentConsultationFee;
+
+    final profileImageState = ref.read(profileImagePickerProvider);
+    if (profileImageState.croppedImage != null) {
+      if (userData.profileImagePublicId.isNotEmpty) {
+        await deleteImageFromCloudinary(userData.profileImagePublicId);
+      }
+      final result = await uploadImageToCloudinary(
+        File(profileImageState.croppedImage!.path),
+      );
+      if (result != null) {
+        updatedData['profileImageUrl'] = result['secure_url'];
+        updatedData['profileImagePublicId'] = result['public_id'];
+      } else {
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Failed to upload new profile image.',
+        );
+        clearChanges(ref);
+        return;
+      }
+    }
+
+    if (updatedData.isEmpty && profileImageState.croppedImage == null) {
+      CustomSnackBarWidget.show(
+        context: context,
+        text: 'No changes to save.',
+      );
+      clearChanges(ref);
+      return;
+    }
+
+    await FirebaseDatabase.instance
+        .ref()
+        .child('Doctors')
+        .child(user.uid)
+        .update(updatedData);
+
+    Map<String, dynamic> userUpdates = {};
+    if (updatedData.containsKey('fullName') && updatedData['fullName'] != null) {
+      userUpdates['fullName'] = updatedData['fullName'];
+    }
+    if (updatedData.containsKey('profileImageUrl') && updatedData['profileImageUrl'] != null) {
+      userUpdates['profileImageUrl'] = updatedData['profileImageUrl'];
+    }
+
+    if (userUpdates.isNotEmpty) {
+      await FirebaseDatabase.instance
+          .ref()
+          .child('Users')
+          .child(user.uid)
+          .update(userUpdates);
+    }
+
+    if (profileImageState.croppedImage != null) {
       ref.read(profileImagePickerProvider.notifier).reset(ref);
     }
+
+    CustomSnackBarWidget.show(
+      context: context,
+      text: 'Profile updated successfully.',
+    );
+    clearChanges(ref);
+  }
+  void clearChanges(WidgetRef ref) {
+    final patient = ref.read(currentSignInPatientDataProvider).value;
+    final doctor = ref.read(currentSignInDoctorDataProvider).value;
+
+    if (patient != null) {
+      ref.read(userUpdatedNameProvider.notifier).state = patient.fullName;
+      ref.read(userUpdatedPhoneNumberProvider.notifier).state = patient.phoneNumber;
+      ref.read(userUpdatedCityProvider.notifier).state = patient.city;
+      ref.read(userUpdatedLatitudeProvider.notifier).state = patient.latitude.toString();
+      ref.read(userUpdatedLongitudeProvider.notifier).state = patient.longitude.toString();
+      ref.read(userUpdatedDOBProvider.notifier).state = patient.dob;
+      ref.read(profileImagePickerProvider.notifier).reset(ref);
+    } else if (doctor != null) {
+      ref.read(userUpdatedNameProvider.notifier).state = doctor.fullName;
+      ref.read(userUpdatedPhoneNumberProvider.notifier).state = doctor.phoneNumber;
+      ref.read(userUpdatedCityProvider.notifier).state = doctor.city;
+      ref.read(userUpdatedLatitudeProvider.notifier).state = doctor.latitude.toString();
+      ref.read(userUpdatedLongitudeProvider.notifier).state = doctor.longitude.toString();
+      ref.read(userUpdatedDOBProvider.notifier).state = doctor.dob;
+      ref.read(userUpdatedQualificationProvider.notifier).state = doctor.qualification;
+      ref.read(userUpdatedYearsOfExperienceProvider.notifier).state = doctor.yearsOfExperience;
+      ref.read(userUpdatedCategoryProvider.notifier).state = doctor.category;
+      ref.read(userUpdatedHospitalProvider.notifier).state = doctor.hospital;
+      ref.read(userUpdatedConsultationFeeProvider.notifier).state = doctor.consultationFee;
+      ref.read(profileImagePickerProvider.notifier).reset(ref);
+    }
+
     ref.read(hasChangesProvider.notifier).state = false;
     ref.read(isUpdatingProfileProvider.notifier).state = false;
   }

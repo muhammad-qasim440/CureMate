@@ -12,7 +12,6 @@ import '../core/lifecycle/observers/app_lifecycle_observer.dart';
 import '../core/utils/cache_network_image_utils.dart';
 import '../databases/local/hive/initialize_and_open_hive_db.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 
 import 'features/patient/views/patient_main_view.dart';
 
