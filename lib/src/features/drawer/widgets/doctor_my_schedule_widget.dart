@@ -149,7 +149,7 @@ class _DoctorMyScheduleViewWidgetState extends ConsumerState<DoctorMyScheduleVie
               ref.read(editingDayProvider.notifier).state = config['day']?.toString();
               service.loadConfigForEdit(config);
             },
-            onDelete: (day) => _showDeleteConfirmationDialog(context, ref, service, day),
+            onDelete: (day) { _showDeleteConfirmationDialog(context, ref, service, day);},
           ),
           20.height,
           if (showInputUI) ...[

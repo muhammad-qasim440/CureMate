@@ -12,10 +12,12 @@ import '../../../../../core/lifecycle/observers/app_lifecycle_observer.dart';
 import '../../../../shared/chat/providers/chatting_auth_providers.dart';
 import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../../core/utils/debug_print.dart';
+import '../../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../appointments/providers/appointments_providers.dart';
 import '../../../doctor/doctor_main_view.dart';
+import '../../../drawer/providers/drawer_providers.dart';
 import '../../../patient/providers/patient_providers.dart';
 import '../../../patient/views/patient_main_view.dart';
 import '../../reset_password/providers/password_reset_providers.dart';
@@ -327,7 +329,20 @@ class AuthService {
         _ref.invalidate(passwordProvider);
         _ref.read(patientBottomNavIndexProvider.notifier).state = 0;
         _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
-           await auth.signOut();
+        _ref.read(userUpdatedNameProvider.notifier).state = '';
+        _ref.read(userUpdatedPhoneNumberProvider.notifier).state = '';
+        _ref.read(userUpdatedCityProvider.notifier).state = '';
+        _ref.read(userUpdatedLatitudeProvider.notifier).state = '';
+        _ref.read(userUpdatedLongitudeProvider.notifier).state = '';
+       _ref.read(userUpdatedDOBProvider.notifier).state = '';
+        _ref.read(userUpdatedQualificationProvider.notifier).state = '';
+        _ref.read(userUpdatedYearsOfExperienceProvider.notifier).state = '';
+       _ref.read(userUpdatedCategoryProvider.notifier).state = '';
+       _ref.read(userUpdatedHospitalProvider.notifier).state = '';
+       _ref.read(userUpdatedConsultationFeeProvider.notifier).state = 0;
+       _ref.read(profileImagePickerProvider.notifier).reset(_ref);
+
+      await auth.signOut();
         final userId = auth.currentUser?.uid;
         if (userId != null) {
           await database.child('Users/$userId/status').update({

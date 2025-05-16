@@ -190,7 +190,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
     }
   }
 
-  void reset(WidgetRef ref) {
+  void reset(dynamic ref) {
     state = ProfileImageState();
     ref.read(userProfileProvider.notifier).state=null;
   }

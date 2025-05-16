@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../../core/utils/upload_profile_image_to_cloudinary.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../router/nav.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
@@ -390,6 +391,7 @@ class DrawerHelpers {
     Map<String, dynamic> userUpdates = {};
     if (updatedData.containsKey('fullName') && updatedData['fullName'] != null) {
       userUpdates['fullName'] = updatedData['fullName'];
+     await updateChatNames(user.uid, updatedData['fullName'],'Patient' );
     }
 
     if (updatedData.containsKey('profileImageUrl') && updatedData['profileImageUrl'] != null) {
@@ -614,6 +616,7 @@ class DrawerHelpers {
     Map<String, dynamic> userUpdates = {};
     if (updatedData.containsKey('fullName') && updatedData['fullName'] != null) {
       userUpdates['fullName'] = updatedData['fullName'];
+      await updateChatNames(user.uid, updatedData['fullName'],'Doctor' );
     }
     if (updatedData.containsKey('profileImageUrl') && updatedData['profileImageUrl'] != null) {
       userUpdates['profileImageUrl'] = updatedData['profileImageUrl'];
@@ -636,6 +639,68 @@ class DrawerHelpers {
       text: 'Profile updated successfully.',
     );
     clearChanges(ref);
+  }
+  Future<void> updateChatNames(String userId, String newName, String userType) async {
+    final DatabaseReference database = FirebaseDatabase.instance.ref();
+
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null || currentUser.uid != userId) {
+        logDebug('Authentication error: currentUser is ${currentUser?.uid}, expected $userId');
+        return;
+      }
+
+      // Read only the user's chats
+      final userChatsSnapshot = await database.child('Chats/$userId').get();
+      final userChatsData = userChatsSnapshot.value as Map<dynamic, dynamic>? ?? {};
+      final updates = <String, dynamic>{};
+
+      logDebug('User chats data for $userId: ${userChatsData.keys.join(', ')}');
+
+      // Update user's own chat entries
+      userChatsData.forEach((otherUserId, chat) {
+        updates['Chats/$userId/$otherUserId'] = {
+          'chatId': chat['chatId'] ?? '${userId}_${otherUserId}',
+          'lastMessage': chat['lastMessage'] ?? '',
+          'timestamp': chat['timestamp'] ?? ServerValue.timestamp,
+          'typing': chat['typing'] ?? false,
+          if (userType == 'Doctor') 'doctorName': newName,
+          if (userType == 'Patient') 'patientName': newName,
+          if (userType != 'Doctor') 'doctorName': chat['doctorName'] ?? '',
+          if (userType != 'Patient') 'patientName': chat['patientName'] ?? '',
+        };
+        logDebug('Prepared update for Chats/$userId/$otherUserId: ${updates['Chats/$userId/$otherUserId']}');
+      });
+
+      // Fetch other users' chat entries where userId is involved
+      for (var otherUserId in userChatsData.keys) {
+        final otherChatSnapshot = await database.child('Chats/$otherUserId/$userId').get();
+        if (otherChatSnapshot.exists) {
+          final chat = otherChatSnapshot.value as Map<dynamic, dynamic>;
+          updates['Chats/$otherUserId/$userId'] = {
+            'chatId': chat['chatId'] ?? '${otherUserId}_${userId}',
+            'lastMessage': chat['lastMessage'] ?? '',
+            'timestamp': chat['timestamp'] ?? ServerValue.timestamp,
+            'typing': chat['typing'] ?? false,
+            if (userType == 'Doctor') 'doctorName': newName,
+            if (userType == 'Patient') 'patientName': newName,
+            if (userType != 'Doctor') 'doctorName': chat['doctorName'] ?? '',
+            if (userType != 'Patient') 'patientName': chat['patientName'] ?? '',
+          };
+          logDebug('Prepared update for Chats/$otherUserId/$userId: ${updates['Chats/$otherUserId/$userId']}');
+        }
+      }
+
+      if (updates.isNotEmpty) {
+        logDebug('Applying updates: ${updates.keys.join(', ')}');
+        await database.update(updates);
+        logDebug('Chat names updated for user $userId');
+      } else {
+        logDebug('No chat name updates needed for user $userId');
+      }
+    } catch (e) {
+      logDebug('Error updating chat names: $e');
+    }
   }
   void clearChanges(WidgetRef ref) {
     final patient = ref.read(currentSignInPatientDataProvider).value;

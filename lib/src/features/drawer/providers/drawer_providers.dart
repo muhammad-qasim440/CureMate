@@ -94,3 +94,5 @@ final isEditingYearsOfExperienceProvider = StateProvider<bool>((ref) => false);
 final isEditingCategoryProvider = StateProvider<bool>((ref) => false);
 final isEditingHospitalProvider = StateProvider<bool>((ref) => false);
 final isEditingConsultationFeeProvider = StateProvider<bool>((ref) => false);
+
+
