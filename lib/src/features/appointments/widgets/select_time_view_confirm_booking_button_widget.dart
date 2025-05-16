@@ -19,7 +19,7 @@ import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
 import '../../patient/providers/patient_providers.dart';
 import '../models/appointment_model.dart';
-import '../providers/booking_providers.dart';
+import '../providers/appointments_providers.dart';
 import '../views/confirmation_view.dart';
 import '../views/select_time_view.dart';
 

@@ -42,7 +42,7 @@ class DoctorDrawerView extends ConsumerWidget {
                 right: ScreenUtil.scaleWidth(context, -80),
                 top: ScreenUtil.scaleHeight(context, 160),
                 child: Image.asset(
-                  AppAssets.patientDrawerSideBarImg,
+                  AppAssets.doctorDrawerSideBarImg,
                   height: ScreenUtil.scaleHeight(context, 450),
                   fit: BoxFit.cover,
                 ),

@@ -12,6 +12,7 @@ class FontSizes {
 
   double get size8 => _scale(8);
   double get size10 => _scale(10);
+  double get size11 => _scale(11);
   double get size12 => _scale(12);
   double get size13 => _scale(13);
   double get size14 => _scale(14);

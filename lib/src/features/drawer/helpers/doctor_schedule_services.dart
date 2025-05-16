@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../providers/doctor_schedule_providers.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
 
@@ -25,10 +26,10 @@ class DoctorScheduleService {
     try {
       final snapshot = await refDb.get();
       if (!snapshot.exists || snapshot.value == null) {
-        print('No availability data found for user ${user.uid}');
+        logDebug('No availability data found for user ${user.uid}');
         return [];
       }
-      print('Raw Firebase data: ${snapshot.value}');
+      logDebug('Raw Firebase data: ${snapshot.value}');
       final rawData = snapshot.value;
       if (rawData is List<dynamic>) {
         final result = rawData.asMap().entries.map((entry) {
@@ -40,7 +41,7 @@ class DoctorScheduleService {
                 value.map((k, v) => MapEntry(k.toString(), v)),
               );
               if (!map.containsKey('day') || map['day'] is! String) {
-                print('Invalid data at index $index: Missing or invalid day');
+                logDebug('Invalid data at index $index: Missing or invalid day');
                 return null;
               }
               if (map['isFullDay'] == true) {
@@ -48,7 +49,7 @@ class DoctorScheduleService {
                     !map.containsKey('endTime') ||
                     map['startTime'] is! String ||
                     map['endTime'] is! String) {
-                  print(
+                  logDebug(
                       'Invalid full-day data at index $index: Missing or invalid times');
                   return null;
                 }
@@ -56,47 +57,47 @@ class DoctorScheduleService {
                 if (!map.containsKey('morning') ||
                     !map.containsKey('afternoon') ||
                     !map.containsKey('evening')) {
-                  print(
+                  logDebug(
                       'Invalid partial-day data at index $index: Missing time slots');
                   return null;
                 }
                 for (var slot in ['morning', 'afternoon', 'evening']) {
                   if (map[slot] is! Map) {
-                    print('Invalid $slot data at index $index: Not a map');
+                    logDebug('Invalid $slot data at index $index: Not a map');
                     return null;
                   }
                   final slotMap = map[slot] as Map;
                   if (!slotMap.containsKey('isAvailable') ||
                       !slotMap.containsKey('startTime') ||
                       !slotMap.containsKey('endTime')) {
-                    print('Invalid $slot data at index $index: Missing fields');
+                    logDebug('Invalid $slot data at index $index: Missing fields');
                     return null;
                   }
                 }
               } else {
-                print('Invalid isFullDay at index $index: ${map['isFullDay']}');
+                logDebug('Invalid isFullDay at index $index: ${map['isFullDay']}');
                 return null;
               }
 
-              print('Validated data at index $index: $map');
+              logDebug('Validated data at index $index: $map');
               return map;
             } catch (e) {
-              print('Error parsing data at index $index: $e');
+              logDebug('Error parsing data at index $index: $e');
               return null;
             }
           } else {
-            print('Invalid data at index $index: Expected Map, got $value');
+            logDebug('Invalid data at index $index: Expected Map, got $value');
             return null;
           }
         }).whereType<Map<String, dynamic>>().toList();
 
-        print('Final fetched availability: $result');
+        logDebug('Final fetched availability: $result');
         return result;
       } else {
         throw Exception('Expected a List, but got ${rawData.runtimeType}');
       }
     } catch (e) {
-      print('Error fetching availability: $e');
+      logDebug('Error fetching availability: $e');
       rethrow;
     }
   }
@@ -104,7 +105,7 @@ class DoctorScheduleService {
   /// Loads doctor's availability and updates scheduleConfigsProvider.
   Future<void> loadAvailability() async {
     final data = await fetchAvailability();
-    print('Setting scheduleConfigsProvider: $data');
+    logDebug('Setting scheduleConfigsProvider: $data');
     ref.read(scheduleConfigsProvider.notifier).state = data;
   }
 
@@ -314,7 +315,7 @@ class DoctorScheduleService {
       config,
     ];
 
-    // Save to Firebase and update local state only on success
+    /// Save to Firebase and update local state only on success
     final error = await updateSchedule(updatedConfigs);
     if (error != null) {
       return error;
@@ -327,24 +328,23 @@ class DoctorScheduleService {
 
   /// Updates the schedule in Firebase.
   Future<String?> updateSchedule(List<Map<String, dynamic>> updatedConfigs) async {
-    print('updateSchedule: isUpdatingSchedule = ${ref.read(isUpdatingScheduleProvider)}');
+    logDebug('updateSchedule: isUpdatingSchedule = ${ref.read(isUpdatingScheduleProvider)}');
     if (ref.read(isUpdatingScheduleProvider)) return 'Update in progress';
     ref.read(isUpdatingScheduleProvider.notifier).state = true;
-    print('updateSchedule: Set isUpdatingSchedule to true');
+    logDebug('updateSchedule: Set isUpdatingSchedule to true');
     try {
-      // Add a small delay to debounce rapid calls
       await Future.delayed(const Duration(milliseconds: 100));
       final hasInternet = await ref.read(checkInternetConnectionProvider.future);
       if (!hasInternet) {
         ref.read(isUpdatingScheduleProvider.notifier).state = false;
-        print('updateSchedule: No internet, reset isUpdatingSchedule to false');
+        logDebug('updateSchedule: No internet, reset isUpdatingSchedule to false');
         return 'No internet connection. Please check your network.';
       }
 
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ref.read(isUpdatingScheduleProvider.notifier).state = false;
-        print('updateSchedule: No user, reset isUpdatingSchedule to false');
+        logDebug('updateSchedule: No user, reset isUpdatingSchedule to false');
         return 'User not authenticated.';
       }
 
@@ -355,15 +355,15 @@ class DoctorScheduleService {
           .child('availability')
           .set(updatedConfigs);
 
-      print('updateSchedule: Success');
+      logDebug('updateSchedule: Success');
       return null;
     } catch (e) {
       ref.read(isUpdatingScheduleProvider.notifier).state = false;
-      print('updateSchedule: Error $e, reset isUpdatingSchedule to false');
+      logDebug('updateSchedule: Error $e, reset isUpdatingSchedule to false');
       return 'Failed to update schedule: $e';
     } finally {
       ref.read(isUpdatingScheduleProvider.notifier).state = false;
-      print('updateSchedule: Finally, reset isUpdatingSchedule to false');
+      logDebug('updateSchedule: Finally, reset isUpdatingSchedule to false');
     }
   }
 

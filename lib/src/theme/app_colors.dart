@@ -27,4 +27,22 @@ class AppColors {
     colors: [AppColors.gradientEmeraldGreen, AppColors.gradientTurquoiseGreen],
   );
 
+
+ static  Color getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'accepted':
+        return AppColors.gradientGreen;
+      case 'rejected':
+        return Colors.red;
+      case 'cancelled':
+        return Colors.grey;
+      case 'completed':
+        return Colors.blue;
+      default:
+        return Colors.black87;
+    }
+  }
+
 }

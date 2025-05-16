@@ -6,7 +6,7 @@ import '../../utils/screen_utils.dart';
 
 class BackViewIconWidget extends StatelessWidget {
   final VoidCallback? onPressed;
-  const BackViewIconWidget({super.key,this.onPressed});
+  const BackViewIconWidget({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +20,18 @@ class BackViewIconWidget extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(6)),
         ),
         child: const Center(
-          child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: AppColors.black,
+          ),
         ),
       ),
-      onPressed:onPressed ?? () {
-        AppNavigation.pop(context);
-      },
+      onPressed:
+          onPressed ??
+          () {
+            AppNavigation.pop(context);
+          },
     );
   }
 }
-

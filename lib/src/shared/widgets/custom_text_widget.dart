@@ -15,6 +15,7 @@ class CustomTextWidget extends StatelessWidget {
   final int? maxLines;
   final TextAlign? textAlignment;
   final bool? softWrap;
+  final TextOverflow? overflow;
 
   const CustomTextWidget({
     super.key,
@@ -32,6 +33,7 @@ class CustomTextWidget extends StatelessWidget {
     this.maxLines,
     this.textAlignment,
     this.softWrap,
+    this.overflow,
   });
 
   @override

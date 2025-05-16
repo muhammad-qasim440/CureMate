@@ -1,21 +1,25 @@
-import 'package:curemate/src/features/doctor/bookings/views/doctor_booking_view.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/doctor/doctor_main_view.dart';
 import 'package:curemate/src/features/drawer/views/doctor_drawer_view.dart';
 import 'package:curemate/src/router/nav.dart';
+import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../../core/utils/debug_print.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
-import '../../../bookings/providers/booking_providers.dart';
-import '../../../bookings/models/appointment_model.dart';
+import '../../../appointments/models/appointment_model.dart';
+import '../../../appointments/providers/appointments_providers.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../../doctor/providers/doctor_providers.dart';
 import '../../../patient/providers/patient_providers.dart';
-import 'package:table_calendar/table_calendar.dart';
+import '../../appointments/views/doctor_appointment_details_view.dart';
+import 'all_today_appointments_view.dart';
+import 'all_recent_patients_view.dart';
 
 class DoctorHomeView extends ConsumerWidget {
   const DoctorHomeView({super.key});
@@ -342,7 +346,7 @@ class DoctorHomeView extends ConsumerWidget {
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: AppColors.gradientGreen,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.orange.withOpacity(0.3)),
             ),
@@ -351,8 +355,8 @@ class DoctorHomeView extends ConsumerWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
+                  decoration: const BoxDecoration(
+                    color: AppColors.black,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -389,7 +393,7 @@ class DoctorHomeView extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: FontSizes(context).size14,
                               fontFamily: AppFonts.rubik,
-                              color: Colors.orange.withOpacity(0.8),
+                              color: AppColors.black,
                             ),
                           ),
                         ],
@@ -418,22 +422,39 @@ class DoctorHomeView extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomTextWidget(
-          text: 'Today\'s Appointments',
-          textStyle: TextStyle(
-            fontSize: FontSizes(context).size18,
-            fontFamily: AppFonts.rubik,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            CustomTextWidget(
+              text: 'Today\'s Appointments',
+              textStyle: TextStyle(
+                fontSize: FontSizes(context).size18,
+                fontFamily: AppFonts.rubik,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            CustomButtonWidget(
+              text: 'See All',
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size12,
+              textColor: AppColors.textColor,
+              onPressed: () {
+                AppNavigation.push(const AllTodayAppointmentsView());
+              },
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         appointmentsAsync.when(
           data: (appointments) {
             final todayAppointments =
-                appointments.where((app) {
-                  return app.date ==
-                      DateFormat('yyyy-MM-dd').format(DateTime.now());
-                }).toList();
+                appointments
+                    .where((app) {
+                      return app.date ==
+                          DateFormat('yyyy-MM-dd').format(DateTime.now());
+                    })
+                    .take(4)
+                    .toList();
 
             if (todayAppointments.isEmpty) {
               return Center(
@@ -453,7 +474,7 @@ class DoctorHomeView extends ConsumerWidget {
 
             return Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.gradientWhite,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -464,13 +485,10 @@ class DoctorHomeView extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: todayAppointments.length,
-                itemBuilder: (context, index) {
-                  final appointment = todayAppointments[index];
-                  return Container(
+              child: Column(
+                children: [
+                  // Headers Row
+                  Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
                       border: Border(
@@ -482,75 +500,134 @@ class DoctorHomeView extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(
-                              appointment.status,
-                            ).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              appointment.timeSlot,
-                              style: TextStyle(
-                                color: _getStatusColor(appointment.status),
-                                fontSize: FontSizes(context).size14,
-                                fontFamily: AppFonts.rubik,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                        10.width,
+                        CustomTextWidget(
+                          text: 'Time',
+                          textStyle: TextStyle(
+                            fontSize: FontSizes(context).size12,
+                            fontFamily: AppFonts.rubik,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientGreen,
+
                           ),
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomTextWidget(
-                                text: appointment.patientName,
-                                textStyle: TextStyle(
-                                  fontSize: FontSizes(context).size16,
-                                  fontFamily: AppFonts.rubik,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(
-                                        appointment.status,
-                                      ).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: CustomTextWidget(
-                                      text: appointment.status.toUpperCase(),
-                                      textStyle: TextStyle(
-                                        fontSize: FontSizes(context).size12,
-                                        fontFamily: AppFonts.rubik,
-                                        color: _getStatusColor(
-                                          appointment.status,
-                                        ),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                        const SizedBox(width: 20),
+                        CustomTextWidget(
+                          text: 'Patient Name',
+                          textStyle: TextStyle(
+                            fontSize: FontSizes(context).size12,
+                            fontFamily: AppFonts.rubik,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientGreen,
+
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+
+                        CustomTextWidget(
+                          text: 'Status',
+                          textStyle: TextStyle(
+                            fontSize: FontSizes(context).size12,
+                            fontFamily: AppFonts.rubik,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientGreen,
+
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+
+                        CustomTextWidget(
+                          text: 'Booked By',
+                          textStyle: TextStyle(
+                            fontSize: FontSizes(context).size12,
+                            fontFamily: AppFonts.rubik,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientGreen,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                  // Appointments List
+                  ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: todayAppointments.length,
+                    itemBuilder: (context, index) {
+                      final appointment = todayAppointments[index];
+                      return GestureDetector(
+                        onTap: () async {
+                          final patientAsync = await ref.read(
+                            patientDataByUidProvider(appointment.patientUid).future,
+                          );
+                          if (patientAsync != null) {
+                            AppNavigation.push(
+                              DoctorAppointmentDetailsView(
+                                appointment: appointment,
+                                patient: patientAsync,
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Center(
+                                child: Text(
+                                  appointment.timeSlot,
+                                  style: TextStyle(
+                                    color: _getStatusColor(appointment.status),
+                                    fontSize: FontSizes(context).size11,
+                                    fontFamily: AppFonts.rubik,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              CustomTextWidget(
+                                text: appointment.patientName,
+                                textStyle: TextStyle(
+                                  fontSize: FontSizes(context).size11,
+                                  fontFamily: AppFonts.rubik,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              CustomTextWidget(
+                                text: appointment.status.toUpperCase(),
+                                textStyle: TextStyle(
+                                  fontSize: FontSizes(context).size11,
+                                  fontFamily: AppFonts.rubik,
+                                  color: _getStatusColor(appointment.status),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              CustomTextWidget(
+                                text: appointment.bookerName.toUpperCase(),
+                                textStyle: TextStyle(
+                                  fontSize: FontSizes(context).size11,
+                                  fontFamily: AppFonts.rubik,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             );
           },
@@ -569,15 +646,29 @@ class DoctorHomeView extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomTextWidget(
-          text: 'Recent Patients',
-          textStyle: TextStyle(
-            fontSize: FontSizes(context).size18,
-            fontFamily: AppFonts.rubik,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            CustomTextWidget(
+              text: 'Recent Patients',
+              textStyle: TextStyle(
+                fontSize: FontSizes(context).size18,
+                fontFamily: AppFonts.rubik,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            CustomButtonWidget(
+              text: 'See All',
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size12,
+              textColor: AppColors.textColor,
+              onPressed: () {
+                AppNavigation.push(const AllRecentPatientsView());
+              },
+            ),
+          ],
         ),
-        const SizedBox(height: 10),
+        10.height,
         appointmentsAsync.when(
           data: (appointments) {
             final recentAppointments =
@@ -604,77 +695,119 @@ class DoctorHomeView extends ConsumerWidget {
 
             return ListView.builder(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: recentAppointments.length,
               itemBuilder: (context, index) {
                 final appointment = recentAppointments[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundColor: AppColors.gradientGreen.withOpacity(
-                          0.1,
-                        ),
-                        child: Text(
-                          appointment.patientName[0],
-                          style: TextStyle(
-                            color: AppColors.gradientGreen,
-                            fontSize: FontSizes(context).size18,
-                            fontFamily: AppFonts.rubik,
-                            fontWeight: FontWeight.w500,
+                final patientAsync = ref.watch(
+                  patientDataByUidProvider(appointment.patientUid),
+                );
+
+                return patientAsync.when(
+                  data: (patient) {
+                    final displayPatient =
+                        patient ??
+                        Patient(
+                          uid: appointment.patientUid,
+                          fullName: 'Unknown Patient',
+                          email: '',
+                          city: '',
+                          dob: '',
+                          phoneNumber: '',
+                          profileImageUrl: '',
+                          profileImagePublicId: '',
+                          userType: 'Patient',
+                          latitude: 0.0,
+                          longitude: 0.0,
+                          createdAt: '',
+                          favorites: {},
+                          medicalRecords: {},
+                        );
+
+                    return GestureDetector(
+                      onTap: () {
+                        AppNavigation.push(
+                          DoctorAppointmentDetailsView(
+                            appointment: appointment,
+                            patient: displayPatient,
                           ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              appointment.patientName,
-                              style: TextStyle(
-                                fontSize: FontSizes(context).size16,
-                                fontFamily: AppFonts.rubik,
-                                fontWeight: FontWeight.w500,
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundColor: AppColors.gradientGreen
+                                  .withOpacity(0.1),
+                              child: Text(
+                                appointment.patientName[0],
+                                style: TextStyle(
+                                  color: AppColors.gradientGreen,
+                                  fontSize: FontSizes(context).size18,
+                                  fontFamily: AppFonts.rubik,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                            Text(
-                              'Last visit: ${appointment.date}',
-                              style: TextStyle(
-                                fontSize: FontSizes(context).size14,
-                                fontFamily: AppFonts.rubik,
-                                color: Colors.grey,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    appointment.patientName,
+                                    style: TextStyle(
+                                      fontSize: FontSizes(context).size16,
+                                      fontFamily: AppFonts.rubik,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Last visit: ${appointment.date}',
+                                    style: TextStyle(
+                                      fontSize: FontSizes(context).size14,
+                                      fontFamily: AppFonts.rubik,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.chat_bubble_outline),
+                              color: AppColors.gradientGreen,
+                              onPressed: () {
+                                ref
+                                    .read(doctorBottomNavIndexProvider.notifier)
+                                    .state = 2;
+                              },
                             ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        color: AppColors.gradientGreen,
-                        onPressed: () {
-                          ref
-                              .read(doctorBottomNavIndexProvider.notifier)
-                              .state = 2;
-                        },
-                      ),
-                    ],
-                  ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (error, stack) {
+                    logDebug('Error loading patient data: $error');
+                    return Center(child: Text('Error loading patient: $error'));
+                  },
                 );
               },
             );

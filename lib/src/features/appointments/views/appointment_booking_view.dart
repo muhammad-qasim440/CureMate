@@ -1,8 +1,6 @@
-// appointment_booking_view.dart
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/core/utils/debug_print.dart';
-import 'package:curemate/src/features/bookings/card/doctor_appointment_booking_view_card.dart';
-import 'package:curemate/src/features/bookings/views/select_time_view.dart';
+import 'package:curemate/src/features/appointments/views/select_time_view.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,12 +15,13 @@ import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
 import '../../patient/providers/patient_providers.dart';
+import '../card/doctor_appointment_booking_view_card.dart';
 import '../models/appointment_model.dart';
-import '../providers/booking_providers.dart';
+import '../providers/appointments_providers.dart';
 
 class AppointmentBookingView extends ConsumerStatefulWidget {
   final Doctor doctor;
-  final AppointmentModel? appointment; // Add this for editing
+  final AppointmentModel? appointment;
 
   const AppointmentBookingView({
     super.key,
@@ -186,7 +185,7 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                                 AppNavigation.push(
                                   SelectTimeView(
                                     doctor: widget.doctor,
-                                    appointment: widget.appointment, // Pass appointment for editing
+                                    appointment: widget.appointment,
                                   ),
                                 );
                               },

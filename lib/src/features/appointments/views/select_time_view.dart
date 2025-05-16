@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../const/app_strings.dart';
 import '../../../shared/widgets/custom_appbar_header_widget.dart';
 import '../../../theme/app_colors.dart';
-import '../../bookings/models/appointment_model.dart';
 import '../../patient/providers/patient_providers.dart';
+import '../models/appointment_model.dart';
 import '../widgets/select_time-view_time_slots_widget.dart';
 import '../widgets/select_time_view_calendar_widget.dart';
 import '../widgets/select_time_view_confirm_booking_button_widget.dart';
@@ -255,7 +255,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
     DateTime current = start;
     while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
       slots.add(DateFormat('hh:mm a').format(current));
-      current = current.add(const Duration(hours: 1));
+      current = current.add(const Duration(minutes: 5));
     }
 
     return slots;

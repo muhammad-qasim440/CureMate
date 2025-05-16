@@ -8,7 +8,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../../core/utils/flutter_cache_manager.dart';
 import '../../../features/patient/views/patient_main_view.dart';
-import '../../../utils/screen_utils.dart';
 import '../../widgets/back_view_icon_widget.dart';
 import '../providers/chatting_providers.dart';
 

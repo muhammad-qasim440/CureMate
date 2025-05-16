@@ -1,10 +1,10 @@
-import 'dart:ui';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
@@ -205,7 +205,7 @@ class DoctorAddSlotFormWidget extends ConsumerWidget {
                 if (error != null) {
                   CustomSnackBarWidget.show(context: context, text: error);
                 } else {
-                  print('Schedule configs after update: ${ref.read(scheduleConfigsProvider)}');
+                  logDebug('Schedule configs after update: ${ref.read(scheduleConfigsProvider)}');
                   ref.read(showInputUIProvider.notifier).state = false;
                   ref.read(editingDayProvider.notifier).state = null;
                   CustomSnackBarWidget.show(

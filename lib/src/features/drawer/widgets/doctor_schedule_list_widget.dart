@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../const/app_fonts.dart';
 import '../../../../const/font_sizes.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../providers/doctor_schedule_providers.dart';
@@ -31,7 +32,7 @@ class DoctorScheduleListWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheduleConfigs = ref.watch(scheduleConfigsProvider);
-    print('ScheduleList configs: $scheduleConfigs');
+    logDebug('ScheduleList configs: $scheduleConfigs');
 
     if (scheduleConfigs.isEmpty) {
       return Container(

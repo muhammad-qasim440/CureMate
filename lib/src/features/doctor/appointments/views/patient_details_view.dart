@@ -4,6 +4,7 @@ import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,8 @@ class PatientDetailsView extends ConsumerStatefulWidget {
   ConsumerState<PatientDetailsView> createState() => _PatientDetailsViewState();
 }
 
-class _PatientDetailsViewState extends ConsumerState<PatientDetailsView> with SingleTickerProviderStateMixin {
+class _PatientDetailsViewState extends ConsumerState<PatientDetailsView>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   Animation<double>? _fadeAnimation;
   Animation<Offset>? _slideAnimation;
@@ -37,7 +39,10 @@ class _PatientDetailsViewState extends ConsumerState<PatientDetailsView> with Si
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
     );
     _animationController!.forward();
@@ -52,118 +57,130 @@ class _PatientDetailsViewState extends ConsumerState<PatientDetailsView> with Si
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            leading: const BackViewIconWidget(),
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: AppColors.gradientGreen,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.gradientGreen,
-                      AppColors.gradientGreen.withOpacity(0.5),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
+      body: Stack(
+        children: [
+          const LowerBackgroundEffectsWidgets(),
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                leading: const BackViewIconWidget(),
+                expandedHeight: 220,
+                pinned: true,
+                backgroundColor: AppColors.gradientGreen,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.gradientGreen,
+                          AppColors.gradientGreen.withOpacity(0.5),
+                          Colors.white,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.white,
-                          child: CachedNetworkImage(
-                            imageUrl: widget.patient.profileImageUrl.isNotEmpty
-                                ? widget.patient.profileImageUrl
-                                : '',
-                            cacheManager: CustomCacheManager.instance,
-                            placeholder: (context, url) => const CircularProgressIndicator(
-                              color: AppColors.gradientGreen,
-                            ),
-                            errorWidget: (context, url, error) => Text(
-                              widget.patient.fullName.isNotEmpty ? widget.patient.fullName[0] : '?',
-                              style: TextStyle(
-                                fontSize: 40,
-                                fontFamily: AppFonts.rubik,
-                                color: Colors.grey.shade600,
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.white,
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    widget.patient.profileImageUrl.isNotEmpty
+                                        ? widget.patient.profileImageUrl
+                                        : '',
+                                cacheManager: CustomCacheManager.instance,
+                                placeholder:
+                                    (context, url) =>
+                                        const CircularProgressIndicator(
+                                          color: AppColors.gradientGreen,
+                                        ),
+                                errorWidget:
+                                    (context, url, error) => Text(
+                                      widget.patient.fullName.isNotEmpty
+                                          ? widget.patient.fullName[0]
+                                          : '?',
+                                      style: TextStyle(
+                                        fontSize: 40,
+                                        fontFamily: AppFonts.rubik,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                imageBuilder:
+                                    (context, imageProvider) => CircleAvatar(
+                                      radius: 50,
+                                      backgroundImage: imageProvider,
+                                    ),
                               ),
                             ),
-                            imageBuilder: (context, imageProvider) => CircleAvatar(
-                              radius: 50,
-                              backgroundImage: imageProvider,
-                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.patient.fullName,
-                        style: TextStyle(
-                          fontSize: FontSizes(context).size26,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: AppFonts.rubik,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.4),
-                              offset: const Offset(1, 1),
-                              blurRadius: 4,
+                          const SizedBox(height: 12),
+                          Text(
+                            widget.patient.fullName,
+                            style: TextStyle(
+                              fontSize: FontSizes(context).size26,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: AppFonts.rubik,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.4),
+                                  offset: const Offset(1, 1),
+                                  blurRadius: 4,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Patient',
+                            style: TextStyle(
+                              fontSize: FontSizes(context).size16,
+                              color: Colors.white.withOpacity(0.9),
+                              fontFamily: AppFonts.rubik,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Patient',
-                        style: TextStyle(
-                          fontSize: FontSizes(context).size16,
-                          color: Colors.white.withOpacity(0.9),
-                          fontFamily: AppFonts.rubik,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation!,
-              child: SlideTransition(
-                position: _slideAnimation!,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildContactActions(),
-                    _buildPatientInfo(),
-                    const SizedBox(height: 20),
-                  ],
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation!,
+                  child: SlideTransition(
+                    position: _slideAnimation!,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildContactActions(),
+                        _buildPatientInfo(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -191,7 +208,11 @@ class _PatientDetailsViewState extends ConsumerState<PatientDetailsView> with Si
         children: [
           Row(
             children: [
-              const Icon(Icons.person_outline, color: AppColors.gradientGreen, size: 24),
+              const Icon(
+                Icons.person_outline,
+                color: AppColors.gradientGreen,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Patient Information',
@@ -349,4 +370,4 @@ class _PatientDetailsViewState extends ConsumerState<PatientDetailsView> with Si
       ),
     );
   }
-} 
+}

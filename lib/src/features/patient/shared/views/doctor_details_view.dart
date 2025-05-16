@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
-import 'package:curemate/src/features/bookings/views/appointment_booking_view.dart';
 import 'package:curemate/src/shared/repository/doctor_repository.dart';
+import 'package:curemate/src/shared/widgets/back_view_icon_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:curemate/src/utils/app_utils.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
@@ -16,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/flutter_cache_manager.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/chat/views/chat_screen.dart';
+import '../../../appointments/views/appointment_booking_view.dart';
 import '../../providers/patient_providers.dart';
 import '../helpers/add_or_remove_doctor_into_favorite.dart';
 
@@ -27,7 +29,8 @@ class DoctorProfileView extends ConsumerStatefulWidget {
   ConsumerState<DoctorProfileView> createState() => _DoctorProfileViewState();
 }
 
-class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with SingleTickerProviderStateMixin {
+class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   Animation<double>? _fadeAnimation;
   Animation<Offset>? _slideAnimation;
@@ -42,7 +45,10 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
     );
     _animationController!.forward();
@@ -50,7 +56,10 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final doctorRepository = DoctorRepository();
       doctorRepository.incrementProfileView(widget.doctor.uid).catchError((e) {
-        CustomSnackBarWidget.show(context: context, text: 'Failed to update profile view: $e');
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Failed to update profile view: $e',
+        );
       });
     });
   }
@@ -63,11 +72,15 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
 
   void _openMapsWithDirections() async {
     final url = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=${widget.doctor.latitude},${widget.doctor.longitude}&travelmode=driving');
+      'https://www.google.com/maps/dir/?api=1&destination=${widget.doctor.latitude},${widget.doctor.longitude}&travelmode=driving',
+    );
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      CustomSnackBarWidget.show(context: context, text: 'Could not launch maps');
+      CustomSnackBarWidget.show(
+        context: context,
+        text: 'Could not launch maps',
+      );
     }
   }
 
@@ -81,21 +94,32 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
 
     for (var schedule in availability) {
       if (schedule['isFullDay'] == true) {
-        schedules.add('${schedule['day']}: ${schedule['startTime']} - ${schedule['endTime']}');
+        schedules.add(
+          '${schedule['day']}: ${schedule['startTime']} - ${schedule['endTime']}',
+        );
       } else {
         String daySchedule = '${schedule['day']}: ';
         List<String> timeSlots = [];
 
-        if (schedule['morning'] != null && schedule['morning']['isAvailable'] == true) {
-          timeSlots.add('${schedule['morning']['startTime']} - ${schedule['morning']['endTime']}');
+        if (schedule['morning'] != null &&
+            schedule['morning']['isAvailable'] == true) {
+          timeSlots.add(
+            '${schedule['morning']['startTime']} - ${schedule['morning']['endTime']}',
+          );
         }
 
-        if (schedule['afternoon'] != null && schedule['afternoon']['isAvailable'] == true) {
-          timeSlots.add('${schedule['afternoon']['startTime']} - ${schedule['afternoon']['endTime']}');
+        if (schedule['afternoon'] != null &&
+            schedule['afternoon']['isAvailable'] == true) {
+          timeSlots.add(
+            '${schedule['afternoon']['startTime']} - ${schedule['afternoon']['endTime']}',
+          );
         }
 
-        if (schedule['evening'] != null && schedule['evening']['isAvailable'] == true) {
-          timeSlots.add('${schedule['evening']['startTime']} - ${schedule['evening']['endTime']}');
+        if (schedule['evening'] != null &&
+            schedule['evening']['isAvailable'] == true) {
+          timeSlots.add(
+            '${schedule['evening']['startTime']} - ${schedule['evening']['endTime']}',
+          );
         }
 
         if (timeSlots.isNotEmpty) {
@@ -114,164 +138,178 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
     final isFavorite = favoriteDocids.contains(widget.doctor.uid);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: AppColors.gradientGreen,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.gradientGreen,
-                      AppColors.gradientGreen.withOpacity(0.5),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.white,
-                          child: CachedNetworkImage(
-                            imageUrl: widget.doctor.profileImageUrl.isNotEmpty == true
-                                ? widget.doctor.profileImageUrl
-                                : '',
-                            cacheManager: CustomCacheManager.instance,
-                            placeholder: (context, url) => const CircularProgressIndicator(
-                              color: AppColors.gradientGreen,
-                            ),
-                            errorWidget: (context, url, error) => Text(
-                              widget.doctor.fullName.isNotEmpty == true ? widget.doctor.fullName[0] : '?',
-                              style: TextStyle(
-                                fontSize: 40,
-                                fontFamily: AppFonts.rubik,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            imageBuilder: (context, imageProvider) => CircleAvatar(
-                              radius: 50,
-                              backgroundImage: imageProvider,
-                            ),
-                          ),
-                        ),
+      body: Stack(
+        children: [
+          const LowerBackgroundEffectsWidgets(),
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                backgroundColor: AppColors.gradientGreen,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.gradientGreen,
+                          AppColors.gradientGreen.withOpacity(0.5),
+                          Colors.white,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.doctor.fullName,
-                        style: TextStyle(
-                          fontSize: FontSizes(context).size26,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: AppFonts.rubik,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.4),
-                              offset: const Offset(1, 1),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Specialist ${widget.doctor.category}',
-                        style: TextStyle(
-                          fontSize: FontSizes(context).size16,
-                          color: Colors.white.withOpacity(0.9),
-                          fontFamily: AppFonts.rubik,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
+                    ),
+                    child: SafeArea(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ...List.generate(
-                            5,
-                                (index) => Icon(
-                              Icons.star,
-                              size: 18,
-                              color: index < ((widget.doctor.averageRatings) / 2).round()
-                                  ? Colors.amber
-                                  : Colors.black,
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.white,
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    widget.doctor.profileImageUrl.isNotEmpty ==
+                                            true
+                                        ? widget.doctor.profileImageUrl
+                                        : '',
+                                cacheManager: CustomCacheManager.instance,
+                                placeholder:
+                                    (context, url) =>
+                                        const CircularProgressIndicator(
+                                          color: AppColors.gradientGreen,
+                                        ),
+                                errorWidget:
+                                    (context, url, error) => Text(
+                                      widget.doctor.fullName.isNotEmpty == true
+                                          ? widget.doctor.fullName[0]
+                                          : '?',
+                                      style: TextStyle(
+                                        fontSize: 40,
+                                        fontFamily: AppFonts.rubik,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                imageBuilder:
+                                    (context, imageProvider) => CircleAvatar(
+                                      radius: 50,
+                                      backgroundImage: imageProvider,
+                                    ),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 12),
                           Text(
-                            'PKR ${widget.doctor.consultationFee}',
+                            widget.doctor.fullName,
                             style: TextStyle(
-                              color: Colors.white,
+                              fontSize: FontSizes(context).size26,
                               fontWeight: FontWeight.bold,
+                              fontFamily: AppFonts.rubik,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.4),
+                                  offset: const Offset(1, 1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Specialist ${widget.doctor.category}',
+                            style: TextStyle(
                               fontSize: FontSizes(context).size16,
+                              color: Colors.white.withOpacity(0.9),
                               fontFamily: AppFonts.rubik,
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ...List.generate(
+                                5,
+                                (index) => Icon(
+                                  Icons.star,
+                                  size: 18,
+                                  color:
+                                      index <
+                                              ((widget.doctor.averageRatings) /
+                                                      2)
+                                                  .round()
+                                          ? Colors.amber
+                                          : Colors.black,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'PKR ${widget.doctor.consultationFee}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: FontSizes(context).size16,
+                                  fontFamily: AppFonts.rubik,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  ),
+                ),
+                leading: const BackViewIconWidget(),
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.white,
+                    ),
+                    onPressed: () {
+                      AddORRemoveDoctorIntoFavorite.toggleFavorite(
+                        context,
+                        ref,
+                        widget.doctor.uid,
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation!,
+                  child: SlideTransition(
+                    position: _slideAnimation!,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildContactActions(),
+                        _buildStatistics(),
+                        _buildAvailabilitySection(),
+                        _buildMapSection(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.white,
-                ),
-                onPressed: () {
-                  AddORRemoveDoctorIntoFavorite.toggleFavorite(
-                    context,
-                    ref,
-                    widget.doctor.uid,
-                  );
-                },
-              ),
             ],
-          ),
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation!,
-              child: SlideTransition(
-                position: _slideAnimation!,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildContactActions(),
-                    _buildStatistics(),
-                    _buildAvailabilitySection(),
-                    _buildMapSection(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -324,9 +362,21 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem(widget.doctor.yearsOfExperience, 'Years Exp', Icons.work),
-          _buildStatItem('${widget.doctor.totalPatientConsulted}', 'Patients', Icons.people),
-          _buildStatItem('${widget.doctor.profileViews}', 'Views', Icons.visibility),
+          _buildStatItem(
+            widget.doctor.yearsOfExperience,
+            'Years Exp',
+            Icons.work,
+          ),
+          _buildStatItem(
+            '${widget.doctor.totalPatientConsulted}',
+            'Patients',
+            Icons.people,
+          ),
+          _buildStatItem(
+            '${widget.doctor.profileViews}',
+            'Views',
+            Icons.visibility,
+          ),
         ],
       ),
     );
@@ -384,7 +434,11 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
         children: [
           Row(
             children: [
-              const Icon(Icons.calendar_today, color: AppColors.gradientGreen, size: 24),
+              const Icon(
+                Icons.calendar_today,
+                color: AppColors.gradientGreen,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Availability',
@@ -468,7 +522,11 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(Icons.location_on, color: AppColors.gradientGreen, size: 24),
+                const Icon(
+                  Icons.location_on,
+                  color: AppColors.gradientGreen,
+                  size: 24,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Location',
@@ -502,7 +560,10 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                 children: [
                   FlutterMap(
                     options: MapOptions(
-                      initialCenter: LatLng(widget.doctor.latitude, widget.doctor.longitude),
+                      initialCenter: LatLng(
+                        widget.doctor.latitude,
+                        widget.doctor.longitude,
+                      ),
                       initialZoom: 10.0,
                       interactionOptions: const InteractionOptions(
                         flags: InteractiveFlag.none,
@@ -510,13 +571,17 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.app',
                       ),
                       MarkerLayer(
                         markers: [
                           Marker(
-                            point: LatLng(widget.doctor.latitude, widget.doctor.longitude),
+                            point: LatLng(
+                              widget.doctor.latitude,
+                              widget.doctor.longitude,
+                            ),
                             width: 40,
                             height: 40,
                             child: const Icon(
@@ -543,7 +608,10 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                     child: GestureDetector(
                       onTap: _openMapsWithDirections,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.gradientGreen,
                           borderRadius: BorderRadius.circular(20),
@@ -559,7 +627,11 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.directions, color: Colors.white, size: 20),
+                            const Icon(
+                              Icons.directions,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Get Directions',
@@ -586,13 +658,19 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
   }
 
   Widget _buildContactActions() {
-    final currentUser = ref.watch(currentSignInPatientDataProvider).when<Patient?>(
-      data: (data) => data,
-      error: (err, stack) => null,
-      loading: () => null,
+    final currentUser = ref
+        .watch(currentSignInPatientDataProvider)
+        .when<Patient?>(
+          data: (data) => data,
+          error: (err, stack) => null,
+          loading: () => null,
+        );
+    final isPhoneCallsAllowedByDoctor = ref.watch(
+      isPhoneCallsAllowedByUserProvider(widget.doctor.uid),
     );
-    final isPhoneCallsAllowedByDoctor = ref.watch(isPhoneCallsAllowedByUserProvider(widget.doctor.uid));
-    final isPhoneCallsAllowedByCurrentUser = ref.watch(isPhoneCallsAllowedByUserProvider(currentUser?.uid ?? ''));
+    final isPhoneCallsAllowedByCurrentUser = ref.watch(
+      isPhoneCallsAllowedByUserProvider(currentUser?.uid ?? ''),
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -614,7 +692,11 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
         children: [
           Row(
             children: [
-              const Icon(Icons.contact_phone, color: AppColors.gradientGreen, size: 24),
+              const Icon(
+                Icons.contact_phone,
+                color: AppColors.gradientGreen,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Contact Doctor',
@@ -653,7 +735,8 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                           } else if (!doctorAllowed && !userAllowed) {
                             CustomSnackBarWidget.show(
                               context: context,
-                              text: 'Both you and the doctor have disabled phone calls.',
+                              text:
+                                  'Both you and the doctor have disabled phone calls.',
                             );
                           } else if (!doctorAllowed) {
                             CustomSnackBarWidget.show(
@@ -663,28 +746,33 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView> with Sing
                           } else {
                             CustomSnackBarWidget.show(
                               context: context,
-                              text: 'You have disabled phone calls in your settings.',
+                              text:
+                                  'You have disabled phone calls in your settings.',
                             );
                           }
                         },
-                        loading: () => CustomSnackBarWidget.show(
+                        loading:
+                            () => CustomSnackBarWidget.show(
+                              context: context,
+                              text: 'Checking call permissions...',
+                            ),
+                        error:
+                            (e, _) => CustomSnackBarWidget.show(
+                              context: context,
+                              text: 'Error checking your call permissions.',
+                            ),
+                      );
+                    },
+                    loading:
+                        () => CustomSnackBarWidget.show(
                           context: context,
                           text: 'Checking call permissions...',
                         ),
-                        error: (e, _) => CustomSnackBarWidget.show(
+                    error:
+                        (e, _) => CustomSnackBarWidget.show(
                           context: context,
-                          text: 'Error checking your call permissions.',
+                          text: 'Error checking doctor call permissions.',
                         ),
-                      );
-                    },
-                    loading: () => CustomSnackBarWidget.show(
-                      context: context,
-                      text: 'Checking call permissions...',
-                    ),
-                    error: (e, _) => CustomSnackBarWidget.show(
-                      context: context,
-                      text: 'Error checking doctor call permissions.',
-                    ),
                   );
                 },
               ),

@@ -12,7 +12,6 @@ class DoctorRepository {
       _currentUser = user;
     });
 
-    // Initialize with the current user (in case user is already logged in)
     _currentUser = FirebaseAuth.instance.currentUser;
   }
 
@@ -26,7 +25,6 @@ class DoctorRepository {
 
     final snapshot = await viewedByRef.get();
     if (snapshot.exists) {
-      // Already viewed, don't increment again
       return;
     }
 

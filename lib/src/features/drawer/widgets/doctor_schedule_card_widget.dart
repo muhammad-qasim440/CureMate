@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../const/app_fonts.dart';
 import '../../../../const/font_sizes.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 
@@ -20,7 +21,7 @@ class DoctorScheduleCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('ScheduleCard config for ${config['day']}: $config');
+    logDebug('ScheduleCard config for ${config['day']}: $config');
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8),

@@ -1,5 +1,4 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/bookings/views/appointment_booking_view.dart';
 import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,7 @@ import '../../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../../theme/app_colors.dart';
 import '../../../../../utils/screen_utils.dart';
+import '../../../../appointments/views/appointment_booking_view.dart';
 import '../../../providers/patient_providers.dart';
 
 class DoctorSearchingViewDoctorCard extends ConsumerWidget {

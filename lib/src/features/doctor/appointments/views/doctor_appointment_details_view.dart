@@ -4,6 +4,8 @@ import 'package:curemate/core/extentions/date_time_format_extension.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
+import 'package:curemate/src/shared/widgets/custom_text_widget.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/theme/app_colors.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -13,7 +15,7 @@ import 'package:intl/intl.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/back_view_icon_widget.dart';
-import '../../../bookings/models/appointment_model.dart';
+import '../../../appointments/models/appointment_model.dart';
 import 'patient_details_view.dart';
 
 class DoctorAppointmentDetailsView extends ConsumerWidget {
@@ -52,7 +54,7 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading:const BackViewIconWidget() ,
+        leading: const BackViewIconWidget(),
         titleSpacing: 0,
         leadingWidth: 60,
         title: Text(
@@ -66,20 +68,26 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
         ),
         backgroundColor: AppColors.gradientGreen,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildPatientSection(context),
-            _buildAppointmentDetails(context),
-            if (appointment.patientNotes != null && appointment.patientNotes!.isNotEmpty)
-              _buildNotesSection(context),
-            if (appointment.status == 'pending')
-              _buildPendingActions(context, ref)
-            else if (appointment.status == 'accepted' && canComplete)
-              _buildCompleteAction(context, ref),
-          ],
-        ),
+      body: Stack(
+        children: [
+          const LowerBackgroundEffectsWidgets(),
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPatientSection(context),
+                _buildAppointmentDetails(context),
+                if (appointment.patientNotes != null &&
+                    appointment.patientNotes!.isNotEmpty)
+                  _buildNotesSection(context),
+                if (appointment.status == 'pending')
+                  _buildPendingActions(context, ref)
+                else if (appointment.status == 'accepted' && canComplete)
+                  _buildCompleteAction(context, ref),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -108,18 +116,20 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: patient.profileImageUrl.isNotEmpty
-                  ? NetworkImage(patient.profileImageUrl)
-                  : null,
-              child: patient.profileImageUrl.isEmpty
-                  ? Text(
-                      patient.fullName[0],
-                      style: TextStyle(
-                        fontSize: FontSizes(context).size24,
-                        fontFamily: AppFonts.rubik,
-                      ),
-                    )
-                  : null,
+              backgroundImage:
+                  patient.profileImageUrl.isNotEmpty
+                      ? NetworkImage(patient.profileImageUrl)
+                      : null,
+              child:
+                  patient.profileImageUrl.isEmpty
+                      ? Text(
+                        patient.fullName[0],
+                        style: TextStyle(
+                          fontSize: FontSizes(context).size24,
+                          fontFamily: AppFonts.rubik,
+                        ),
+                      )
+                      : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -172,9 +182,9 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Appointment Information',
-            style: TextStyle(
+          CustomTextWidget(
+            text: 'Appointment Information',
+            textStyle: TextStyle(
               fontSize: FontSizes(context).size18,
               fontWeight: FontWeight.w600,
               fontFamily: AppFonts.rubik,
@@ -184,10 +194,14 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
           _buildInfoRow(context, 'Date', appointment.date),
           _buildInfoRow(context, 'Time', appointment.timeSlot),
           _buildInfoRow(context, 'Status', appointment.status.toUpperCase()),
-          _buildInfoRow(context, 'Created At', appointment.createdAt.formattedDate),
+          _buildInfoRow(context, 'Created At', appointment.createdAt.formattedDate,),
+          if (appointment.updatedAt != null) ...[_buildInfoRow(context, 'Updated At', appointment.createdAt.formattedDate),
+          ],
           if (appointment.patientType != 'My Self') ...[
+            _buildInfoRow(context, 'Booked by', appointment.bookerName),
             _buildInfoRow(context, 'Patient Name', appointment.patientName),
-            _buildInfoRow(context, 'Relation', appointment.patientType),
+            _buildInfoRow(context, 'Patient PhoneNumber', appointment.patientNumber,),
+            _buildInfoRow(context, 'Relation with booker', appointment.patientType,),
           ],
         ],
       ),
@@ -259,7 +273,10 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
                 fontSize: FontSizes(context).size14,
                 fontWeight: FontWeight.w500,
                 fontFamily: AppFonts.rubik,
-                color: label == 'Status' ? _getStatusColor(value.toLowerCase()) : Colors.black87,
+                color:
+                    label == 'Status'
+                        ? AppColors.getStatusColor(value.toLowerCase())
+                        : Colors.black87,
               ),
             ),
           ),
@@ -282,7 +299,8 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
               fontSize: FontSizes(context).size16,
               fontWeight: FontWeight.w500,
               textColor: Colors.white,
-              onPressed: () => _updateAppointmentStatus(context, ref, 'accepted'),
+              onPressed:
+                  () => _updateAppointmentStatus(context, ref, 'accepted'),
             ),
           ),
           const SizedBox(width: 16),
@@ -296,7 +314,8 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
               fontWeight: FontWeight.w500,
               textColor: Colors.red,
               border: const BorderSide(color: Colors.red),
-              onPressed: () => _updateAppointmentStatus(context, ref, 'rejected'),
+              onPressed:
+                  () => _updateAppointmentStatus(context, ref, 'rejected'),
             ),
           ),
         ],
@@ -320,7 +339,11 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
     );
   }
 
-  Future<void> _updateAppointmentStatus(BuildContext context, WidgetRef ref, String status) async {
+  Future<void> _updateAppointmentStatus(
+    BuildContext context,
+    WidgetRef ref,
+    String status,
+  ) async {
     final isConnected = await ref.read(checkInternetConnectionProvider.future);
     if (!isConnected) {
       CustomSnackBarWidget.show(
@@ -341,6 +364,12 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
           context: context,
           text: 'Appointment ${status.toLowerCase()} successfully',
         );
+        if(status=='completed'){
+          final doctorRef = database.child('Doctors').child(appointment.doctorUid);
+          await doctorRef.update({
+            'totalPatientConsulted': ServerValue.increment(1),
+          });
+        }
         Navigator.pop(context);
       }
     } catch (e) {
@@ -352,21 +381,4 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
       }
     }
   }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'accepted':
-        return AppColors.gradientGreen;
-      case 'rejected':
-        return Colors.red;
-      case 'cancelled':
-        return Colors.grey;
-      case 'completed':
-        return Colors.blue;
-      default:
-        return Colors.black87;
-    }
-  }
-} 
+}

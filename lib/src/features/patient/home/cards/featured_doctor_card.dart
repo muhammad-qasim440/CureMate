@@ -95,7 +95,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
                 4.height,
                 CustomTextWidget(
                   text:
-                  '${doctor.consultationFee.toString()} RKR',
+                  '${doctor.consultationFee.toString()} PKR',
                   textStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: AppFonts.rubik,

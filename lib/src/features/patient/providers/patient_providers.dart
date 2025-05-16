@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../core/utils/debug_print.dart';
-import '../../bookings/providers/booking_providers.dart';
+import '../../appointments/providers/appointments_providers.dart';
 import '../home/widgets/near_by_doctors_searching_radius_provider_widget.dart';
 
 class Patient {

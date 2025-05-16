@@ -129,6 +129,11 @@ final bookingViewPatientNameProvider = StateProvider<String>((ref) => '');
 final bookingViewPatientNumberProvider = StateProvider<String>((ref) => '');
 final bookingViewPatientNoteProvider = StateProvider<String>((ref) => '');
 
+final appointmentsDateFilterProvider = StateProvider<String>((ref) => 'All');
+final appointmentsPatientFilterProvider = StateProvider<String>((ref) => 'All');
+final appointmentsGroupByPatientProvider = StateProvider<bool>((ref) => false);
+final appointmentsGroupByDoctorProvider = StateProvider<bool>((ref) => false);
+
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
   return BookingRepository();
 });
