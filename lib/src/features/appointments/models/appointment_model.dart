@@ -17,7 +17,11 @@ class AppointmentModel {
   final String patientName;
   final String patientNumber;
   final String patientType;
-  final String? reminderTime; // New field
+  final String? reminderTime;
+  final bool isRated;
+  final double? rating;
+  final String? review;
+  final String? ratedAt;
 
   AppointmentModel({
     required this.id,
@@ -39,6 +43,10 @@ class AppointmentModel {
     required this.patientNumber,
     required this.patientType,
     this.reminderTime,
+    this.isRated = false,
+    this.rating,
+    this.review,
+    this.ratedAt,
   });
 
   factory AppointmentModel.fromMap(Map<dynamic, dynamic> map, String id) {
@@ -62,6 +70,10 @@ class AppointmentModel {
       patientNumber: map['patientNumber'] ?? '',
       patientType: map['patientType'] ?? 'Myself',
       reminderTime: map['reminderTime'],
+      isRated: map['isRated'] ?? false,
+      rating: (map['rating'] as num?)?.toDouble(),
+      review: map['review'],
+      ratedAt: map['ratedAt'],
     );
   }
 
@@ -85,6 +97,10 @@ class AppointmentModel {
       'patientNumber': patientNumber,
       'patientType': patientType,
       'reminderTime': reminderTime,
+      'isRated': isRated,
+      'rating': rating,
+      'review': review,
+      'ratedAt': ratedAt,
     };
   }
 
@@ -108,6 +124,10 @@ class AppointmentModel {
     String? patientNumber,
     String? patientType,
     String? reminderTime,
+    bool? isRated,
+    double? rating,
+    String? review,
+    String? ratedAt,
   }) {
     return AppointmentModel(
       id: id ?? this.id,
@@ -129,6 +149,10 @@ class AppointmentModel {
       patientNumber: patientNumber ?? this.patientNumber,
       patientType: patientType ?? this.patientType,
       reminderTime: reminderTime ?? this.reminderTime,
+      isRated: isRated ?? this.isRated,
+      rating: rating ?? this.rating,
+      review: review ?? this.review,
+      ratedAt: ratedAt ?? this.ratedAt,
     );
   }
 }

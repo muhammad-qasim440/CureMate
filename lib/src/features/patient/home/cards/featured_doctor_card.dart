@@ -28,13 +28,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        // _showRatingDialog(context, ref);
-        CustomSnackBarWidget.show(
-          context: context,
-          text: 'Tapped on ${doctor.fullName}',
-        );
         AppNavigation.push(DoctorProfileView(doctor: doctor));
-
       },
       child: Stack(
         children: [
@@ -144,9 +138,9 @@ class FeaturedDoctorCard extends ConsumerWidget {
                 ),
                 4.width,
                 CustomTextWidget(
-                  text: (doctor.averageRatings / 5).toStringAsFixed(1),
+                  text: (doctor.averageRatings).toStringAsFixed(1),
                   textStyle: TextStyle(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     fontFamily: AppFonts.rubik,
                     fontSize: FontSizes(context).size12,
                     color: AppColors.subTextColor,

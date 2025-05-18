@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
+import '../../../../../assets/app_assets.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
@@ -371,7 +372,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                 final now = DateTime.now();
                                 final difference =
                                 now.difference(appointmentDateTime);
-                                canComplete = difference.inMinutes >= 30;
+                                canComplete = difference.inMinutes >= 1;
                               } catch (e) {
                                 logDebug('Error parsing date/time: $e');
                               }
@@ -465,7 +466,9 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                                     fit: BoxFit.cover,
                                                   )
                                                       : Image.asset(
-                                                      'assets/default_patient.png'),
+                                                    AppAssets.defaultPatientImg,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -535,7 +538,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         12.height,
                                         CustomTextWidget(
                                           text:
-                                          'Created At: ${appointment.createdAt.formattedDate}',
+                                          'Created At: ${appointment.createdAt.formattedDateTime}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,

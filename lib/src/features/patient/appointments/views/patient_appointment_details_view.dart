@@ -5,6 +5,7 @@ import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../assets/app_assets.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../router/nav.dart';
@@ -17,28 +18,160 @@ import '../../../../utils/screen_utils.dart';
 import '../../../appointments/models/appointment_model.dart';
 import '../../../appointments/providers/appointments_providers.dart';
 import '../../../appointments/views/appointment_booking_view.dart';
+import '../../../appointments/widgets/rate_doctor_dialog_widget.dart';
+import '../../../appointments/widgets/custom_star_rating_widget.dart';
 import '../../providers/patient_providers.dart';
 
-class PatientAppointmentDetailsView extends ConsumerWidget {
+class PatientAppointmentDetailsView extends ConsumerStatefulWidget {
   final AppointmentModel appointment;
 
   const PatientAppointmentDetailsView({super.key, required this.appointment});
+
+  @override
+  ConsumerState<PatientAppointmentDetailsView> createState() => _PatientAppointmentDetailsViewState();
+}
+
+class _PatientAppointmentDetailsViewState extends ConsumerState<PatientAppointmentDetailsView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowRatingDialog();
+    });
+  }
+
+  Future<void> _checkAndShowRatingDialog() async {
+    if (widget.appointment.status == 'completed' && !widget.appointment.isRated) {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => RateDoctorDialog(appointment: widget.appointment),
+      );
+
+      if (result == true) {
+        CustomSnackBarWidget.show(
+          context: context,
+          text: 'Thank you for rating your experience!',
+        );
+      }
+    }
+  }
 
   Future<void> _cancelNotification(String appointmentId) async {
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     await flutterLocalNotificationsPlugin.cancel(appointmentId.hashCode);
   }
 
+  Widget _buildRatingSection() {
+    if (widget.appointment.status != 'completed') {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomTextWidget(
+            text: 'Your Rating',
+            textStyle: TextStyle(
+              fontSize: FontSizes(context).size18,
+              fontWeight: FontWeight.w600,
+              fontFamily: AppFonts.rubik,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (!widget.appointment.isRated) ...[
+            CustomTextWidget(
+              text: 'You haven\'t rated this appointment yet',
+              textStyle: TextStyle(
+                fontFamily: AppFonts.rubik,
+                fontSize: FontSizes(context).size14,
+                color: AppColors.subTextColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            CustomButtonWidget(
+              onPressed: _checkAndShowRatingDialog,
+              text: 'Rate Now',
+              backgroundColor: AppColors.gradientGreen,
+            ),
+          ] else ...[
+            Row(
+              children: [
+                CustomTextWidget(
+                  text: 'Rating: ',
+                  textStyle: TextStyle(
+                    fontFamily: AppFonts.rubik,
+                    fontSize: FontSizes(context).size14,
+                    color: AppColors.subTextColor,
+                  ),
+                ),
+                CustomStarRating(
+                  rating: widget.appointment.rating ?? 0,
+                  size: 20,
+                  isInteractive: false,
+                ),
+                CustomTextWidget(
+                  text: ' (${widget.appointment.rating})',
+                  textStyle: TextStyle(
+                    fontFamily: AppFonts.rubik,
+                    fontSize: FontSizes(context).size14,
+                    color: AppColors.subTextColor,
+                  ),
+                ),
+              ],
+            ),
+            if (widget.appointment.review != null && widget.appointment.review!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              CustomTextWidget(
+                text: 'Your Review:',
+                textStyle: TextStyle(
+                  fontFamily: AppFonts.rubik,
+                  fontSize: FontSizes(context).size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.subTextColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              CustomTextWidget(
+                text: widget.appointment.review!,
+                textStyle: TextStyle(
+                  fontFamily: AppFonts.rubik,
+                  fontSize: FontSizes(context).size14,
+                  color: AppColors.subTextColor,
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final doctor = ref
         .watch(doctorsProvider)
         .value
         ?.firstWhere(
-          (doc) => doc.uid == appointment.doctorUid,
+          (doc) => doc.uid == widget.appointment.doctorUid,
           orElse:
               () => Doctor(
-                uid: appointment.doctorUid,
+                uid: widget.appointment.doctorUid,
                 fullName: 'Unknown Doctor',
                 email: '',
                 city: '',
@@ -55,7 +188,6 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                 category: '',
                 hospital: '',
                 averageRatings: 0.0,
-                numberOfReviews: 0,
                 totalReviews: 0,
                 totalPatientConsulted: 0,
                 consultationFee: 0,
@@ -65,8 +197,8 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
               ),
         );
 
-    final isPending = appointment.status == 'pending';
-    final isCancelled = appointment.status == 'cancelled';
+    final isPending = widget.appointment.status == 'pending';
+    final isCancelled = widget.appointment.status == 'cancelled';
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -142,7 +274,7 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                                               fit: BoxFit.cover,
                                             )
                                             : Image.asset(
-                                              'assets/default_doctor.png',
+                                          AppAssets.defaultDoctorImg,
                                               fit: BoxFit.cover,
                                             ),
                                   ),
@@ -180,17 +312,17 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.getStatusColor(
-                                          appointment.status,
+                                          widget.appointment.status,
                                         ).withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(
                                           20,
                                         ),
                                       ),
                                       child: Text(
-                                        appointment.status.capitalize(),
+                                        widget.appointment.status.capitalize(),
                                         style: TextStyle(
                                           color: AppColors.getStatusColor(
-                                            appointment.status,
+                                            widget.appointment.status,
                                           ),
                                           fontWeight: FontWeight.w500,
                                           fontSize: FontSizes(context).size14,
@@ -248,70 +380,70 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                                   _buildDetailItem(
                                     context,
                                     'Appointment ID',
-                                    appointment.id,
+                                    widget.appointment.id,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Patient Name',
-                                    appointment.patientName,
+                                    widget.appointment.patientName,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Patient Type',
-                                    appointment.patientType,
+                                    widget.appointment.patientType,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Patient Number',
-                                    appointment.patientNumber,
+                                    widget.appointment.patientNumber,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Booked By',
-                                    appointment.bookerName,
+                                    widget.appointment.bookerName,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Created At',
-                                    appointment.createdAt.formattedDate,
+                                    widget.appointment.createdAt.formattedDateTime,
                                   ),
-                                  if (appointment.updatedAt != null)
+                                  if (widget.appointment.updatedAt != null)
                                     _buildDetailItem(
                                       context,
                                       'Updated At',
-                                      appointment.updatedAt!.formattedDate,
+                                      widget.appointment.updatedAt!.formattedDateTime,
                                     ),
                                   _buildDetailItem(
                                     context,
                                     'Hospital',
-                                    appointment.hospital,
+                                    widget.appointment.hospital,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Consultation Fee',
-                                    '${appointment.consultationFee.toString()} PKR',
+                                    '${widget.appointment.consultationFee.toString()} PKR',
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Appointment Date',
-                                    appointment.date,
+                                    widget.appointment.date,
                                   ),
                                   _buildDetailItem(
                                     context,
                                     'Time Slot',
-                                    appointment.timeSlot,
+                                    widget.appointment.timeSlot,
                                   ),
-                                  if (appointment.patientNotes != null)
+                                  if (widget.appointment.patientNotes != null)
                                     _buildDetailItem(
                                       context,
                                       'Notes',
-                                      appointment.patientNotes!,
+                                      widget.appointment.patientNotes!,
                                     ),
-                                  if (appointment.reminderTime != null)
+                                  if (widget.appointment.reminderTime != null)
                                     _buildDetailItem(
                                       context,
                                       'Reminder',
-                                      '${appointment.reminderTime} before',
+                                      '${widget.appointment.reminderTime} before',
                                     ),
                                 ],
                               ),
@@ -339,19 +471,19 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                                       bookingViewSelectedPatientLabelProvider
                                           .notifier,
                                     )
-                                        .state = appointment.patientType;
+                                        .state = widget.appointment.patientType;
                                     ref
                                         .read(bookingViewPatientNameProvider.notifier)
-                                        .state = appointment.patientName;
+                                        .state = widget.appointment.patientName;
                                     ref
                                         .read(
                                       bookingViewPatientNumberProvider.notifier,
                                     )
-                                        .state = appointment.patientNumber;
+                                        .state = widget.appointment.patientNumber;
                                     AppNavigation.push(
                                       AppointmentBookingView(
                                         doctor: doctor,
-                                        appointment: appointment,
+                                        appointment: widget.appointment,
                                       ),
                                     );
                                   },
@@ -384,10 +516,10 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                                       await ref
                                           .read(bookingRepositoryProvider)
                                           .cancelBooking(
-                                        appointment.id,
+                                        widget.appointment.id,
                                         DateTime.now().toIso8601String(),
                                       );
-                                      await _cancelNotification(appointment.id);
+                                      await _cancelNotification(widget.appointment.id);
                   
                                       CustomSnackBarWidget.show(
                                         context: context,
@@ -407,11 +539,12 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
                           ),
                         ),
                       const SizedBox(height: 24),
+                      if (widget.appointment.status == 'completed')
+                        _buildRatingSection(),
                     ],
                   ),
                 ),
               )
-
             ],
           ),
         ],
@@ -453,5 +586,4 @@ class PatientAppointmentDetailsView extends ConsumerWidget {
       ),
     );
   }
-
 }

@@ -1,3 +1,4 @@
+import 'package:curemate/assets/app_assets.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/shared/helpers/add_or_remove_doctor_into_favorite.dart';
 import 'package:curemate/src/router/nav.dart';
@@ -57,7 +58,7 @@ class DoctorSearchingViewDoctorCard extends ConsumerWidget {
                               fit: BoxFit.cover,
                             )
                             : Image.asset(
-                              'assets/default_doctor.png',
+                             AppAssets.defaultDoctorImg,
                               fit: BoxFit.cover,
                             ),
                   ),

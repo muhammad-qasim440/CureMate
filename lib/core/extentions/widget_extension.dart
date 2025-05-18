@@ -17,7 +17,7 @@ extension SliverExtension on Widget {
 
 extension DateFormatExtension on String {
   /// Returns formatted date like: 30 Apr 2025, 01:45 PM
-  String get formattedDate {
+  String get formattedDateTime {
     try {
       final dateTime = DateTime.parse(this);
       return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);

@@ -15,7 +15,7 @@ class DoctorChatHeaderWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
 
     return Container(
-      height: ScreenUtil.scaleHeight(context, 120),
+      height: ScreenUtil.scaleHeight(context, 122),
       width: ScreenUtil.scaleWidth(context, 375),
       padding: EdgeInsets.zero,
       decoration: const BoxDecoration(

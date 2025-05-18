@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../../assets/app_assets.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../router/nav.dart';
@@ -380,7 +381,6 @@ class PatientAppointmentsView extends ConsumerWidget {
                                 category: '',
                                 hospital: '',
                                 averageRatings: 0.0,
-                                numberOfReviews: 0,
                                 totalReviews: 0,
                                 totalPatientConsulted: 0,
                                 consultationFee: 0,
@@ -450,7 +450,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                                 fit: BoxFit.cover,
                                               )
                                                   : Image.asset(
-                                                'assets/default_doctor.png',
+                                                AppAssets.defaultDoctorImg,
                                                 fit: BoxFit.cover,
                                               ),
                                             ),
@@ -509,7 +509,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                     ),
                                     4.height,
                                     CustomTextWidget(
-                                      text: 'Created At: ${appointment.createdAt.formattedDate}',
+                                      text: 'Created At: ${appointment.createdAt.formattedDateTime}',
                                       textStyle: TextStyle(
                                         fontFamily: AppFonts.rubik,
                                         fontSize: FontSizes(context).size14,
@@ -520,7 +520,7 @@ class PatientAppointmentsView extends ConsumerWidget {
                                     if(appointment.updatedAt!=null)...[
                                       4.height,
                                       CustomTextWidget(
-                                        text: 'Updated At: ${appointment.updatedAt!.formattedDate}',
+                                        text: 'Updated At: ${appointment.updatedAt!.formattedDateTime}',
                                         textStyle: TextStyle(
                                           fontFamily: AppFonts.rubik,
                                           fontSize: FontSizes(context).size14,

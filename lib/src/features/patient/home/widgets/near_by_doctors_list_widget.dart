@@ -56,7 +56,7 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
               ),
             ],
           ),
-          16.height,
+          10.height,
           SizedBox(
             height: ScreenUtil.scaleHeight(context, 225),
             child: doctorsAsync.when(

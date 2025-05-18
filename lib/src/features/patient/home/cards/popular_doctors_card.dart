@@ -20,10 +20,6 @@ class PopularDoctorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: 'Tapped on ${doctor.fullName}',
-        );
         AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(
@@ -94,7 +90,7 @@ class PopularDoctorCard extends StatelessWidget {
                   Icons.star,
                   size: 16,
                   color:
-                      index < (doctor.averageRatings / 5).round()
+                      index < (doctor.averageRatings).round()
                           ? Colors.amber
                           : Colors.grey,
                 ),

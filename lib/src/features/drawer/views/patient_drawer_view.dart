@@ -16,6 +16,7 @@ import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../authentication/signin/providers/auth_provider.dart';
 import '../../authentication/signin/views/signin_view.dart';
+import '../widgets/patient_drawer_ratings_views_widget.dart';
 import '../widgets/drawer_feedback_widget.dart';
 import '../widgets/patient_drawer_medical_records.dart';
 import '../widgets/patient_drawer_my_doctors_view.dart';
@@ -114,7 +115,7 @@ class PatientDrawerView extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      100.height,
+                      50.height,
                       Expanded(
                         child: SizedBox(
                           width: ScreenUtil.scaleWidth(context, 230),
@@ -147,6 +148,16 @@ class PatientDrawerView extends ConsumerWidget {
                                 () {
                                   AppNavigation.push(
                                     const PatientDrawerMedicalRecordsView(),
+                                  );
+                                },
+                              ),
+                              _buildMenuTile(
+                                context,
+                                Icons.star_rate,
+                                'Ratings Submitted',
+                                () {
+                                  AppNavigation.push(
+                                    const PatientDrawerRatingsViewsWidget(),
                                   );
                                 },
                               ),

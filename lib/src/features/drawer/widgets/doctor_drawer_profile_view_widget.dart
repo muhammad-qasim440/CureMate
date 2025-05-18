@@ -190,7 +190,7 @@ class _DoctorDrawerProfileViewWidgetState
                   // Top Green Header
                   Container(
                     width: ScreenUtil.scaleWidth(context, 375),
-                    height: ScreenUtil.scaleHeight(context, 357),
+                    height: ScreenUtil.scaleHeight(context, 366),
                     decoration: const BoxDecoration(
                       color: AppColors.gradientGreen,
                       borderRadius: BorderRadius.only(
@@ -302,7 +302,7 @@ class _DoctorDrawerProfileViewWidgetState
                     ),
                   ),
 
-                  // Personal Info Section
+                  /// Personal Info Section
                   25.height,
                   Padding(
                     padding: EdgeInsets.symmetric(

@@ -81,7 +81,7 @@ class DoctorHomeView extends ConsumerWidget {
     AsyncValue<Doctor?> doctorAsync,
   ) {
     return Container(
-      height: ScreenUtil.scaleHeight(context, 200),
+      height: ScreenUtil.scaleHeight(context, 210),
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(

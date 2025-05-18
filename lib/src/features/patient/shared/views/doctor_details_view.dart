@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/flutter_cache_manager.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/chat/views/chat_screen.dart';
+import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../appointments/views/appointment_booking_view.dart';
 import '../../providers/patient_providers.dart';
 import '../helpers/add_or_remove_doctor_into_favorite.dart';
@@ -146,132 +147,11 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
               SliverAppBar(
                 expandedHeight: 220,
                 pinned: true,
-                backgroundColor: AppColors.gradientGreen,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.gradientGreen,
-                          AppColors.gradientGreen.withOpacity(0.5),
-                          Colors.white,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                    child: SafeArea(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  spreadRadius: 2,
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                              child: CachedNetworkImage(
-                                imageUrl:
-                                    widget.doctor.profileImageUrl.isNotEmpty ==
-                                            true
-                                        ? widget.doctor.profileImageUrl
-                                        : '',
-                                cacheManager: CustomCacheManager.instance,
-                                placeholder:
-                                    (context, url) =>
-                                        const CircularProgressIndicator(
-                                          color: AppColors.gradientGreen,
-                                        ),
-                                errorWidget:
-                                    (context, url, error) => Text(
-                                      widget.doctor.fullName.isNotEmpty == true
-                                          ? widget.doctor.fullName[0]
-                                          : '?',
-                                      style: TextStyle(
-                                        fontSize: 40,
-                                        fontFamily: AppFonts.rubik,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                imageBuilder:
-                                    (context, imageProvider) => CircleAvatar(
-                                      radius: 50,
-                                      backgroundImage: imageProvider,
-                                    ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.doctor.fullName,
-                            style: TextStyle(
-                              fontSize: FontSizes(context).size26,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: AppFonts.rubik,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withOpacity(0.4),
-                                  offset: const Offset(1, 1),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Specialist ${widget.doctor.category}',
-                            style: TextStyle(
-                              fontSize: FontSizes(context).size16,
-                              color: Colors.white.withOpacity(0.9),
-                              fontFamily: AppFonts.rubik,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ...List.generate(
-                                5,
-                                (index) => Icon(
-                                  Icons.star,
-                                  size: 18,
-                                  color:
-                                      index <
-                                              ((widget.doctor.averageRatings) /
-                                                      2)
-                                                  .round()
-                                          ? Colors.amber
-                                          : Colors.black,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'PKR ${widget.doctor.consultationFee}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: FontSizes(context).size16,
-                                  fontFamily: AppFonts.rubik,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                backgroundColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
                   ),
                 ),
                 leading: const BackViewIconWidget(),
@@ -290,6 +170,218 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
                     },
                   ),
                 ],
+                flexibleSpace: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final top = constraints.biggest.height;
+                    const expandedHeight = 220.0;
+                    final collapsedHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
+                    final expandRatio = (top - collapsedHeight) / (expandedHeight - collapsedHeight);
+                    final isCollapsed = expandRatio <= 0.01;
+                    final opacity = expandRatio.clamp(0.0, 1.0);
+
+                    return Stack(
+                      fit: StackFit.expand,
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Background container with rounded corners that's always visible
+                        Container(
+                          decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
+                            ),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.gradientGreen,
+                                AppColors.gradientGreen,
+                                AppColors.gradientGreen,
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+
+                        // Expanded content
+                        Opacity(
+                          opacity: opacity,
+                          child: FlexibleSpaceBar(
+                            background: SafeArea(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 3),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          spreadRadius: 2,
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: Colors.white,
+                                      child: CachedNetworkImage(
+                                        imageUrl: widget.doctor.profileImageUrl.isNotEmpty == true
+                                            ? widget.doctor.profileImageUrl
+                                            : '',
+                                        cacheManager: CustomCacheManager.instance,
+                                        placeholder: (context, url) =>
+                                        const CircularProgressIndicator(
+                                          color: AppColors.gradientGreen,
+                                        ),
+                                        errorWidget: (context, url, error) => Text(
+                                          widget.doctor.fullName.isNotEmpty == true
+                                              ? widget.doctor.fullName[0]
+                                              : '?',
+                                          style: TextStyle(
+                                            fontSize: 40,
+                                            fontFamily: AppFonts.rubik,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        imageBuilder: (context, imageProvider) =>
+                                            CircleAvatar(
+                                              radius: 50,
+                                              backgroundImage: imageProvider,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    widget.doctor.fullName,
+                                    style: TextStyle(
+                                      fontSize: FontSizes(context).size26,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: AppFonts.rubik,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withOpacity(0.4),
+                                          offset: const Offset(1, 1),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.doctor.category,
+                                    style: TextStyle(
+                                      fontSize: FontSizes(context).size16,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontFamily: AppFonts.rubik,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      ...List.generate(
+                                        5,
+                                            (index) => Icon(
+                                          Icons.star,
+                                          size: 18,
+                                          color: index < ((widget.doctor.averageRatings)).round()
+                                              ? Colors.amber
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'PKR ${widget.doctor.consultationFee}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: FontSizes(context).size16,
+                                          fontFamily: AppFonts.rubik,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Collapsed header
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Opacity(
+                            opacity: isCollapsed ? 1.0 : 0.0,
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).padding.top,
+                              ),
+                              height: kToolbarHeight + MediaQuery.of(context).padding.top,
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 56),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 8),
+                                    child: CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: Colors.white,
+                                      child: CachedNetworkImage(
+                                        imageUrl: widget.doctor.profileImageUrl.isNotEmpty == true
+                                            ? widget.doctor.profileImageUrl
+                                            : '',
+                                        cacheManager: CustomCacheManager.instance,
+                                        placeholder: (context, url) =>
+                                        const CircularProgressIndicator(
+                                          color: AppColors.gradientGreen,
+                                        ),
+                                        errorWidget: (context, url, error) => Text(
+                                          widget.doctor.fullName.isNotEmpty == true
+                                              ? widget.doctor.fullName[0]
+                                              : '?',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontFamily: AppFonts.rubik,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        imageBuilder: (context, imageProvider) =>
+                                            CircleAvatar(
+                                              radius: 16,
+                                              backgroundImage: imageProvider,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      widget.doctor.fullName,
+                                      style: TextStyle(
+                                        fontSize: FontSizes(context).size16,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: AppFonts.rubik,
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
               SliverToBoxAdapter(
                 child: FadeTransition(
@@ -311,34 +403,26 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
               ),
             ],
           ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, -2),
+          Positioned(
+            bottom: ScreenUtil.scaleHeight(context, 100),
+            left: ScreenUtil.scaleWidth(context, 250),
+            child: FloatingActionButton.extended(
+              backgroundColor: AppColors.gradientGreen,
+              onPressed: () {
+                AppNavigation.push(AppointmentBookingView(doctor: widget.doctor));
+              },
+              label: CustomTextWidget(
+                text: 'Book Now',
+                textStyle: TextStyle(
+                  fontSize: FontSizes(context).size14,
+                  fontFamily: AppFonts.rubik,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.gradientWhite,
+                ),
+              ),
             ),
-          ],
-        ),
-        child: CustomButtonWidget(
-          text: 'Book Now',
-          backgroundColor: AppColors.gradientGreen,
-          width: double.infinity,
-          height: ScreenUtil.scaleHeight(context, 54),
-          fontFamily: AppFonts.rubik,
-          fontWeight: FontWeight.w600,
-          fontSize: FontSizes(context).size16,
-          textColor: Colors.white,
-          onPressed: () {
-            AppNavigation.push(AppointmentBookingView(doctor: widget.doctor));
-          },
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -573,7 +657,7 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
                       TileLayer(
                         urlTemplate:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.app',
+                        userAgentPackageName: 'com.example.curemate',
                       ),
                       MarkerLayer(
                         markers: [
@@ -591,14 +675,6 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
                             ),
                           ),
                         ],
-                      ),
-                      const Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: Text(
-                          '© OpenStreetMap contributors',
-                          style: TextStyle(fontSize: 10, color: Colors.black54),
-                        ),
                       ),
                     ],
                   ),

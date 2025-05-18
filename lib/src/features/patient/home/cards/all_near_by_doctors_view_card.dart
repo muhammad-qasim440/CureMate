@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../const/app_fonts.dart';
 import '../../../../../../const/font_sizes.dart';
+import '../../../../../assets/app_assets.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../router/nav.dart';
@@ -51,10 +52,7 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: 'Tapped on ${doctor.fullName}',
-        );
+
         AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(
@@ -88,7 +86,7 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                         fit: BoxFit.cover,
                       )
                           : Image.asset(
-                        'assets/default_doctor.png',
+                        AppAssets.defaultDoctorImg,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -202,7 +200,7 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                                     (index) => Icon(
                                   Icons.star,
                                   size: 18,
-                                  color: index < ((doctor.averageRatings) / 5).round()
+                                  color: index < ((doctor.averageRatings)).round()
                                       ? Colors.amber
                                       : Colors.grey,
                                 ),

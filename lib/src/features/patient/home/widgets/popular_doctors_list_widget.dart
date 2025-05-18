@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../../core/utils/debug_print.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
@@ -18,7 +19,7 @@ class PopularDoctorsListWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doctorsAsync = ref.watch(doctorsProvider);
+    final doctorsAsync = ref.watch(popularDoctorsProvider);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -29,7 +30,7 @@ class PopularDoctorsListWidget extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomTextWidget(
-                text: 'Popular Doctors',
+                text: 'Top Rated Doctors',
                 textStyle: TextStyle(
                   fontWeight: FontWeight.w500,
                   fontFamily: AppFonts.rubik,
@@ -51,29 +52,23 @@ class PopularDoctorsListWidget extends ConsumerWidget {
               ),
             ],
           ),
-          16.height,
+          10.height,
           SizedBox(
             height: ScreenUtil.scaleHeight(context, 220),
             child: doctorsAsync.when(
               data: (doctors) {
-                final sortedDoctors =
-                doctors
-                    .where((doctor) => doctor.averageRatings > 3)
-                    .toList()
-                  ..sort(
-                        (a, b) => b.averageRatings.compareTo(a.averageRatings),
-                  );
-                return sortedDoctors.isEmpty
+
+                return doctors.isEmpty
                     ? const Center(child: Text('No popular doctors available'))
                     : ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount:
-                  sortedDoctors.length > 4
+                  doctors.length > 4
                       ? 4
-                      : sortedDoctors
+                      : doctors
                       .length,
                   itemBuilder: (context, index) {
-                    return PopularDoctorCard(doctor: sortedDoctors[index]);
+                    return PopularDoctorCard(doctor: doctors[index]);
                   },
                 );
               },

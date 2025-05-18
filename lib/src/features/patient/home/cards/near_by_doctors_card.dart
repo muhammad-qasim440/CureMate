@@ -20,10 +20,6 @@ class NearByDoctorsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        CustomSnackBarWidget.show(
-          context: context,
-          text: 'Tapped on ${doctor.fullName}',
-        );
         AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(

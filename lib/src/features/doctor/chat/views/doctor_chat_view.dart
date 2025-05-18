@@ -12,6 +12,7 @@ import '../../../../shared/chat/widgets/chat_list_item_widget.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../../theme/app_colors.dart';
+import '../../../../utils/screen_utils.dart';
 
 class DoctorChatView extends ConsumerStatefulWidget {
   const DoctorChatView({super.key});
@@ -113,10 +114,10 @@ class _DoctorChatViewState extends ConsumerState<DoctorChatView> {
                 Transform.translate(
                   offset: const Offset(0, -35),
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 25,
+                    padding:  EdgeInsets.only(
+                      left:ScreenUtil.scaleWidth(context, 16),
+                      right:ScreenUtil.scaleWidth(context, 16),
+                      top: ScreenUtil.scaleHeight(context, 25),
                     ),
                     child: SearchBarWidget(
                       provider: chatListSearchQueryProviderProvider,

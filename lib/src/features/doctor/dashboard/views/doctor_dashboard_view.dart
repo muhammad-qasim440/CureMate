@@ -12,6 +12,7 @@ import '../../../appointments/models/appointment_model.dart';
 import '../../../appointments/providers/appointments_providers.dart';
 import '../../../doctor/providers/doctor_providers.dart';
 import '../../../patient/providers/patient_providers.dart';
+import '../widgets/doctor_reviews_widget.dart';
 
 class DoctorDashboardView extends ConsumerWidget {
   const DoctorDashboardView({super.key});
@@ -51,6 +52,9 @@ class DoctorDashboardView extends ConsumerWidget {
                           _buildStatsChart(context),
                           const SizedBox(height: 20),
                           _buildAppointmentChart(context, appointmentsAsync),
+                          const SizedBox(height: 20),
+                          const DoctorReviewsWidget(),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),

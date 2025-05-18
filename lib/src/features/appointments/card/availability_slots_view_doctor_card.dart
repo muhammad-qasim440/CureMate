@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../const/app_fonts.dart';
 import '../../../../../../const/font_sizes.dart';
+import '../../../../assets/app_assets.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -58,7 +59,7 @@ class _AvailabilitySlotsViewDoctorCardState extends ConsumerState<AvailabilitySl
                       fit: BoxFit.cover,
                     )
                         : Image.asset(
-                      'assets/default_doctor.png',
+                      AppAssets.defaultDoctorImg,
                       fit: BoxFit.cover,
                     ),
                   ),

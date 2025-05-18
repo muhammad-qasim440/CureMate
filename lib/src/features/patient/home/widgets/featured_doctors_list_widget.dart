@@ -19,7 +19,7 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doctorsAsync = ref.watch(doctorsProvider);
+    final doctorsAsync = ref.watch(featuredDoctorsProvider);
     final favoriteUidsAsync = ref.watch(favoriteDoctorUidsProvider);
 
     return Padding(
@@ -53,7 +53,7 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
               ),
             ],
           ),
-          16.height,
+          10.height,
           SizedBox(
             height: ScreenUtil.scaleHeight(context, 180),
             child: doctorsAsync.when(
@@ -61,7 +61,7 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
                   (doctors) => favoriteUidsAsync.when(
                     data: (favoriteUids) {
                       final shuffledDoctors =
-                          doctors.toList()..shuffle(); // Shuffle all doctors
+                          doctors.toList()..shuffle();
                       return shuffledDoctors.isEmpty
                           ? const Center(child: Text('No doctors available'))
                           : ListView.builder(
@@ -70,7 +70,7 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
                                 shuffledDoctors.length > 6
                                     ? 6
                                     : shuffledDoctors
-                                        .length, // Limit to 3 as per screenshot
+                                        .length,
                             itemBuilder: (context, index) {
                               final doctor = shuffledDoctors[index];
                               final isFavorite = favoriteUids.contains(

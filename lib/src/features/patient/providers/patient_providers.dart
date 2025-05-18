@@ -113,7 +113,6 @@ class Doctor {
   final String category;
   final String hospital;
   final double averageRatings;
-  final int numberOfReviews;
   final int totalReviews;
   final int totalPatientConsulted;
   final int consultationFee;
@@ -140,7 +139,6 @@ class Doctor {
     required this.category,
     required this.hospital,
     required this.averageRatings,
-    required this.numberOfReviews,
     required this.totalReviews,
     required this.totalPatientConsulted,
     required this.consultationFee,
@@ -167,7 +165,6 @@ class Doctor {
       category: map['category'] ?? '',
       hospital: map['hospital'] ?? '',
       averageRatings: (map['averageRatings'] as num?)?.toDouble() ?? 0.0,
-      numberOfReviews: map['numberOfReviews'] ?? 0,
       totalReviews: map['totalReviews'] ?? 0,
       totalPatientConsulted: map['totalPatientConsulted'] ?? 0,
       consultationFee: map['consultationFee'] ?? 0,
@@ -237,6 +234,7 @@ final currentSignInPatientDataProvider = StreamProvider<Patient?>((ref) async* {
 final nearByDoctorsProvider = FutureProvider<List<Doctor>>((ref) async {
   final patientAsync = ref.watch(currentSignInPatientDataProvider);
   final searchingRadius = ref.watch(radiusProvider);
+  logDebug('radius: $searchingRadius');
   var doctors = ref.watch(doctorsProvider).value ?? [];
 
   if (patientAsync.value == null) {
@@ -348,22 +346,31 @@ final patientDoctorsWithBookingsProvider = StreamProvider<List<Doctor>>((ref) as
 });
 final popularDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
   final authService = ref.read(authProvider);
+
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
       yield [];
       continue;
     }
+
     final doctorsAsyncValue = ref.watch(doctorsProvider);
     if (doctorsAsyncValue.hasValue) {
       final doctors = doctorsAsyncValue.value ?? [];
-      /// popular doctors: based on average ratings and profile views
-      final popularDoctors = List<Doctor>.from(doctors)
+
+      /// Popular doctors: Based on ratings, reviews, and consultations
+      final popularDoctors = doctors.where((doctor) =>
+      doctor.averageRatings >= 4.0 &&
+          doctor.totalReviews >= 1 &&
+          doctor.totalPatientConsulted >=5
+      ).toList()
         ..sort((a, b) {
-          final ratingComparison = b.averageRatings.compareTo(a.averageRatings);
-          if (ratingComparison != 0) {
-            return ratingComparison;
-          }
-          return (b.profileViews).compareTo(a.profileViews);
+          final ratingCompare = b.averageRatings.compareTo(a.averageRatings);
+          if (ratingCompare != 0) return ratingCompare;
+
+          final reviewCompare = b.totalReviews.compareTo(a.totalReviews);
+          if (reviewCompare != 0) return reviewCompare;
+
+          return b.totalPatientConsulted.compareTo(a.totalPatientConsulted);
         });
 
       yield popularDoctors;
@@ -382,6 +389,7 @@ final popularDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
 });
 final featuredDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
   final authService = ref.read(authProvider);
+
   await for (final user in FirebaseAuth.instance.authStateChanges()) {
     if (user == null) {
       yield [];
@@ -393,30 +401,28 @@ final featuredDoctorsProvider = StreamProvider<List<Doctor>>((ref) async* {
     if (doctorsAsyncValue.hasValue) {
       final doctors = doctorsAsyncValue.value ?? [];
 
-      /// Apply logic for featured doctors
-      // Criteria:
-      // 1. Experience over 3 years
-      // 2. Average Rating above 4.0
-      // 3. Has at least 10 patients consulted
+      ///  Criteria for Featured Doctors:
+      // 1. Experience ≥ 3 years
+      // 2. Rating ≥ 4.0
+      // 3. Patients consulted ≥ 10
       final featuredDoctors = List<Doctor>.from(doctors.where((doctor) {
-        return int.parse(doctor.yearsOfExperience) >= 3  &&
-            doctor.averageRatings >= 4.0;
-            // &&
-            // (doctor.totalPatientConsulted) >= 10;
+        final experience = int.tryParse(doctor.yearsOfExperience) ?? 0;
+        final consulted = int.tryParse(doctor.totalPatientConsulted.toString()) ?? 0;
+
+        return experience >= 3 &&
+            doctor.averageRatings >= 4.0 &&
+            consulted >= 5;
       }))
         ..sort((a, b) {
-          final patientsComparison = (b.totalPatientConsulted).compareTo(a.totalPatientConsulted);
-          if (patientsComparison != 0) {
-            return patientsComparison;
-          }
-          return b.yearsOfExperience.compareTo(a.yearsOfExperience);
+          final patientsComparison = b.totalPatientConsulted.compareTo(a.totalPatientConsulted);
+          if (patientsComparison != 0) return patientsComparison;
+          return int.parse(b.yearsOfExperience).compareTo(int.parse(a.yearsOfExperience));
         });
 
       yield featuredDoctors;
     } else {
       yield [];
     }
-
     final database = ref.read(firebaseDatabaseProvider);
     final doctorsRef = database.child('Doctors');
     final subscription = doctorsRef.onValue.listen((event) {

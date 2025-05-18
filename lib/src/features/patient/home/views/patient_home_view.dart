@@ -5,7 +5,6 @@ import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../const/app_strings.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
 import '../../../../theme/app_colors.dart';
