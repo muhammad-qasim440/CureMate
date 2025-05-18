@@ -45,7 +45,6 @@ class _AllNearByDoctorsViewState extends ConsumerState<AllNearByDoctorsView> {
                 ProviderListParam(doctorListProvider: nearByDoctorsProvider),
               ),
             );
-    logDebug('doctor:${doctorsList.length}');
     return Scaffold(
       body: Stack(
         children: [
@@ -72,8 +71,8 @@ class _AllNearByDoctorsViewState extends ConsumerState<AllNearByDoctorsView> {
                         (doctor, isFavorite) => AllNearByDoctorsViewCard(
                           doctor: doctor,
                           isFavorite: isFavorite,
-                          isFromFeatured: widget.isFromFeatured,
-                          isFromPopular: widget.isFromPopular,
+                          isFromFeatured: widget.isFromFeatured==true?true:false,
+                          isFromPopular: widget.isFromPopular==true?true:false,
                         ),
                   ),
                 ],

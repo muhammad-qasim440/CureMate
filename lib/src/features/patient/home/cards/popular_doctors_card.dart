@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';

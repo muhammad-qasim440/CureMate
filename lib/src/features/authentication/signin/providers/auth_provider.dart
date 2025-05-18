@@ -16,6 +16,7 @@ import '../../../../shared/providers/profile_image_picker_provider/profile_image
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../appointments/providers/appointments_providers.dart';
+import '../../../disease_diagnosis/providers/disease_diagnosis_providers.dart';
 import '../../../doctor/doctor_main_view.dart';
 import '../../../drawer/providers/drawer_providers.dart';
 import '../../../patient/providers/patient_providers.dart';
@@ -341,6 +342,7 @@ class AuthService {
        _ref.read(userUpdatedHospitalProvider.notifier).state = '';
        _ref.read(userUpdatedConsultationFeeProvider.notifier).state = 0;
        _ref.read(profileImagePickerProvider.notifier).reset(_ref);
+       _ref.invalidate(ngrokApiProvider);
 
       await auth.signOut();
         final userId = auth.currentUser?.uid;

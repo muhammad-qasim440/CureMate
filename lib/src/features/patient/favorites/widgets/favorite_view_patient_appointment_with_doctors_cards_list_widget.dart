@@ -76,7 +76,7 @@ class FavoriteViewPatientAppointmentWithDoctorsCardsListWidget extends ConsumerW
                   );
                 },
                 loading:
-                    () => const Center(child: CircularProgressIndicator()),
+                    () => const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
                 error:
                     (error, stack) => Center(
                   child: Text(

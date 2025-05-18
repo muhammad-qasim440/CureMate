@@ -9,7 +9,6 @@ import '../../../../../const/app_strings.dart';
 import '../../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
@@ -22,20 +21,23 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
   final bool isFavorite;
   final bool? isFromPopular;
   final bool? isFromFeatured;
-
+  final bool? isFromRecommendations;
   const AllNearByDoctorsViewCard({
     super.key,
     required this.doctor,
     required this.isFavorite,
     this.isFromPopular,
     this.isFromFeatured,
+    this.isFromRecommendations,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPatientData = ref.watch(currentSignInPatientDataProvider).value;
+    final currentPatientData =
+        ref.watch(currentSignInPatientDataProvider).value;
 
-    final availableDays = doctor.availability.map((avail) => avail['day'] as String).toList();
+    final availableDays =
+        doctor.availability.map((avail) => avail['day'] as String).toList();
     final now = DateTime.now();
     DateTime? nextAvailableDay;
     for (int i = 0; i < 7; i++) {
@@ -49,10 +51,10 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
 
     final showPopular = isFromPopular == true;
     final showFeatured = isFromFeatured == true;
+    final showRecommendations = isFromRecommendations == true;
 
     return GestureDetector(
       onTap: () {
-
         AppNavigation.push(DoctorProfileView(doctor: doctor));
       },
       child: Container(
@@ -80,15 +82,16 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                     child: SizedBox(
                       width: ScreenUtil.scaleWidth(context, 92),
                       height: ScreenUtil.scaleHeight(context, 92),
-                      child: doctor.profileImageUrl.isNotEmpty
-                          ? Image.network(
-                        doctor.profileImageUrl,
-                        fit: BoxFit.cover,
-                      )
-                          : Image.asset(
-                        AppAssets.defaultDoctorImg,
-                        fit: BoxFit.cover,
-                      ),
+                      child:
+                          doctor.profileImageUrl.isNotEmpty
+                              ? Image.network(
+                                doctor.profileImageUrl,
+                                fit: BoxFit.cover,
+                              )
+                              : Image.asset(
+                                AppAssets.defaultDoctorImg,
+                                fit: BoxFit.cover,
+                              ),
                     ),
                   ),
                   12.width,
@@ -120,8 +123,11 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                                 );
                               },
                               child: Icon(
-                                isFavorite ? Icons.favorite : Icons.favorite_border,
-                                color: isFavorite ? Colors.red : Colors.grey[400],
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color:
+                                    isFavorite ? Colors.red : Colors.grey[400],
                                 size: 20,
                               ),
                             ),
@@ -142,7 +148,8 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                         Row(
                           children: [
                             CustomTextWidget(
-                              text: '${doctor.yearsOfExperience} Years experience',
+                              text:
+                                  '${doctor.yearsOfExperience} Years experience',
                               textAlignment: TextAlign.left,
                               textStyle: TextStyle(
                                 fontFamily: AppFonts.rubik,
@@ -151,10 +158,11 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            if(!showPopular || !showFeatured)...[
+                            if (!showPopular && !showFeatured) ...[
                               55.width,
                               CustomTextWidget(
-                                text: '${calculateDistance(doctor.latitude,doctor.longitude,currentPatientData!.latitude,currentPatientData.longitude).toStringAsFixed(0)} KM',
+                                text:
+                                    '${calculateDistance(doctor.latitude, doctor.longitude, currentPatientData!.latitude, currentPatientData.longitude).toStringAsFixed(0)} KM',
                                 textAlignment: TextAlign.left,
                                 textStyle: TextStyle(
                                   fontFamily: AppFonts.rubik,
@@ -163,7 +171,7 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                                   color: AppColors.gradientGreen,
                                 ),
                               ),
-                            ]
+                            ],
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -177,9 +185,10 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                             const SizedBox(width: 4),
                             Flexible(
                               child: CustomTextWidget(
-                                text: showPopular
-                                    ? 'Consultation Fee: ${doctor.consultationFee} PKR'
-                                    : doctor.hospital,
+                                text:
+                                    showPopular
+                                        ? 'Consultation Fee: ${doctor.consultationFee} PKR'
+                                        : doctor.hospital,
                                 textAlignment: TextAlign.left,
                                 textStyle: TextStyle(
                                   fontFamily: AppFonts.rubik,
@@ -192,56 +201,43 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        if (showPopular) ...[
-                          Row(
-                            children: [
-                              ...List.generate(
-                                5,
-                                    (index) => Icon(
-                                  Icons.star,
-                                  size: 18,
-                                  color: index < ((doctor.averageRatings)).round()
-                                      ? Colors.amber
-                                      : Colors.grey,
-                                ),
+                        Row(
+                          children: [
+                            ...List.generate(
+                              5,
+                              (index) => Icon(
+                                Icons.star,
+                                size: 18,
+                                color:
+                                    index < ((doctor.averageRatings)).round()
+                                        ? Colors.amber
+                                        : Colors.grey,
                               ),
-
-                              if (!showFeatured && !showPopular) ...[
-                                const SizedBox(width: 12),
-                                CustomTextWidget(
-                                  text:
-                                  '${calculateDistance(currentPatientData!.latitude, currentPatientData.longitude, doctor.latitude, doctor.longitude).toStringAsFixed(0)} KM',
-                                  textStyle: TextStyle(
-                                    fontFamily: AppFonts.rubik,
-                                    fontSize: FontSizes(context).size15,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.gradientGreen,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.visibility,
-                                color: Colors.blueGrey,
-                                size: 12,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.visibility,
+                              color: Colors.blueGrey,
+                              size: 12,
+                            ),
+                            const SizedBox(width: 4),
+                            CustomTextWidget(
+                              text: '${doctor.profileViews} Profile Views',
+                              textStyle: TextStyle(
+                                fontFamily: AppFonts.rubik,
+                                fontSize: FontSizes(context).size12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
                               ),
-                              const SizedBox(width: 4),
-                              CustomTextWidget(
-                                text: '${doctor.profileViews} Profile Views',
-                                textStyle: TextStyle(
-                                  fontFamily: AppFonts.rubik,
-                                  fontSize: FontSizes(context).size12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else if (!showFeatured) ...[
+                            ),
+                          ],
+                        ),
+                        if (!showFeatured ||
+                            (showRecommendations && showFeatured)) ...[
                           Row(
                             children: [
                               const Icon(
@@ -252,7 +248,8 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: CustomTextWidget(
-                                  text: '${doctor.totalPatientConsulted} Patients Consulted',
+                                  text:
+                                      '${doctor.totalPatientConsulted} Patients Consulted',
                                   textAlignment: TextAlign.left,
                                   textStyle: TextStyle(
                                     fontFamily: AppFonts.rubik,
@@ -264,7 +261,7 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                               ),
                             ],
                           ),
-                        ]
+                        ],
                       ],
                     ),
                   ),
@@ -291,9 +288,10 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                         ),
                       ),
                       CustomTextWidget(
-                        text: nextAvailableDay != null
-                            ? '${AppStrings.daysOfWeek[nextAvailableDay.weekday - 1]}, ${nextAvailableDay.day} ${AppStrings.months[nextAvailableDay.month - 1]}'
-                            : 'Not Available',
+                        text:
+                            nextAvailableDay != null
+                                ? '${AppStrings.daysOfWeek[nextAvailableDay.weekday - 1]}, ${nextAvailableDay.day} ${AppStrings.months[nextAvailableDay.month - 1]}'
+                                : 'Not Available',
                         textAlignment: TextAlign.left,
                         textStyle: TextStyle(
                           fontFamily: AppFonts.rubik,
@@ -316,7 +314,9 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
                     shadowColor: Colors.transparent,
                     borderRadius: 6,
                     onPressed: () {
-                      AppNavigation.push(AppointmentBookingView(doctor: doctor));
+                      AppNavigation.push(
+                        AppointmentBookingView(doctor: doctor),
+                      );
                     },
                   ),
                 ],
@@ -328,4 +328,3 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
     );
   }
 }
-

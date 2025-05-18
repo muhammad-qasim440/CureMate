@@ -31,12 +31,11 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
       } else {
         appointments[index] = appointment;
       }
-
       appointments.sort((a, b) {
         try {
           final aDateTime = DateTime.parse(a.createdAt);
           final bDateTime = DateTime.parse(b.createdAt);
-          return bDateTime.compareTo(aDateTime); // Descending
+          return bDateTime.compareTo(aDateTime);
         } catch (e) {
           logDebug('Error parsing createdAt for sorting: $e');
           return 0;

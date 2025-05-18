@@ -100,6 +100,7 @@ flutter:
     - assets/icons/
     - assets/animations/signing_up.json
     - assets/animations/typing.json
+    - assets/animations/diagnosis.json
   fonts:
     - family: Poppins
       fonts:

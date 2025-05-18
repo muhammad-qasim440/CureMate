@@ -58,7 +58,7 @@ class ConfirmationDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: ScreenUtil.scaleWidth(context, 335),
-      height: ScreenUtil.scaleHeight(context, 520),
+      height: ScreenUtil.scaleHeight(context, 530),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.gradientWhite,
@@ -104,7 +104,18 @@ class ConfirmationDialog extends ConsumerWidget {
               color: AppColors.subTextColor,
             ),
           ),
+
           const SizedBox(height: 16),
+          CustomTextWidget(
+            textAlignment: TextAlign.center,
+            text: 'Appointment ID ${appointment!.id}',
+            textStyle: TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: FontSizes(context).size14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.black,
+            ),
+          ),
           CustomTextWidget(
             textAlignment:TextAlign.center,
             text: 'You booked an appointment with ${doctor.fullName} ${doctor.category} on ${date.dayMonthDisplay} at $timeSlot.',

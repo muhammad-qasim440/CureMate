@@ -49,7 +49,7 @@ class _PatientFavoriteDoctorsViewState
                           isFavorite: isFavorite,
                         ),
                   ),
-                  const FavoriteViewPatientAppointmentWithDoctorsCardsListWidget(),
+                  // const FavoriteViewPatientAppointmentWithDoctorsCardsListWidget(),
                 ],
               ),
             ),

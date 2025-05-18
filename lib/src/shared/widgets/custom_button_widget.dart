@@ -26,6 +26,7 @@ class CustomButtonWidget extends StatefulWidget {
   final bool isEnabled;
   final LinearGradient? gradient;
   final bool? isLoading;
+  final Widget? justSelfDefinedChildNothingOther;
 
   const CustomButtonWidget({
     super.key,
@@ -50,6 +51,7 @@ class CustomButtonWidget extends StatefulWidget {
     this.elevation = 4.0,
     this.isEnabled = true,
     this.gradient,
+    this.justSelfDefinedChildNothingOther,
     this.isLoading=false,
   });
 
@@ -91,7 +93,7 @@ class _CustomButtonWidgetState extends State<CustomButtonWidget> {
           ),
           elevation: 0,
         ),
-        child: Center(
+        child: widget.justSelfDefinedChildNothingOther ?? Center(
           child: Flex(
             direction: Axis.horizontal,
             mainAxisAlignment: MainAxisAlignment.center,

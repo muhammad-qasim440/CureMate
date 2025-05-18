@@ -6,6 +6,7 @@ import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -71,13 +72,12 @@ class PatientMainView extends ConsumerWidget {
             child: Material(
               color: Colors.transparent,
               child: CircleAvatar(
-                maxRadius: 20,
+                maxRadius: 25,
                 backgroundColor: AppColors.black,
                 child: InkWell(
-                  child: const Icon(
-                    Icons.smart_toy_outlined,
-                    size: 25,
-                    color: AppColors.gradientGreen,
+                  child:  Lottie.asset(
+                    'assets/animations/diagnosis.json',
+                    fit: BoxFit.contain,
                   ),
                   onTap: () {
                         AppNavigation.push(const DiagnosisView());
