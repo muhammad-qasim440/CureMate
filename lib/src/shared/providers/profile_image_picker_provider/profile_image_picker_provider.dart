@@ -64,7 +64,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
         state = state.copyWith(croppedImage: croppedImage, isProcessing: false);
         ref.read(userProfileProvider.notifier).state = croppedImage;
       } else {
-        // If face detection fails, just center crop the image
+        /// If face detection fails, just center crop the image
         final centeredCrop = await _createCenteredSquareCrop(image);
         state = state.copyWith(croppedImage: centeredCrop, isProcessing: false);
         ref.read(userProfileProvider.notifier).state = centeredCrop;
@@ -77,7 +77,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
     }
   }
 
-  // Fallback method if face detection fails
+  /// Fallback method if face detection fails
   Future<XFile> _createCenteredSquareCrop(XFile image) async {
     final bytes = await image.readAsBytes();
     final original = img.decodeImage(bytes)!;
@@ -85,7 +85,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
     final imgWidth = original.width;
     final imgHeight = original.height;
 
-    // Create a square crop from the center
+    /// Create a square crop from the center
     final size = min(imgWidth, imgHeight);
     final x = (imgWidth - size) ~/ 2;
     final y = (imgHeight - size) ~/ 2;
@@ -98,7 +98,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
       height: size,
     );
 
-    // Resize to standard profile picture size
+    /// Resize to standard profile picture size
     final resized = img.copyResize(cropped, width: 500, height: 500);
 
     final dir = await getTemporaryDirectory();
@@ -110,7 +110,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
 
   Future<XFile?> _processProfileImage(XFile image) async {
     try {
-      // 1. Use FaceDetector to find the face
+      /// 1.  Use FaceDetector to find the face
       final inputImage = InputImage.fromFilePath(image.path);
       final faceDetector = FaceDetector(
         options: FaceDetectorOptions(
@@ -124,7 +124,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
 
       if (faces.isEmpty) return null;
 
-      // Sort faces by size (largest first) if there are multiple
+      /// Sort faces by size (largest first) if there are multiple
       if (faces.length > 1) {
         faces.sort((a, b) =>
             (b.boundingBox.width * b.boundingBox.height)
@@ -134,7 +134,7 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
       final Face mainFace = faces.first;
       final faceBox = mainFace.boundingBox;
 
-      // 2. Load and process the image
+      /// 2. Load and process the image
       final bytes = await image.readAsBytes();
       final original = img.decodeImage(bytes);
       if (original == null) return null;
@@ -142,32 +142,32 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
       final imgWidth = original.width;
       final imgHeight = original.height;
 
-      // 3. Calculate proper square dimensions for profile picture
-      // We want to ensure the face is properly centered and there's enough
-      // space around it for a professional-looking profile picture
+      /// 3. Calculate proper square dimensions for profile picture
+      /// We want to ensure the face is properly centered and there's enough
+      /// space around it for a professional-looking profile picture
 
-      // Get the face center point
+      /// Get the face center point
       double faceCenterX = faceBox.left + (faceBox.width / 2);
       double faceCenterY = faceBox.top + (faceBox.height / 2);
 
-      // Calculate proper square size using face width/height as reference
-      // A good profile picture shows the face plus some margin around it
+      /// Calculate proper square size using face width/height as reference
+      /// A good profile picture shows the face plus some margin around it
       double squareSize = max(faceBox.width, faceBox.height) * 2.2;
 
-      // Ensure we don't exceed image dimensions
+      /// Ensure we don't exceed image dimensions
       squareSize = min(squareSize, min(imgWidth, imgHeight).toDouble());
 
-      // Calculate top-left point of our square crop
+      /// Calculate top-left point of our square crop
       double left = faceCenterX - (squareSize / 2);
       double top = faceCenterY - (squareSize / 2);
 
-      // Adjust if the crop extends beyond image boundaries
+      /// Adjust if the crop extends beyond image boundaries
       if (left < 0) left = 0;
       if (top < 0) top = 0;
       if (left + squareSize > imgWidth) left = imgWidth - squareSize;
       if (top + squareSize > imgHeight) top = imgHeight - squareSize;
 
-      // 4. Perform the crop
+      /// 4. Perform the crop
       final cropped = img.copyCrop(
         original,
         x: left.toInt(),
@@ -176,10 +176,10 @@ class ProfileImagePickerNotifier extends StateNotifier<ProfileImageState> {
         height: squareSize.toInt(),
       );
 
-      // 5. Resize to standard profile picture size
+      /// 5. Resize to standard profile picture size
       final resized = img.copyResize(cropped, width: 500, height: 500);
 
-      // 6. Save the result
+      /// 6. Save the result
       final dir = await getTemporaryDirectory();
       final path = join(dir.path, 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
       final file = File(path)..writeAsBytesSync(img.encodeJpg(resized, quality: 90));

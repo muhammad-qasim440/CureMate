@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:curemate/src/features/splash/views/splash_view.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
@@ -57,6 +59,10 @@ class App extends ConsumerStatefulWidget {
     await initializeHiveDB();
     await openBoxShowOnBoardingViewsDb();
     await CacheUtils.clearCache();
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.dumpErrorToConsole(details);
+      Zone.current.handleUncaughtError(details.exception, details.stack!);
+    };
     runApp(const ProviderScope(
       overrides: [],
       child: App._(),

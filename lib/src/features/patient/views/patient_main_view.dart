@@ -1,10 +1,14 @@
+import 'package:curemate/src/features/disease_diagnosis/views/diagnosis_view.dart';
 import 'package:curemate/src/features/patient/chat/views/patient_chat_view.dart';
 import 'package:curemate/src/features/patient/appointments/views/patient_appointments_view.dart';
 import 'package:curemate/src/features/patient/favorites/views/patient_favorite_doctors_view.dart';
+import 'package:curemate/src/router/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/widgets/app_exit_bottom_sheet/exit_app_bottom_sheet.dart';
+import '../../../theme/app_colors.dart';
+import '../../../utils/screen_utils.dart';
 import '../../appointments/providers/appointments_providers.dart';
 import '../../doctor/doctor_main_view.dart';
 import '../home/views/patient_home_view.dart';
@@ -30,35 +34,61 @@ class PatientMainView extends ConsumerWidget {
         ).show(context);
         return false;
       },
-      child: Scaffold(
-        body: IndexedStack(
-          index: selectedIndex,
-          children: const [
-            PatientHomeView(),
-            PatientFavoriteDoctorsView(),
-            PatientAppointmentsView(),
-            PatientChatView(),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: selectedIndex,
-          onTap: (index) {
-            ref.read(patientBottomNavIndexProvider.notifier).state = index;
-            ref.read(appointmentsFilterOptionProvider.notifier).state = 'All';
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.grey,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          items: [
-            bottomNavItem(Icons.home_outlined, selectedIndex == 0),
-            bottomNavItem(Icons.favorite, selectedIndex == 1),
-            bottomNavItem(Icons.menu_book_outlined, selectedIndex == 2),
-            bottomNavItem(Icons.chat, selectedIndex == 3),
-          ],
-        ),
+      child: Stack(
+        children: [
+          Scaffold(
+            body: IndexedStack(
+              index: selectedIndex,
+              children: const [
+                PatientHomeView(),
+                PatientFavoriteDoctorsView(),
+                PatientAppointmentsView(),
+                PatientChatView(),
+              ],
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: selectedIndex,
+              onTap: (index) {
+                ref.read(patientBottomNavIndexProvider.notifier).state = index;
+                ref.read(appointmentsFilterOptionProvider.notifier).state = 'All';
+              },
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: Colors.white,
+              unselectedItemColor: Colors.grey,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              items: [
+                bottomNavItem(Icons.home_outlined, selectedIndex == 0),
+                bottomNavItem(Icons.favorite, selectedIndex == 1),
+                bottomNavItem(Icons.menu_book_outlined, selectedIndex == 2),
+                bottomNavItem(Icons.chat, selectedIndex == 3),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: ScreenUtil.scaleHeight(context, 110),
+            right: ScreenUtil.scaleWidth(context, 20),
+            child: Material(
+              color: Colors.transparent,
+              child: CircleAvatar(
+                maxRadius: 20,
+                backgroundColor: AppColors.black,
+                child: InkWell(
+                  child: const Icon(
+                    Icons.smart_toy_outlined,
+                    size: 25,
+                    color: AppColors.gradientGreen,
+                  ),
+                  onTap: () {
+                        AppNavigation.push(const DiagnosisView());
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+
   }
 }
