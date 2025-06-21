@@ -69,6 +69,8 @@ class AllRecentPatientsView extends ConsumerWidget {
                     email: '',
                     city: '',
                     dob: '',
+                    gender:'',
+                    age: 0,
                     phoneNumber: '',
                     profileImageUrl: '',
                     profileImagePublicId: '',

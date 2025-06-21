@@ -224,14 +224,14 @@ final formattedStatusProvider = StreamProvider.family<String, String>((ref, user
     }
   }
 
-  // Listen to Firebase real-time status
+  /// Listen to Firebase real-time status
   firebaseSub = dbRef.onValue.listen((event) {
     final data = event.snapshot.value as Map?;
     isOnline = data?['isOnline'] ?? false;
     lastSeenTimestamp = data?['lastSeen'];
     updateStatus();
 
-    // If user is offline, start timer to update every minute
+    /// If user is offline, start timer to update every minute
     periodicTimer?.cancel();
     if (!isOnline && lastSeenTimestamp != null) {
       periodicTimer = Timer.periodic(const Duration(minutes: 1), (_) {

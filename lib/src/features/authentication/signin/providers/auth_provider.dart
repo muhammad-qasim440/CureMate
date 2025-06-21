@@ -42,7 +42,6 @@ class AuthService {
     _realtimeDbListeners.add(subscription);
   }
 
-
   Future<String> signUp() async {
     try {
       final auth = _ref.read(firebaseAuthProvider);
@@ -54,6 +53,8 @@ class AuthService {
       final fullName = _ref.read(fullNameProvider);
       final phoneNumber = _ref.read(phoneNumberProvider);
       final dateOfBirth = _ref.read(dateOfBirthProvider);
+      final gender=_ref.read(customDropDownProvider(AppStrings.genders));
+      final age=_ref.read(ageProvider);
       final city = _ref.read(customDropDownProvider(AppStrings.cities));
       final latitude = _ref.read(locationLatitudeProvider);
       final longitude = _ref.read(locationLongitudeProvider);
@@ -63,31 +64,40 @@ class AuthService {
       final docExperience = _ref.read(docYearsOfExperienceProvider);
       final docHospital = _ref.read(docHospitalProvider);
       final daySlotConfigs = _ref.read(daySlotConfigsProvider);
-      await FirebaseDatabase.instance.goOnline();
+
+      /// Check authentication state
+      if (auth.currentUser != null) {
+        logDebug('Already authenticated user: ${auth.currentUser!.uid}');
+        // FirebaseAuth.instance.signOut();
+        return 'User already authenticated. Please sign out first.';
+      }
+
+      /// Create user with Firebase Authentication
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+
       User? user = userCredential.user;
       if (user == null) {
+        logDebug('Failed to create user: No user returned');
         return 'Failed to create user.';
       }
 
       String uid = user.uid;
-      String? profileImageUrl = '';
-      String? profileImagePublicId = '';
-
-      String userTypePath = userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
-
+      logDebug('Authenticated user: $uid, email: $email');
+      /// Minimal data to test write
       Map<String, dynamic> userData = {
         'uid': uid,
         'email': email,
         'fullName': fullName,
         'phoneNumber': phoneNumber,
-        'profileImageUrl': profileImageUrl,
-        'profileImagePublicId': profileImagePublicId,
+        'profileImageUrl': '',
+        'profileImagePublicId': '',
         'dob': dateOfBirth,
+        'gender':gender.selected,
+        'age':age,
         'city': city.selected,
         'latitude': latitude,
         'longitude': longitude,
@@ -104,47 +114,72 @@ class AuthService {
           'yearsOfExperience': docExperience,
           'hospital': docHospital,
           'consultationFee': docConsultationFee,
-          'totalReviews': 0,
-          'averageRatings': 0.0,
-          'totalPatientConsulted': 0,
-          'profileViews': 0,
-          'viewedBy': {},
-          'availability': daySlotConfigs,
+          // 'totalReviews': 0,
+          // 'averageRatings': 0.0,
+          // 'totalPatientConsulted': 0,
+          // 'profileViews': 0,
+          // 'viewedBy': {},
+          // 'availability': daySlotConfigs,
         });
       }
+      String userTypePath = userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
 
-      await database.child(userTypePath).child(uid).set(userData);
 
+      /// Write user data to /Doctors or /Patients
+      try {
+        logDebug('Attempting to write to $userTypePath/$uid: $userData');
+        await database.child(userTypePath).child(uid).set(userData);
+        logDebug('User data written successfully to $userTypePath/$uid');
+      } catch (e) {
+        logDebug('Error writing to $userTypePath/$uid: $e');
+        return 'Failed to write user data: $e';
+      }
+
+      /// Upload profile image if provided
       if (profileImage != null) {
         final cloudinaryImageData = await uploadImageToCloudinary(File(profileImage.path));
         if (cloudinaryImageData != null) {
-          profileImageUrl = cloudinaryImageData['secure_url'];
-          profileImagePublicId = cloudinaryImageData['public_id'];
-          await database.child(userTypePath).child(uid).update({
-            'profileImageUrl': profileImageUrl,
-            'profileImagePublicId': profileImagePublicId,
-          });
+          final profileImageUrl = cloudinaryImageData['secure_url'];
+          final profileImagePublicId = cloudinaryImageData['public_id'];
+          try {
+            await database.child(userTypePath).child(uid).update({
+              'profileImageUrl': profileImageUrl,
+              'profileImagePublicId': profileImagePublicId,
+            });
+            logDebug('Profile image updated: $profileImageUrl');
+          } catch (e) {
+            logDebug('Error updating profile image: $e');
+            return 'Failed to update profile image: $e';
+          }
         }
       }
 
-      await database.child('Users/$uid').set({
-        'fullName': fullName,
-        'email': email,
-        'userType': userType.selected,
-        'profileImageUrl': profileImageUrl,
-        'status': {
-          'isOnline': true,
-          'lastSeen': ServerValue.timestamp,
-          'ping': ServerValue.timestamp,
-        },
-        'settings': {
-          'allowChat': true,
-          'allowCall':true,
-        },
-      });
+      /// Write to /Users/$uid
+      try {
+        await database.child('Users/$uid').set({
+          'fullName': fullName,
+          'email': email,
+          'userType': userType.selected,
+          'profileImageUrl': '',
+          'status': {
+            'isOnline': true,
+            'lastSeen': ServerValue.timestamp,
+            'ping': ServerValue.timestamp,
+          },
+          'settings': {
+            'allowChat': true,
+            'allowCall': true,
+          },
+        });
+        logDebug('User data written to /Users/$uid');
+      } catch (e) {
+        logDebug('Error writing to /Users/$uid: $e');
+        return 'Failed to write to Users: $e';
+      }
 
       return 'Account created successfully!';
     } on FirebaseAuthException catch (e) {
+      logDebug('FirebaseAuthException: ${e.code}, ${e.message}');
       if (e.code == 'email-already-in-use') {
         return 'An account already exists with this email.';
       } else if (e.code == 'invalid-email') {
@@ -155,9 +190,134 @@ class AuthService {
         return 'Authentication failed: ${e.message}';
       }
     } catch (e) {
-      return 'An unexpected error occurred: ${e.toString()}';
+      logDebug('Unexpected error: $e');
+      return 'An unexpected error occurred: $e';
     }
   }
+  // Future<String> signUp() async {
+  //   try {
+  //     final auth = _ref.read(firebaseAuthProvider);
+  //     final database = _ref.read(firebaseDatabaseProvider);
+  //     final userType = _ref.read(customDropDownProvider(AppStrings.userTypes));
+  //     final profileImage = _ref.read(userProfileProvider);
+  //     final email = _ref.read(emailProvider);
+  //     final password = _ref.read(passwordProvider);
+  //     final fullName = _ref.read(fullNameProvider);
+  //     final phoneNumber = _ref.read(phoneNumberProvider);
+  //     final dateOfBirth = _ref.read(dateOfBirthProvider);
+  //     final city = _ref.read(customDropDownProvider(AppStrings.cities));
+  //     final latitude = _ref.read(locationLatitudeProvider);
+  //     final longitude = _ref.read(locationLongitudeProvider);
+  //     final docConsultationFee = _ref.read(docConsultancyFeeProvider);
+  //     final docCategory = _ref.read(customDropDownProvider(AppStrings.docCategories));
+  //     final docQualification = _ref.read(docQualificationProvider);
+  //     final docExperience = _ref.read(docYearsOfExperienceProvider);
+  //     final docHospital = _ref.read(docHospitalProvider);
+  //     final daySlotConfigs = _ref.read(daySlotConfigsProvider);
+  //     await FirebaseDatabase.instance.goOnline();
+  //     /// Check authentication state
+  //     if (auth.currentUser != null) {
+  //       logDebug('Already authenticated user: ${auth.currentUser!.uid}');
+  //       return 'User already authenticated. Please sign out first.';
+  //     }
+  //
+  //     UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+  //       email: email,
+  //       password: password,
+  //     );
+  //
+  //     User? user = userCredential.user;
+  //     if (user == null) {
+  //       return 'Failed to create user.';
+  //     }
+  //
+  //     String uid = user.uid;
+  //     String? profileImageUrl = "";
+  //     String? profileImagePublicId = "";
+  //
+  //     String userTypePath = userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
+  //
+  //     Map<String, dynamic> userData = {
+  //       'uid': uid,
+  //       'email': email,
+  //       'fullName': fullName,
+  //       'phoneNumber': phoneNumber,
+  //       'profileImageUrl': profileImageUrl,
+  //       'profileImagePublicId': profileImagePublicId,
+  //       'dob': dateOfBirth,
+  //       'city': city.selected,
+  //       'latitude': latitude,
+  //       'longitude': longitude,
+  //       'userType': userType.selected,
+  //       'createdAt': DateTime.now().toIso8601String(),
+  //       'favorites': {},
+  //       'MedicalRecords': {},
+  //     };
+  //
+  //     if (userType.selected == 'Doctor') {
+  //       userData.addAll({
+  //         'qualification': docQualification,
+  //         'category': docCategory.selected,
+  //         'yearsOfExperience': docExperience,
+  //         'hospital': docHospital,
+  //         'consultationFee': docConsultationFee,
+  //         'totalReviews': 0,
+  //         'averageRatings': 0.0,
+  //         'totalPatientConsulted': 0,
+  //         'profileViews': 0,
+  //         'viewedBy': {},
+  //         'availability': daySlotConfigs,
+  //       });
+  //     }
+  //
+  //     await database.child(userTypePath).child(uid).set(userData);
+  //     logDebug('User data : $userData');
+  //
+  //     if (profileImage != null) {
+  //       final cloudinaryImageData = await uploadImageToCloudinary(File(profileImage.path));
+  //       if (cloudinaryImageData != null) {
+  //         logDebug('i am here');
+  //         profileImageUrl = cloudinaryImageData['secure_url'];
+  //         profileImagePublicId = cloudinaryImageData['public_id'];
+  //         await database.child(userTypePath).child(uid).update({
+  //           'profileImageUrl': profileImageUrl,
+  //           'profileImagePublicId': profileImagePublicId,
+  //         });
+  //       }
+  //     }
+  //     logDebug('User data2222 : $userData');
+  //
+  //     await database.child('Users/$uid').set({
+  //       'fullName': fullName,
+  //       'email': email,
+  //       'userType': userType.selected,
+  //       'profileImageUrl': profileImageUrl,
+  //       'status': {
+  //         'isOnline': true,
+  //         'lastSeen': ServerValue.timestamp,
+  //         'ping': ServerValue.timestamp,
+  //       },
+  //       'settings': {
+  //         'allowChat': true,
+  //         'allowCall':true,
+  //       },
+  //     });
+  //
+  //     return 'Account created successfully!';
+  //   } on FirebaseAuthException catch (e) {
+  //     if (e.code == 'email-already-in-use') {
+  //       return 'An account already exists with this email.';
+  //     } else if (e.code == 'invalid-email') {
+  //       return 'The email address is not valid.';
+  //     } else if (e.code == 'weak-password') {
+  //       return 'The password is too weak.';
+  //     } else {
+  //       return 'Authentication failed: ${e.message}';
+  //     }
+  //   } catch (e) {
+  //     return 'An unexpected error occurred: ${e.toString()}';
+  //   }
+  // }
 
   Future<Map<String, dynamic>> signIn({required String email, required String password}) async {
     try {
@@ -255,7 +415,6 @@ class AuthService {
       };
     }
   }
-
   Future<Map<String, dynamic>> resetPassword() async {
     final auth = _ref.read(firebaseAuthProvider);
     final email = _ref.read(forgotPasswordEmailProvider);
@@ -296,77 +455,87 @@ class AuthService {
       };
     }
   }
-
   Future<void> logout(BuildContext context) async {
     final auth = _ref.read(firebaseAuthProvider);
-    final database = _ref.read(firebaseDatabaseProvider);
-
     try {
+      logDebug('Starting logout process...');
       await FirebaseDatabase.instance.goOffline();
 
-        for (var subscription in _realtimeDbListeners) {
-          await subscription.cancel();
-        }
-        _realtimeDbListeners.clear();
-        final appLifecycleObserver = _ref.read(appLifecycleObserverProvider);
-        appLifecycleObserver.dispose();
-        _ref.invalidate(currentSignInPatientDataProvider);
-        _ref.invalidate(doctorsProvider);
-        _ref.invalidate(favoriteDoctorUidsProvider);
-        _ref.invalidate(favoriteDoctorsProvider);
-        _ref.invalidate(appointmentsProvider);
-        _ref.invalidate(patientDoctorsWithBookingsProvider);
-        _ref.invalidate(nearByDoctorsProvider);
-        _ref.invalidate(chatListProvider);
-        _ref.invalidate(chatMessagesProvider);
-        _ref.invalidate(typingIndicatorProvider);
-        _ref.invalidate(chatSettingsProvider);
-        _ref.invalidate(otherUserProfileProvider);
-        _ref.invalidate(formattedStatusProvider);
-        _ref.invalidate(unseenMessagesProvider);
-        _ref.invalidate(currentUserProvider);
-        _ref.invalidate(customDropDownProvider(AppStrings.userTypes));
-        _ref.invalidate(emailProvider);
-        _ref.invalidate(passwordProvider);
-        _ref.read(patientBottomNavIndexProvider.notifier).state = 0;
-        _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
-        _ref.read(userUpdatedNameProvider.notifier).state = '';
-        _ref.read(userUpdatedPhoneNumberProvider.notifier).state = '';
-        _ref.read(userUpdatedCityProvider.notifier).state = '';
-        _ref.read(userUpdatedLatitudeProvider.notifier).state = '';
-        _ref.read(userUpdatedLongitudeProvider.notifier).state = '';
-       _ref.read(userUpdatedDOBProvider.notifier).state = '';
-        _ref.read(userUpdatedQualificationProvider.notifier).state = '';
-        _ref.read(userUpdatedYearsOfExperienceProvider.notifier).state = '';
-       _ref.read(userUpdatedCategoryProvider.notifier).state = '';
-       _ref.read(userUpdatedHospitalProvider.notifier).state = '';
-       _ref.read(userUpdatedConsultationFeeProvider.notifier).state = 0;
-       _ref.read(profileImagePickerProvider.notifier).reset(_ref);
-       _ref.invalidate(ngrokApiProvider);
+      for (var subscription in _realtimeDbListeners) {
+        await subscription.cancel();
+      }
+      _realtimeDbListeners.clear();
+      logDebug('Realtime DB listeners cleared.');
+
+      final appLifecycleObserver = _ref.read(appLifecycleObserverProvider);
+      appLifecycleObserver.dispose();
+      logDebug('App lifecycle observer disposed.');
+
+      // Invalidate providers
+      _ref.invalidate(currentSignInPatientDataProvider);
+      _ref.invalidate(doctorsProvider);
+      _ref.invalidate(favoriteDoctorUidsProvider);
+      _ref.invalidate(favoriteDoctorsProvider);
+      _ref.invalidate(appointmentsProvider);
+      _ref.invalidate(patientDoctorsWithBookingsProvider);
+      _ref.invalidate(nearByDoctorsProvider);
+      _ref.invalidate(chatListProvider);
+      _ref.invalidate(chatMessagesProvider);
+      _ref.invalidate(typingIndicatorProvider);
+      _ref.invalidate(chatSettingsProvider);
+      _ref.invalidate(otherUserProfileProvider);
+      _ref.invalidate(formattedStatusProvider);
+      _ref.invalidate(unseenMessagesProvider);
+      _ref.invalidate(currentUserProvider);
+      _ref.invalidate(customDropDownProvider(AppStrings.userTypes));
+      _ref.invalidate(emailProvider);
+      _ref.invalidate(passwordProvider);
+      _ref.read(patientBottomNavIndexProvider.notifier).state = 0;
+      _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
+      _ref.read(userUpdatedNameProvider.notifier).state = '';
+      _ref.read(userUpdatedPhoneNumberProvider.notifier).state = '';
+      _ref.read(userUpdatedCityProvider.notifier).state = '';
+      _ref.read(userUpdatedLatitudeProvider.notifier).state = '';
+      _ref.read(userUpdatedLongitudeProvider.notifier).state = '';
+      _ref.read(userUpdatedDOBProvider.notifier).state = '';
+      _ref.read(userUpdatedQualificationProvider.notifier).state = '';
+      _ref.read(userUpdatedYearsOfExperienceProvider.notifier).state = '';
+      _ref.read(userUpdatedCategoryProvider.notifier).state = '';
+      _ref.read(userUpdatedHospitalProvider.notifier).state = '';
+      _ref.read(userUpdatedConsultationFeeProvider.notifier).state = 0;
+      _ref.read(profileImagePickerProvider.notifier).reset(_ref);
+      _ref.invalidate(ngrokApiProvider);
+      logDebug('Providers invalidated.');
 
       await auth.signOut();
-        final userId = auth.currentUser?.uid;
-        if (userId != null) {
-          await database.child('Users/$userId/status').update({
-            'isOnline': false,
-            'lastSeen': ServerValue.timestamp,
-          });
-        }
-         if(context.mounted) {
-           CustomSnackBarWidget.show(
-             backgroundColor: AppColors.gradientGreen,
-             context: context,
-             text: 'You have been logged out successfully.',
-           );
-         }
+      logDebug('Firebase Auth sign-out completed.');
+
+      _ref.invalidate(currentUserProvider);
+
+      if (context.mounted) {
+        CustomSnackBarWidget.show(
+          backgroundColor: AppColors.gradientGreen,
+          context: context,
+          text: 'You have been logged out successfully.',
+        );
+      } else {
+        logDebug('Context not mounted, cannot show success snackbar.');
+      }
+
+      if (context.mounted) {
         AppNavigation.pushAndRemoveUntil(const SignInView());
-    } catch (e) {
-      logDebug("Logout error: $e");
+      } else {
+        logDebug('Context not mounted, cannot navigate to SignInView.');
+      }
+    } catch (e, stackTrace) {
+      logDebug('Logout error: $e\nStackTrace: $stackTrace');
       if (context.mounted) {
         CustomSnackBarWidget.show(
           context: context,
           text: 'Failed to log out: $e',
         );
+      } else {
+        logDebug('Context not mounted, cannot show error snackbar.');
       }
     }
   }

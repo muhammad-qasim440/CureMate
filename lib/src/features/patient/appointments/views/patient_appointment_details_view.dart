@@ -176,6 +176,8 @@ class _PatientAppointmentDetailsViewState extends ConsumerState<PatientAppointme
                 email: '',
                 city: '',
                 dob: '',
+                gender:'',
+                age: 0,
                 phoneNumber: '',
                 profileImageUrl: '',
                 profileImagePublicId: '',
@@ -386,6 +388,16 @@ class _PatientAppointmentDetailsViewState extends ConsumerState<PatientAppointme
                                     context,
                                     'Patient Name',
                                     widget.appointment.patientName,
+                                  ),
+                                  _buildDetailItem(
+                                    context,
+                                    'Patient Gender',
+                                    widget.appointment.patientGender,
+                                  ),
+                                  _buildDetailItem(
+                                    context,
+                                    'Patient Age',
+                                    widget.appointment.patientAge.toString(),
                                   ),
                                   _buildDetailItem(
                                     context,

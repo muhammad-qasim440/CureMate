@@ -228,11 +228,11 @@ class ChatService {
     }
     final otherUserRole = isPatient ? 'doctor' : 'patient';
     if (!currentAllowChat && !otherAllowChat) {
-      return 'Chat disabled by both sides.';
+      return 'Chatting disabled by both sides.';
     } else if (!currentAllowChat) {
-      return 'Chat is disabled by you.';
+      return 'Chatting disabled by you.';
     } else {
-      return 'Chat disabled by $otherUserRole.';
+      return 'Chatting disabled by $otherUserRole.';
     }
   }
 

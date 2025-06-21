@@ -11,6 +11,7 @@ final fullNameProvider = StateProvider<String>((ref) => '');
 final phoneNumberProvider = StateProvider<String>((ref) => '');
 final dateOfBirthProvider = StateProvider<String>((ref) => '');
 final cityProvider = StateProvider<String>((ref) => '');
+final ageProvider = StateProvider<int>((ref) => 0);
 final locationLatitudeProvider = StateProvider<double>((ref) => 0.0);
 final locationLongitudeProvider = StateProvider<double>((ref) => 0.0);
 final docConsultancyFeeProvider = StateProvider<int>((ref) => 0);

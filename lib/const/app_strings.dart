@@ -115,9 +115,9 @@ class AppStrings {
   static const noInternetInSnackBar='No internet, Please check your internet connection';
   static const internetHasBeenConnectedInSnackBar='Internet has been restored successfully';
 
-  //patient chat with doctors strings
+  ///patient chat with doctors strings
   static const chatsWithDoctors='Chats With Doctors';
-  //doctor chat with patients strings
+  ///doctor chat with patients strings
   static const chatsWithPatients='Chats With Patients';
   /// near by doctor view strings
   static const List<int> doctorSearchingAreaRadius=[10,30,50,70,100,150,200,500];
@@ -144,8 +144,8 @@ class AppStrings {
   ];
 
 
-
-// Feedback strings for Cure Mate
+ static const List<String>  genders=['Male','Female','Other'];
+/// Feedback strings for Cure Mate
   static const List<String> feedbackOptions = [
     'Doctor search results are inaccurate',
     'No doctors found in my area',

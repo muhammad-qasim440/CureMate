@@ -92,10 +92,9 @@ class ChatScreenAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ),
               status.when(
-                data: (data) => ! isInternet
-                    ? const SizedBox.shrink()
-                    : Text(
-                  data,
+                data: (data) =>
+                    Text(
+                      ! isInternet?'waiting for network conn...': data,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.gradientWhite,

@@ -1,7 +1,9 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../const/font_sizes.dart';
+import '../../../shared/chat/providers/chatting_providers.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../theme/app_colors.dart';
@@ -10,7 +12,7 @@ import '../../patient/providers/patient_providers.dart';
 import '../../patient/shared/views/doctor_details_view.dart';
 import 'all_recommended_doctor_widget_based_on_diagnonsis.dart';
 
-class RecommendedDoctorsWidget extends StatelessWidget {
+class RecommendedDoctorsWidget extends ConsumerWidget {
   final String doctorType;
   final List<Doctor> doctors;
 
@@ -21,7 +23,7 @@ class RecommendedDoctorsWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (doctors.isEmpty) {
       return Center(
         child: Container(
@@ -118,6 +120,11 @@ class RecommendedDoctorsWidget extends StatelessWidget {
             itemCount: doctors.length,
             itemBuilder: (context, index) {
               final doctor = doctors[index];
+              final isOnline =
+                  ref
+                      .watch(formattedStatusProvider(doctor.uid))
+                      .value ==
+                      'Online';
               return GestureDetector(
                 onTap: () {
                   AppNavigation.push(DoctorProfileView(doctor: doctor));
@@ -141,18 +148,36 @@ class RecommendedDoctorsWidget extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundImage: doctor.profileImageUrl.isNotEmpty
-                              ? NetworkImage(doctor.profileImageUrl)
-                              : null,
-                          child: doctor.profileImageUrl.isEmpty
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 30,
-                                  color: AppColors.textColor,
-                                )
-                              : null,
+                        Stack(
+                          children:[ CircleAvatar(
+                            radius: 40,
+                            backgroundImage: doctor.profileImageUrl.isNotEmpty
+                                ? NetworkImage(doctor.profileImageUrl)
+                                : null,
+                            child: doctor.profileImageUrl.isEmpty
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 30,
+                                    color: AppColors.textColor,
+                                  )
+                                : null,
+                          ),
+                            Positioned(
+                              top: 4,
+                              left: 5,
+                              child: Container(
+                                width: 13,
+                                height: 13,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isOnline ? AppColors.gradientGreen : AppColors.subTextColor,
+                                  border: Border.all(color: AppColors.black, width: 1),
+
+                                ),
+                              ),
+                            ),
+
+                    ],
                         ),
                         const SizedBox(height: 8),
                         CustomTextWidget(

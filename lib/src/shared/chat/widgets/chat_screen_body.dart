@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../../const/app_fonts.dart';
+import '../../../../const/font_sizes.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
 import '../../providers/check_internet_connectivity_provider.dart';
@@ -124,10 +126,12 @@ class ChatScreenBody extends ConsumerWidget {
                     ),
                   )
                       : Container(
-                    margin: const EdgeInsets.symmetric(vertical: 2.0),
+                    margin: const EdgeInsets.symmetric(vertical: 10.0),
                     child: Text(
                       chatDisabledMessage,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.black,
+                      fontFamily: AppFonts.rubik,fontSize: FontSizes(context).size14,
+                      fontWeight: FontWeight.w500),
                     ),
                   );
                 },

@@ -3,11 +3,13 @@ import 'package:curemate/src/features/drawer/widgets/patient_drawer_settings_wid
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_confirmation_dialog_widget.dart';
 import 'package:curemate/src/utils/screen_utils.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:curemate/assets/app_assets.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
+import '../../../../core/utils/debug_print.dart';
 import '../../../router/nav.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
@@ -175,23 +177,18 @@ class DoctorDrawerView extends ConsumerWidget {
                         onTap: () async {
                           final confirm = await showDialog<bool>(
                             context: context,
-                            builder: (ctx) =>const CustomConfirmationDialogWidget(
+                            builder: (ctx) => const CustomConfirmationDialogWidget(
                               title: 'Log Out',
                               content: 'Are you sure you want to logout?',
                               confirmText: 'Ok',
                             ),
                           );
-                          if(confirm==true){
-                            Navigator.pop(context);
-                            final isNetworkAvailable = ref.read(
-                              checkInternetConnectionProvider,
-                            );
-                            final isConnected =
-                                isNetworkAvailable
-                                    .whenData((value) => value)
-                                    .value ??
-                                    false;
-
+                          if (confirm == true) {
+                            final isNetworkAvailable = ref.read(checkInternetConnectionProvider);
+                            final isConnected = isNetworkAvailable.whenData((value) => value).value ?? false;
+                            final database = ref.read(firebaseDatabaseProvider);
+                            final auth = ref.read(firebaseAuthProvider);
+                            final userId = auth.currentUser?.uid;
                             if (!isConnected) {
                               CustomSnackBarWidget.show(
                                 context: context,
@@ -201,8 +198,14 @@ class DoctorDrawerView extends ConsumerWidget {
                               return;
                             }
                             try {
+                              if (userId != null) {
+                                await database.child('Users/$userId/status').update({
+                                  'isOnline': false,
+                                  'lastSeen': ServerValue.timestamp,
+                                });
+                                logDebug('User status updated to offline.');
+                              }
                               await ref.read(authProvider).logout(context);
-                              AppNavigation.pushReplacement(const SignInView());
                             } catch (e) {
                               CustomSnackBarWidget.show(
                                 context: context,

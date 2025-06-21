@@ -8,6 +8,7 @@ import '../../../../../assets/app_assets.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../core/utils/calculate_distance_between_two_latitude_and_logitude_points.dart';
 import '../../../../router/nav.dart';
+import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
@@ -35,6 +36,8 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPatientData =
         ref.watch(currentSignInPatientDataProvider).value;
+    final isOnline =
+        ref.watch(formattedStatusProvider(doctor.uid)).value == 'Online';
 
     final availableDays =
         doctor.availability.map((avail) => avail['day'] as String).toList();
@@ -77,22 +80,40 @@ class AllNearByDoctorsViewCard extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: ScreenUtil.scaleWidth(context, 92),
-                      height: ScreenUtil.scaleHeight(context, 92),
-                      child:
-                          doctor.profileImageUrl.isNotEmpty
-                              ? Image.network(
-                                doctor.profileImageUrl,
-                                fit: BoxFit.cover,
-                              )
-                              : Image.asset(
-                                AppAssets.defaultDoctorImg,
-                                fit: BoxFit.cover,
-                              ),
-                    ),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: ScreenUtil.scaleWidth(context, 92),
+                          height: ScreenUtil.scaleHeight(context, 92),
+                          child:
+                              doctor.profileImageUrl.isNotEmpty
+                                  ? Image.network(
+                                    doctor.profileImageUrl,
+                                    fit: BoxFit.cover,
+                                  )
+                                  : Image.asset(
+                                    AppAssets.defaultDoctorImg,
+                                    fit: BoxFit.cover,
+                                  ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        left: 2,
+                        child: Container(
+                          width: 13,
+                          height: 13,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isOnline ? AppColors.gradientGreen : AppColors.subTextColor,
+                            border: Border.all(color: AppColors.black, width: 1),
+
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   12.width,
                   Expanded(

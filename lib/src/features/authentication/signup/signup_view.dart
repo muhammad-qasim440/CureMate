@@ -41,7 +41,7 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
       if (next) {
         showDialog(
           context: context,
-          barrierDismissible: false,
+          barrierDismissible: true,
           builder: (context) => const SigningUpDialog(),
         );
       } else {

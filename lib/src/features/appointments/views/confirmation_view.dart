@@ -58,7 +58,7 @@ class ConfirmationDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: ScreenUtil.scaleWidth(context, 335),
-      height: ScreenUtil.scaleHeight(context, 530),
+      height: ScreenUtil.scaleHeight(context, 550),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.gradientWhite,
@@ -72,7 +72,7 @@ class ConfirmationDialog extends ConsumerWidget {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           const CircleAvatar(
               radius: 80,
@@ -162,6 +162,7 @@ class ConfirmationDialog extends ConsumerWidget {
               );
             },
           ),
+
         ],
       ),
     );

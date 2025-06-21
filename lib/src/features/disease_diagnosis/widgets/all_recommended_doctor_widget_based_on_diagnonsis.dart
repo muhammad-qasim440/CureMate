@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../const/app_fonts.dart';
 import '../../../../const/font_sizes.dart';
-import '../../../router/nav.dart';
 import '../../../shared/widgets/back_view_icon_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';

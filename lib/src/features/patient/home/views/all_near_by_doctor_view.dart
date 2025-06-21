@@ -1,5 +1,4 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/core/utils/debug_print.dart';
 import 'package:curemate/src/features/patient/home/cards/all_near_by_doctors_view_card.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:curemate/src/features/patient/shared/doctors_searching/providers/doctors_searching_providers.dart';

@@ -158,19 +158,8 @@ class _DoctorMyScheduleViewWidgetState extends ConsumerState<DoctorMyScheduleVie
               isEditing: editingDay != null,
               onAddOrUpdate: () async {
                 final error = service.addOrUpdateConfig(editingDay: editingDay);
-                if (error != null) {
-                  CustomSnackBarWidget.show(context: context, text: error.toString());
-                } else {
-                  CustomSnackBarWidget.show(
-                    context: context,
-                    text: editingDay != null
-                        ? '$editingDay updated successfully'
-                        : 'Slot added successfully',
-                  );
-                  ref.read(showInputUIProvider.notifier).state = false;
-                  ref.read(editingDayProvider.notifier).state = null;
-                }
-              },
+                CustomSnackBarWidget.show(context: context, text: error.toString());
+                            },
               formKey: formKey,
             ),
           ],

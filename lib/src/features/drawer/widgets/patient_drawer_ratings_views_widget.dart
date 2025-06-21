@@ -30,7 +30,9 @@ class PatientDrawerRatingsViewsWidget extends ConsumerWidget {
                     horizontal: 16.0,
                     vertical: 15.0,
                   ),
-                  child: CustomAppBarHeaderWidget(title: 'My Ratings & Reviews',),
+                  child: CustomAppBarHeaderWidget(
+                    title: 'My Ratings & Reviews',
+                  ),
                 ),
                 appointmentsAsync.when(
                   data: (appointments) {
@@ -45,11 +47,12 @@ class PatientDrawerRatingsViewsWidget extends ConsumerWidget {
                             )
                             .toList()
                           ..sort(
-                            (a, b) => (b.ratedAt ?? '').compareTo(a.ratedAt ?? ''),
+                            (a, b) =>
+                                (b.ratedAt ?? '').compareTo(a.ratedAt ?? ''),
                           );
 
                     if (myRatedAppointments.isEmpty) {
-                      return _buildEmptyRatings();
+                      return _buildEmptyRatings(context);
                     }
 
                     return Expanded(
@@ -57,8 +60,10 @@ class PatientDrawerRatingsViewsWidget extends ConsumerWidget {
                         padding: const EdgeInsets.all(16),
                         itemCount: myRatedAppointments.length,
                         itemBuilder:
-                            (context, index) =>
-                                _buildRatingCard(context, myRatedAppointments[index]),
+                            (context, index) => _buildRatingCard(
+                              context,
+                              myRatedAppointments[index],
+                            ),
                       ),
                     );
                   },
@@ -90,32 +95,45 @@ class PatientDrawerRatingsViewsWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyRatings() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.rate_review_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'You haven\'t given any ratings yet',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
-              fontFamily: AppFonts.rubik,
+  Widget _buildEmptyRatings(BuildContext context) {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: AppColors.gradientGreen,
+              child: Icon(
+                Icons.rate_review_outlined,
+                size: 64,
+                color: AppColors.gradientWhite,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Your ratings will appear here after you rate your appointments completed appointments',
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-              fontFamily: AppFonts.rubik,
+            const SizedBox(height: 16),
+            Text(
+              'You haven\'t given any ratings yet',
+              style: TextStyle(
+                color: AppColors.black,
+                fontSize: FontSizes(context).size12,
+                fontFamily: AppFonts.rubik,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              'Rate to your completed appointments',
+              style: TextStyle(
+                color: AppColors.gradientGreen,
+                fontSize: FontSizes(context).size16,
+                fontFamily: AppFonts.rubik,
+                fontWeight: FontWeight.w500,
+
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -209,20 +227,21 @@ class PatientDrawerRatingsViewsWidget extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if(appointment.review!='')...[
-          Text(
-            appointment.review!,
-            style: TextStyle(
-              fontSize: FontSizes(context).size14,
-              fontFamily: AppFonts.rubik,
-              color: Colors.grey[700],
+          if (appointment.review != '') ...[
+            Text(
+              appointment.review!,
+              style: TextStyle(
+                fontSize: FontSizes(context).size14,
+                fontFamily: AppFonts.rubik,
+                color: Colors.grey[700],
+              ),
             ),
-          ),
           ],
           const SizedBox(height: 8),
           Text(
-            appointment.patientType=='My Self'?'Booked for: ${appointment.bookerName }'
-                :'Booked for: ${appointment.patientName}',
+            appointment.patientType == 'My Self'
+                ? 'Booked for: ${appointment.bookerName}'
+                : 'Booked for: ${appointment.patientName}',
             style: TextStyle(
               fontSize: FontSizes(context).size12,
               fontFamily: AppFonts.rubik,

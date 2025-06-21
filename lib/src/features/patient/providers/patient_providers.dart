@@ -12,6 +12,8 @@ class Patient {
   final String email;
   final String city;
   final String dob;
+  final int age;
+  final String gender;
   final String phoneNumber;
   final String profileImageUrl;
   final String profileImagePublicId;
@@ -28,6 +30,8 @@ class Patient {
     required this.email,
     required this.city,
     required this.dob,
+    required this.gender,
+    required this.age,
     required this.phoneNumber,
     required this.profileImageUrl,
     required this.profileImagePublicId,
@@ -40,7 +44,7 @@ class Patient {
   });
 
   factory Patient.fromMap(Map<dynamic, dynamic> map, String uid) {
-    // Helper function to safely convert favorites to Map<String, bool>
+    /// Helper function to safely convert favorites to Map<String, bool>
     Map<String, bool> parseFavorites(dynamic favorites) {
       if (favorites == null) return {};
       if (favorites is! Map) {
@@ -61,6 +65,8 @@ class Patient {
       email: map['email'] ?? '',
       city: map['city'] ?? '',
       dob: map['dob'] ?? '',
+      age:map['age']??0,
+      gender: map['gender']??'',
       phoneNumber: map['phoneNumber'] ?? '',
       profileImageUrl: map['profileImageUrl'] ?? '',
       profileImagePublicId: map['profileImagePublicId'] ?? '',
@@ -82,6 +88,8 @@ class Patient {
       'email': email,
       'city': city,
       'dob': dob,
+      'age':age,
+      'gender':gender,
       'phoneNumber': phoneNumber,
       'profileImageUrl': profileImageUrl,
       'profileImagePublicId': profileImagePublicId,
@@ -100,6 +108,8 @@ class Doctor {
   final String email;
   final String city;
   final String dob;
+  final int age;
+  final String gender;
   final String phoneNumber;
   final String profileImageUrl;
   final String profileImagePublicId;
@@ -126,6 +136,8 @@ class Doctor {
     required this.email,
     required this.city,
     required this.dob,
+    required this.gender,
+    required this.age,
     required this.phoneNumber,
     required this.profileImageUrl,
     required this.profileImagePublicId,
@@ -153,6 +165,8 @@ class Doctor {
       email: map['email'] ?? '',
       city: map['city'] ?? '',
       dob: map['dob'] ?? '',
+      age:map['age']??0,
+      gender: map['gender']??'',
       phoneNumber: map['phoneNumber'] ?? '',
       profileImageUrl: map['profileImageUrl'] ?? '',
       profileImagePublicId: map['profileImagePublicId'] ?? '',

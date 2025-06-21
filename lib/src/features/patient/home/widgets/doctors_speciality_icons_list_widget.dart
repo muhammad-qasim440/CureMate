@@ -90,18 +90,17 @@ class DoctorsSpecialityIconsListWidget extends ConsumerWidget {
               } else {
                 ref.read(searchQueryProvider.notifier).state = selectedLabel;
               }
-
               AppNavigation.push(const DoctorsSearchingView());
             },
 
             child: Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: ScreenUtil.scaleWidth(context, 70),
                     height: ScreenUtil.scaleHeight(context, 75),
-                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: specialities[index]['gradient'],

@@ -27,7 +27,7 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
             'id': entry.key,
             ...Map<String, dynamic>.from(entry.value as Map<dynamic, dynamic>),
           };
-          // Normalize images field: ensure it's a list of maps with string keys and values
+          /// Normalize images field: ensure it's a list of maps with string keys and values
           if (record['images'] != null && record['images'] is List) {
             record['images'] = (record['images'] as List).map((item) {
               if (item is Map) {
@@ -35,7 +35,7 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
                   (item).entries.map((e) => MapEntry(e.key.toString(), e.value.toString())),
                 );
               }
-              return {'url': '', 'public_id': ''}; // Default fallback
+              return {'url': '', 'public_id': ''};
             }).toList();
           } else {
             record['images'] = [];
@@ -47,10 +47,6 @@ final medicalRecordsProvider = StreamProvider.autoDispose<List<Map<String, dynam
     }
   }
 });
-
-
-
-
 /// add patient record view providers
 final selectedImagesProvider = StateProvider<List<File>>((ref) => []);
 final recordTypeProvider = StateProvider.autoDispose<String>((ref) => 'Prescription');
@@ -77,7 +73,12 @@ final userUpdatedCityProvider = StateProvider<String>((ref) => '');
 final userUpdatedLatitudeProvider = StateProvider<String>((ref) => '');
 final userUpdatedLongitudeProvider = StateProvider<String>((ref) => '');
 final userUpdatedDOBProvider = StateProvider<String>((ref) => '');
+final userUpdatedAgeProvider = StateProvider<int>((ref) =>0);
+final userUpdatedGenderProvider = StateProvider<String>((ref) => '');
+
 final isEditingPhoneNumberProvider = StateProvider<bool>((ref) => false);
+final isEditingAgeProvider = StateProvider<bool>((ref) => false);
+final isEditingGenderProvider = StateProvider<bool>((ref) => false);
 final isEditingDOBProvider = StateProvider<bool>((ref) => false);
 final isEditingCityProvider = StateProvider<bool>((ref) => false);
 final isEditingLocationProvider = StateProvider<bool>((ref) => false);

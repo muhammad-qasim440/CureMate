@@ -1,6 +1,6 @@
 import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
-import 'package:curemate/core/extentions/date_time_format_extension.dart';
+import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 import '../../../../router/nav.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/back_view_icon_widget.dart';
+import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../appointments/models/appointment_model.dart';
 import 'patient_details_view.dart';
 
@@ -190,12 +191,19 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
               fontFamily: AppFonts.rubik,
             ),
           ),
+          const Divider(),
           const SizedBox(height: 16),
-          _buildInfoRow(context, 'Date', appointment.date),
-          _buildInfoRow(context, 'Time', appointment.timeSlot),
-          _buildInfoRow(context, 'Status', appointment.status.toUpperCase()),
-          _buildInfoRow(context, 'Created At', appointment.createdAt.formattedDate,),
-          if (appointment.updatedAt != null) ...[_buildInfoRow(context, 'Updated At', appointment.createdAt.formattedDate),
+          _buildInfoRow(context, 'Appointment ID', appointment.id,),
+          _buildInfoRow(context, 'Patient Name', appointment.patientName),
+          _buildInfoRow(context,  'Patient Gender', appointment.patientGender,),
+          _buildInfoRow(context, 'Patient Age', appointment.patientAge.toString(),),
+          _buildInfoRow(context,  'Patient Number', appointment.patientNumber,),
+          _buildInfoRow(context,  'Booked By', appointment.bookerName,),
+          _buildInfoRow(context,  'Appointment Date', appointment.date,),
+          _buildInfoRow(context, 'Consultation Time', appointment.timeSlot),
+          _buildInfoRow(context, 'Appointment Status', appointment.status.toUpperCase()),
+          _buildInfoRow(context, 'Created At', appointment.createdAt.formattedDateTime,),
+          if (appointment.updatedAt != null) ...[_buildInfoRow(context, 'Updated At', appointment.createdAt.formattedDateTime),
           ],
           if (appointment.patientType != 'My Self') ...[
             _buildInfoRow(context, 'Booked by', appointment.bookerName),
@@ -266,6 +274,7 @@ class DoctorAppointmentDetailsView extends ConsumerWidget {
               ),
             ),
           ),
+          20.width,
           Expanded(
             child: Text(
               value,

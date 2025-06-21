@@ -53,6 +53,7 @@ class _ChatViewState extends ConsumerState<PatientChatView> {
                         final otherUserName =
                             chat['otherUserName']?.trim() ??
                                 'Unknown';
+
                         return ChatListItem(
                           otherUserId: chat['otherUserId'] ?? '',
                           otherUserName: otherUserName,

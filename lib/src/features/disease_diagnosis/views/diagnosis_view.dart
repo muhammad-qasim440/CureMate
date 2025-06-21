@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 
 import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
-import '../../../shared/widgets/custom_appbar_header_widget.dart';
 import '../../../shared/widgets/custom_centered_text_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
@@ -25,6 +24,8 @@ import '../widgets/recommended_doctors_widget.dart';
 import '../widgets/symptoms_input_widget.dart';
 import '../../patient/providers/patient_providers.dart';
 
+final isLoadingProvider=StateProvider<bool>((ref)=>false);
+final hasSearchedProvider=StateProvider.autoDispose<bool>((ref)=>false);
 class DiagnosisView extends ConsumerStatefulWidget {
   const DiagnosisView({super.key});
 
@@ -34,45 +35,52 @@ class DiagnosisView extends ConsumerStatefulWidget {
 
 class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
   final TextEditingController _symptomsController = TextEditingController();
-  bool _isLoading = false;
-  bool _hasSearched = false;
 
-  Future<void> diagnoseSymptoms() async {
-    if (_isLoading) return;
+  Future<void> diagnoseSymptoms(WidgetRef ref, String api) async {
+    final isLoading = ref.read(isLoadingProvider);
+    if (isLoading) return;
+
     FocusScope.of(context).unfocus();
-   final hasInternetConnection= await ref.read(checkInternetConnectionProvider.future);
-   if(!hasInternetConnection){
-     if(context.mounted) {
-       CustomSnackBarWidget.show(
-           context: context, text: AppStrings.noInternetInSnackBar);
-     }
-     return;
-   }
-    setState(() {
-      _isLoading = true;
-    });
-   logDebug('i am here');
-    final apiKey=await ref.read(ngrokApiProvider.future);
-    final symptoms =
-        _symptomsController.text
-            .split(',')
-            .map((s) => s.trim().toLowerCase())
-            .where((s) => s.isNotEmpty)
-            .toList();
+
+    ref.read(isLoadingProvider.notifier).state = true;
+    final hasInternetConnection = await ref.read(checkInternetConnectionProvider.future);
+    if (!hasInternetConnection) {
+      if (context.mounted) {
+        CustomSnackBarWidget.show(
+          context: context,
+          text: AppStrings.noInternetInSnackBar,
+        );
+      }
+      ref.read(isLoadingProvider.notifier).state = false;
+      return;
+    }
+
+    final symptoms = _symptomsController.text
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .where((s) => s.isNotEmpty)
+        .toList();
 
     if (symptoms.isEmpty) {
       ref.read(diagnosisProvider.notifier).state = AsyncValue.error(
         'Please enter at least one symptom',
         StackTrace.current,
       );
+      ref.read(isLoadingProvider.notifier).state = false;
       return;
     }
-
-
-      logDebug('SYpmtoms $symptoms');
+    if (api.isEmpty|| api=='') {
+      ref.read(diagnosisProvider.notifier).state = AsyncValue.error(
+        'please check you local host and ngrok api link ',
+        StackTrace.current,
+      );
+      ref.read(isLoadingProvider.notifier).state = false;
+      return;
+    }
+    logDebug('Symptoms $symptoms');
     try {
       final response = await http.post(
-        Uri.parse('$apiKey/diagnose'),
+        Uri.parse('$api/diagnose'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'symptoms': symptoms}),
       );
@@ -81,15 +89,12 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final diagnoses =
-            (data['diagnoses'] as List<dynamic>)
-                .map((item) => Diagnosis.fromJson(item as Map<String, dynamic>))
-                .toList();
+        final diagnoses = (data['diagnoses'] as List<dynamic>)
+            .map((item) => Diagnosis.fromJson(item as Map<String, dynamic>))
+            .toList();
         ref.read(diagnosisProvider.notifier).state = AsyncValue.data(diagnoses);
-        setState(() {
-          _hasSearched = true;
-          _symptomsController.clear();
-        });
+        ref.read(hasSearchedProvider.notifier).state = true;
+        _symptomsController.clear();
       } else {
         ref.read(diagnosisProvider.notifier).state = AsyncValue.error(
           jsonDecode(response.body)['error'] ?? 'Unknown error',
@@ -105,9 +110,7 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        ref.read(isLoadingProvider.notifier).state = false;
       }
     }
   }
@@ -116,7 +119,9 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
   Widget build(BuildContext context) {
     final diagnosesAsync = ref.watch(diagnosisProvider);
     final doctorsAsync = ref.watch(doctorsProvider);
-
+    final isLoading=ref.watch(isLoadingProvider);
+    final hasSearched=ref.watch(hasSearchedProvider);
+    final api=ref.watch(ngrokApiProvider).when(data: (data){ return data;}, error: (e,stack){return '';}, loading: (){return '';});
     final groupedDiagnoses = <String, List<Diagnosis>>{};
     diagnosesAsync.whenData((diagnoses) {
       for (var diagnosis in diagnoses) {
@@ -159,7 +164,7 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!_hasSearched) ...[
+                            if (!hasSearched) ...[
                               5.height,
                               Center(
                                 child: CustomTextWidget(
@@ -220,7 +225,7 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
                                     ),
                                   ),
                               data: (diagnoses) {
-                                if (diagnoses.isEmpty && _hasSearched) {
+                                if (diagnoses.isEmpty && hasSearched) {
                                   return Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -373,8 +378,8 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
               ),
               SymptomsInputWidget(
                 controller: _symptomsController,
-                onSubmit:(){diagnoseSymptoms();},
-                isLoading: _isLoading,
+                onSubmit:(){diagnoseSymptoms(ref,api);},
+                isLoading: isLoading,
               ),
             ],
           ),

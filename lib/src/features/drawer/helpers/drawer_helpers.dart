@@ -344,6 +344,8 @@ class DrawerHelpers {
     final currentLatitude = ref.read(userUpdatedLatitudeProvider);
     final currentLongitude = ref.read(userUpdatedLongitudeProvider);
     final currentDob = ref.read(userUpdatedDOBProvider);
+    final currentGender = ref.read(userUpdatedGenderProvider);
+    final currentAge = ref.read(userUpdatedAgeProvider);
 
     Map<String, dynamic> updatedData = {};
     if (currentName != userData.fullName) updatedData['fullName'] = currentName;
@@ -352,6 +354,8 @@ class DrawerHelpers {
     if (currentLatitude != userData.latitude.toString()) updatedData['latitude'] = currentLatitude;
     if (currentLongitude != userData.longitude.toString()) updatedData['longitude'] = currentLongitude;
     if (currentDob != userData.dob) updatedData['dob'] = currentDob;
+    if (currentGender != userData.gender) updatedData['gender'] = currentGender;
+    if (currentAge != userData.age) updatedData['age'] = currentAge;
 
     final profileImageState = ref.read(profileImagePickerProvider);
     if (profileImageState.croppedImage != null) {

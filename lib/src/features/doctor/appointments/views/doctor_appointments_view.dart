@@ -10,19 +10,24 @@ import '../../../../../const/app_fonts.dart';
 import '../../../../../const/app_strings.dart';
 import '../../../../../const/font_sizes.dart';
 import '../../../../../core/utils/debug_print.dart';
+import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/providers/check_internet_connectivity_provider.dart';
 import '../../../../shared/widgets/custom_button_widget.dart';
 import '../../../../shared/widgets/custom_drop_down_menu_widget.dart';
 import '../../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../shared/widgets/lower_background_effects_widgets.dart';
+import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
 import '../../../appointments/providers/appointments_providers.dart';
+import '../../../appointments/utils/appointment_utils.dart';
 import '../../../patient/providers/patient_providers.dart';
 import 'patient_details_view.dart';
 import 'doctor_appointment_details_view.dart';
 import '../../../../router/nav.dart';
+
+final doctorAppointmentsViewSearchQueryProvider=StateProvider<String>((ref)=>'');
 
 class DoctorAppointmentsView extends ConsumerWidget {
   const DoctorAppointmentsView({super.key});
@@ -157,16 +162,24 @@ class DoctorAppointmentsView extends ConsumerWidget {
     );
   }
 
+  String _getActiveFiltersText(String status, String date, bool isGroupedByPatient) {
+    List<String> activeFilters = [];
+    if (status != 'All') activeFilters.add('Status: $status');
+    if (date != 'All') activeFilters.add('Date: $date');
+    if (isGroupedByPatient) activeFilters.add('Grouped by Patient');
+    return activeFilters.join(' • ');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsAsync = ref.watch(appointmentsProvider);
     final filterOption = ref.watch(appointmentsFilterOptionProvider);
     final dateFilter = ref.watch(appointmentsDateFilterProvider);
     final isGroupedByPatient = ref.watch(appointmentsGroupByPatientProvider);
-
-    final bool hasActiveFilters = filterOption != 'All' || 
-                                dateFilter != 'All' || 
-                                isGroupedByPatient;
+    final searchQuery=ref.watch(doctorAppointmentsViewSearchQueryProvider);
+    final bool hasActiveFilters = filterOption != 'All' ||
+        dateFilter != 'All' ||
+        isGroupedByPatient;
 
     return Scaffold(
       appBar: AppBar(
@@ -216,6 +229,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  70.height,
                   if (hasActiveFilters) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -274,85 +288,41 @@ class DoctorAppointmentsView extends ConsumerWidget {
                           );
                         }
 
-                        var filteredAppointments = appointments.where((app) {
-                          if (app.doctorUid != user.uid) return false;
-                          if (app.status == 'cancelled') return false;
+                        final filteredAppointments = filterAndSortAppointments(
+                          appointments: appointments,
+                          filterOption: filterOption,
+                          dateFilter: dateFilter,
+                          groupByField: isGroupedByPatient ? 'patientUid' : null,
+                          userUid: user.uid,
+                        );
 
-                          /// Status Filter
-                          if (filterOption != 'All' && 
-                              app.status.toLowerCase() != filterOption.toLowerCase()) {
-                            return false;
-                          }
-
-                          /// Date Filter
-                          final appointmentDate = DateFormat('yyyy-MM-dd').parse(app.date);
-                          final now = DateTime.now();
-                          switch (dateFilter) {
-                            case 'Today':
-                              if (!_isSameDay(appointmentDate, now)) return false;
-                              break;
-                            case 'This Week':
-                              final weekStart = now.subtract(Duration(days: now.weekday - 1));
-                              final weekEnd = weekStart.add(const Duration(days: 6));
-                              if (appointmentDate.isBefore(weekStart) || 
-                                  appointmentDate.isAfter(weekEnd)) {
-                                return false;
-                              }
-                              break;
-                            case 'This Month':
-                              if (appointmentDate.month != now.month || 
-                                  appointmentDate.year != now.year) {
-                                return false;
-                              }
-                              break;
-                          }
-
-                          return true;
+                        final searchedAppointments = searchQuery.isEmpty
+                            ? filteredAppointments
+                            : filteredAppointments.where((appointment) {
+                          return appointment.patientName.toLowerCase().contains(searchQuery) ||
+                              appointment.bookerName.toLowerCase().contains(searchQuery) ||
+                              appointment.id.toLowerCase().contains(searchQuery) ||
+                              appointment.status.toLowerCase().contains(searchQuery) ||
+                              appointment.timeSlot.toLowerCase().contains(searchQuery) ||
+                              appointment.date.toLowerCase().contains(searchQuery);
                         }).toList();
 
-                        /// Sort appointments
-                        if (isGroupedByPatient) {
-                          /// Group by patient and sort by date within each group
-                          filteredAppointments.sort((a, b) {
-                            /// First sort by patient UID
-                            final patientCompare = a.patientUid.compareTo(b.patientUid);
-                            if (patientCompare != 0) return patientCompare;
-                            
-                            /// Then by date
-                            final dateCompare = DateFormat('yyyy-MM-dd').parse(a.date)
-                                .compareTo(DateFormat('yyyy-MM-dd').parse(b.date));
-                            if (dateCompare != 0) return dateCompare;
-                            
-                            /// Finally by time
-                            return DateFormat('hh:mm a').parse(a.timeSlot)
-                                .compareTo(DateFormat('hh:mm a').parse(b.timeSlot));
-                          });
-                        } else {
-                          /// Sort by date and time only
-                          filteredAppointments.sort((a, b) {
-                            final dateCompare = DateFormat('yyyy-MM-dd').parse(a.date)
-                                .compareTo(DateFormat('yyyy-MM-dd').parse(b.date));
-                            if (dateCompare != 0) return dateCompare;
-                            return DateFormat('hh:mm a').parse(a.timeSlot)
-                                .compareTo(DateFormat('hh:mm a').parse(b.timeSlot));
-                          });
-                        }
 
-                        if (filteredAppointments.isEmpty) {
+                        if (searchedAppointments.isEmpty) {
                           return const CustomCenteredTextWidget(
                             text: 'No Bookings Found',
                           );
                         }
 
                         return ListView.builder(
-                          itemCount: filteredAppointments.length,
+                          itemCount: searchedAppointments.length,
                           itemBuilder: (context, index) {
-                            final appointment = filteredAppointments[index];
+                            final appointment = searchedAppointments[index];
                             final patientAsync = ref.watch(
                               patientDataByUidProvider(appointment.patientUid),
                             );
 
-                            /// Check if 30 minutes have passed since the appointment time
+                            // Check if 30 minutes have passed since the appointment time
                             bool canComplete = false;
                             if (appointment.status == 'accepted') {
                               try {
@@ -378,15 +348,15 @@ class DoctorAppointmentsView extends ConsumerWidget {
                               }
                             }
 
-                            /// Add a header for each new patient group
+                            // Add a header for each new patient group
                             Widget? header;
-                            if (isGroupedByPatient && (index == 0 || 
-                                filteredAppointments[index].patientUid != 
-                                filteredAppointments[index - 1].patientUid)) {
+                            if (isGroupedByPatient && (index == 0 ||
+                                filteredAppointments[index].patientUid !=
+                                    filteredAppointments[index - 1].patientUid)) {
                               header = Padding(
-                                padding: const EdgeInsets.only(bottom: 15,left:70),
+                                padding: const EdgeInsets.only(bottom: 15, left: 70),
                                 child: CustomTextWidget(
-                                  text: 'By : ${appointment.bookerName}',
+                                  text: 'By: ${appointment.bookerName}',
                                   textStyle: TextStyle(
                                     fontFamily: AppFonts.rubik,
                                     fontSize: FontSizes(context).size18,
@@ -406,6 +376,8 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                       email: '',
                                       city: '',
                                       dob: '',
+                                      gender:'',
+                                      age: 0,
                                       phoneNumber: '',
                                       profileImageUrl: '',
                                       profileImagePublicId: '',
@@ -416,7 +388,11 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                       favorites: {},
                                       medicalRecords: {},
                                     );
-
+                                final isOnline =
+                                    ref
+                                        .watch(formattedStatusProvider(patient!.uid))
+                                        .value ==
+                                        'Online';
                                 return GestureDetector(
                                   onTap: () {
                                     AppNavigation.push(DoctorAppointmentDetailsView(
@@ -432,45 +408,62 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color:
-                                          AppColors.black.withOpacity(0.05),
+                                          color: AppColors.black.withOpacity(0.05),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
                                       ],
                                     ),
                                     child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         if (header != null) header,
                                         Row(
                                           children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                              BorderRadius.circular(8),
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  AppNavigation.push(PatientDetailsView(patient: displayPatient));
-                                                },
-                                                child: SizedBox(
-                                                  width: ScreenUtil.scaleWidth(
-                                                      context, 60),
-                                                  height: ScreenUtil.scaleHeight(
-                                                      context, 60),
-                                                  child: displayPatient
-                                                      .profileImageUrl.isNotEmpty
-                                                      ? Image.network(
-                                                    displayPatient
-                                                        .profileImageUrl,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                      : Image.asset(
-                                                    AppAssets.defaultPatientImg,
-                                                    fit: BoxFit.cover,
+                                            Stack(
+                                              children:[ ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    AppNavigation.push(PatientDetailsView(patient: displayPatient));
+                                                  },
+                                                  child: SizedBox(
+                                                    width: ScreenUtil.scaleWidth(context, 60),
+                                                    height: ScreenUtil.scaleHeight(context, 60),
+                                                    child: displayPatient.profileImageUrl.isNotEmpty
+                                                        ? Image.network(
+                                                      displayPatient.profileImageUrl,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                        : Image.asset(
+                                                      AppAssets.defaultPatientImg,
+                                                      fit: BoxFit.cover,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
+                                                Positioned(
+                                                  top: 2,
+                                                  left: 2,
+                                                  child: Container(
+                                                    width: 13,
+                                                    height: 13,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color:
+                                                      isOnline
+                                                          ? AppColors
+                                                          .gradientGreen
+                                                          : AppColors
+                                                          .subTextColor,
+                                                      border: Border.all(
+                                                        color: AppColors.black,
+                                                        width: 1,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                             ],
                                             ),
                                             12.width,
                                             Expanded(
@@ -479,53 +472,38 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                                   AppNavigation.push(PatientDetailsView(patient: displayPatient));
                                                 },
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     CustomTextWidget(
                                                       text: displayPatient.fullName,
                                                       textStyle: TextStyle(
                                                         fontFamily: AppFonts.rubik,
-                                                        fontSize:
-                                                        FontSizes(context)
-                                                            .size18,
+                                                        fontSize: FontSizes(context).size18,
                                                         fontWeight: FontWeight.w600,
                                                         color: AppColors.black,
                                                       ),
                                                     ),
                                                     4.height,
                                                     CustomTextWidget(
-                                                      text: appointment
-                                                          .patientType ==
-                                                          'My Self'
+                                                      text: appointment.patientType == 'My Self'
                                                           ? 'Patient: My Self'
                                                           : 'Patient: ${appointment.patientName}',
                                                       textStyle: TextStyle(
                                                         fontFamily: AppFonts.rubik,
-                                                        fontSize:
-                                                        FontSizes(context)
-                                                            .size14,
+                                                        fontSize: FontSizes(context).size14,
                                                         fontWeight: FontWeight.w400,
-                                                        color:
-                                                        AppColors.subTextColor,
+                                                        color: AppColors.subTextColor,
                                                       ),
                                                     ),
                                                     4.height,
-                                                    appointment.patientType !=
-                                                        'My Self'
+                                                    appointment.patientType != 'My Self'
                                                         ? CustomTextWidget(
-                                                      text:
-                                                      'Relation with patient: ${appointment.patientType}',
+                                                      text: 'Relation with patient: ${appointment.patientType}',
                                                       textStyle: TextStyle(
-                                                        fontFamily:
-                                                        AppFonts.rubik,
-                                                        fontSize:
-                                                        FontSizes(context)
-                                                            .size14,
-                                                        fontWeight:
-                                                        FontWeight.w400,
-                                                        color: AppColors
-                                                            .subTextColor,
+                                                        fontFamily: AppFonts.rubik,
+                                                        fontSize: FontSizes(context).size14,
+                                                        fontWeight: FontWeight.w400,
+                                                        color: AppColors.subTextColor,
                                                       ),
                                                     )
                                                         : const SizedBox.shrink(),
@@ -537,8 +515,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         ),
                                         12.height,
                                         CustomTextWidget(
-                                          text:
-                                          'Created At: ${appointment.createdAt.formattedDateTime}',
+                                          text: 'ID : ${appointment.id}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
@@ -548,8 +525,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         ),
                                         4.height,
                                         CustomTextWidget(
-                                          text:
-                                          'Appointment Date: ${appointment.date}',
+                                          text: 'Patient Gender: ${appointment.patientGender}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
@@ -559,8 +535,50 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         ),
                                         4.height,
                                         CustomTextWidget(
-                                          text:
-                                          'Time: ${appointment.slotType} ${appointment.timeSlot}',
+                                          text: 'Patient Age: ${appointment.patientAge}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color:  AppColors.subTextColor,
+                                          ),
+                                        ),
+                                        4.height,
+                                        CustomTextWidget(
+                                          text: 'Booked by: ${appointment.bookerName}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.subTextColor,
+                                          ),
+                                        ),
+                                        4.height,
+
+                                        CustomTextWidget(
+                                          text: 'Created At: ${appointment.createdAt.formattedDateTime}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.subTextColor,
+                                          ),
+                                        ),
+                                        if (appointment.updatedAt != null) ...[
+                                          4.height,
+                                          CustomTextWidget(
+                                            text: 'Updated At: ${appointment.updatedAt!.formattedDateTime}',
+                                            textStyle: TextStyle(
+                                              fontFamily: AppFonts.rubik,
+                                              fontSize: FontSizes(context).size14,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.subTextColor,
+                                            ),
+                                          ),
+                                        ],
+                                        4.height,
+                                        CustomTextWidget(
+                                          text: 'Appointment Date: ${appointment.date.formattedDateMonthYear}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
@@ -570,21 +588,28 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         ),
                                         4.height,
                                         CustomTextWidget(
-                                          text:
-                                          'Status: ${appointment.status.capitalize()}',
+                                          text: 'Consultation Time: ${appointment.slotType} ${appointment.timeSlot}',
+                                          textStyle: TextStyle(
+                                            fontFamily: AppFonts.rubik,
+                                            fontSize: FontSizes(context).size14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.subTextColor,
+                                          ),
+                                        ),
+                                        4.height,
+                                        CustomTextWidget(
+                                          text: 'Status: ${appointment.status.capitalize()}',
                                           textStyle: TextStyle(
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
                                             fontWeight: FontWeight.w500,
-                                            color:
-                                            AppColors.getStatusColor(appointment.status),
+                                            color: AppColors.getStatusColor(appointment.status),
                                           ),
                                         ),
                                         if (appointment.patientNotes != null) ...[
                                           4.height,
                                           CustomTextWidget(
-                                            text:
-                                            'Notes: ${appointment.patientNotes}',
+                                            text: 'Notes: ${appointment.patientNotes}',
                                             textStyle: TextStyle(
                                               fontFamily: AppFonts.rubik,
                                               fontSize: FontSizes(context).size14,
@@ -596,111 +621,86 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                         16.height,
                                         if (appointment.status == 'pending') ...[
                                           Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               CustomButtonWidget(
                                                 text: 'Accept',
-                                                height: ScreenUtil.scaleHeight(
-                                                    context, 40),
-                                                width: ScreenUtil.scaleWidth(
-                                                    context, 100),
-                                                backgroundColor:
-                                                AppColors.gradientGreen,
+                                                height: ScreenUtil.scaleHeight(context, 40),
+                                                width: ScreenUtil.scaleWidth(context, 100),
+                                                backgroundColor: AppColors.gradientGreen,
                                                 fontFamily: AppFonts.rubik,
-                                                fontSize:
-                                                FontSizes(context).size14,
+                                                fontSize: FontSizes(context).size14,
                                                 fontWeight: FontWeight.w500,
                                                 textColor: Colors.white,
                                                 onPressed: () async {
-                                                  final isConnected = await ref
-                                                      .read(
-                                                      checkInternetConnectionProvider
-                                                          .future);
+                                                  final isConnected = await ref.read(
+                                                      checkInternetConnectionProvider.future);
                                                   if (!isConnected) {
                                                     CustomSnackBarWidget.show(
                                                       context: context,
-                                                      text:
-                                                      'No Internet Connection',
+                                                      text: 'No Internet Connection',
                                                     );
                                                     return;
                                                   }
-                                  
-                                                  final database = FirebaseDatabase
-                                                      .instance
-                                                      .ref();
+
+                                                  final database = FirebaseDatabase.instance.ref();
                                                   await database
                                                       .child('Appointments')
                                                       .child(appointment.id)
                                                       .update({
                                                     'status': 'accepted',
                                                   });
-                                  
+
                                                   CustomSnackBarWidget.show(
                                                     context: context,
-                                                    text:
-                                                    'Booking accepted successfully',
+                                                    text: 'Booking accepted successfully',
                                                   );
                                                 },
                                               ),
                                               CustomButtonWidget(
                                                 text: 'Reject',
-                                                height: ScreenUtil.scaleHeight(
-                                                    context, 40),
-                                                width: ScreenUtil.scaleWidth(
-                                                    context, 100),
-                                                backgroundColor:
-                                                Colors.transparent,
+                                                height: ScreenUtil.scaleHeight(context, 40),
+                                                width: ScreenUtil.scaleWidth(context, 100),
+                                                backgroundColor: Colors.transparent,
                                                 fontFamily: AppFonts.rubik,
-                                                fontSize:
-                                                FontSizes(context).size14,
+                                                fontSize: FontSizes(context).size14,
                                                 fontWeight: FontWeight.w500,
                                                 textColor: Colors.red,
-                                                border: const BorderSide(
-                                                    color: Colors.red),
+                                                border: const BorderSide(color: Colors.red),
                                                 onPressed: () async {
-                                                  final isConnected = await ref
-                                                      .read(
-                                                      checkInternetConnectionProvider
-                                                          .future);
+                                                  final isConnected = await ref.read(
+                                                      checkInternetConnectionProvider.future);
                                                   if (!isConnected) {
                                                     CustomSnackBarWidget.show(
                                                       context: context,
-                                                      text:
-                                                      'No Internet Connection',
+                                                      text: 'No Internet Connection',
                                                     );
                                                     return;
                                                   }
-                                  
-                                                  final database = FirebaseDatabase
-                                                      .instance
-                                                      .ref();
+
+                                                  final database = FirebaseDatabase.instance.ref();
                                                   await database
                                                       .child('Appointments')
                                                       .child(appointment.id)
                                                       .update({
                                                     'status': 'rejected',
                                                   });
-                                  
+
                                                   CustomSnackBarWidget.show(
                                                     context: context,
-                                                    text:
-                                                    'Booking rejected successfully',
+                                                    text: 'Booking rejected successfully',
                                                   );
                                                 },
                                               ),
                                             ],
                                           ),
                                         ],
-                                        if (appointment.status == 'accepted' &&
-                                            canComplete) ...[
+                                        if (appointment.status == 'accepted' && canComplete) ...[
                                           8.height,
                                           CustomButtonWidget(
                                             text: 'Complete',
-                                            height:
-                                            ScreenUtil.scaleHeight(context, 40),
-                                            width:
-                                            ScreenUtil.scaleWidth(context, 100),
+                                            height: ScreenUtil.scaleHeight(context, 40),
+                                            width: ScreenUtil.scaleWidth(context, 100),
                                             backgroundColor: Colors.blue,
                                             fontFamily: AppFonts.rubik,
                                             fontSize: FontSizes(context).size14,
@@ -708,8 +708,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                             textColor: Colors.white,
                                             onPressed: () async {
                                               final isConnected = await ref.read(
-                                                  checkInternetConnectionProvider
-                                                      .future);
+                                                  checkInternetConnectionProvider.future);
                                               if (!isConnected) {
                                                 CustomSnackBarWidget.show(
                                                   context: context,
@@ -717,23 +716,21 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                                 );
                                                 return;
                                               }
-                                  
-                                              final database =
-                                              FirebaseDatabase.instance.ref();
+
+                                              final database = FirebaseDatabase.instance.ref();
                                               await database
                                                   .child('Appointments')
                                                   .child(appointment.id)
                                                   .update({
                                                 'status': 'completed',
                                               });
-                                                final doctorRef = database.child('Doctors').child(appointment.doctorUid);
-                                                await doctorRef.update({
-                                                  'totalPatientConsulted': ServerValue.increment(1),
-                                                });
+                                              final doctorRef = database.child('Doctors').child(appointment.doctorUid);
+                                              await doctorRef.update({
+                                                'totalPatientConsulted': ServerValue.increment(1),
+                                              });
                                               CustomSnackBarWidget.show(
                                                 context: context,
-                                                text:
-                                                'Appointment marked as completed',
+                                                text: 'Appointment marked as completed',
                                               );
                                             },
                                           ),
@@ -743,8 +740,7 @@ class DoctorAppointmentsView extends ConsumerWidget {
                                   ),
                                 );
                               },
-                              loading: () =>
-                              const SizedBox.shrink(),
+                              loading: () => const SizedBox.shrink(),
                               error: (error, stack) {
                                 logDebug('Error loading patient data: $error');
                                 return Center(
@@ -767,23 +763,13 @@ class DoctorAppointmentsView extends ConsumerWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SearchBarWidget(provider:doctorAppointmentsViewSearchQueryProvider),
+          ),
+
         ],
       ),
     );
-  }
-
-
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
-  }
-
-  String _getActiveFiltersText(String status, String date, bool isGroupedByPatient) {
-    List<String> activeFilters = [];
-    if (status != 'All') activeFilters.add('Status: $status');
-    if (date != 'All') activeFilters.add('Date: $date');
-    if (isGroupedByPatient) activeFilters.add('Grouped by Patient');
-    return activeFilters.join(' • ');
   }
 }

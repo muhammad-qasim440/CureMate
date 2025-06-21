@@ -20,90 +20,101 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
 
     final streamController = StreamController<List<AppointmentModel>>();
     final List<AppointmentModel> appointments = [];
-    final Set<String> appointmentIds = {};
 
     void updateAppointment(String key, Map<dynamic, dynamic> value) {
       final appointment = AppointmentModel.fromMap(value, key);
       final index = appointments.indexWhere((app) => app.id == key);
       if (index == -1) {
         appointments.add(appointment);
-        appointmentIds.add(key);
       } else {
         appointments[index] = appointment;
       }
+      logDebug("🧪 Sorting Appointments:");
+      for (var app in appointments) {
+        final sortDate = (app.updatedAt?.isNotEmpty ?? false) ? app.updatedAt : app.createdAt;
+        logDebug('before sorting ${app.id} | updatedAt: ${app.updatedAt} | createdAt: ${app.createdAt} | sort: $sortDate');
+      }
       appointments.sort((a, b) {
         try {
-          final aDateTime = DateTime.parse(a.createdAt);
-          final bDateTime = DateTime.parse(b.createdAt);
-          return bDateTime.compareTo(aDateTime);
+          final aDate = DateTime.tryParse(
+            (a.updatedAt?.isNotEmpty ?? false) ? a.updatedAt! : a.createdAt,
+          );
+          final bDate = DateTime.tryParse(
+            (b.updatedAt?.isNotEmpty ?? false) ? b.updatedAt! : b.createdAt,
+          );
+
+          if (aDate == null && bDate == null) return 0;
+          if (aDate == null) return 1;
+          if (bDate == null) return -1;
+
+          return bDate.compareTo(aDate);
         } catch (e) {
-          logDebug('Error parsing createdAt for sorting: $e');
+          logDebug('❌ Sort error: $e');
           return 0;
         }
       });
+
+
+
+
 
       streamController.add(List.from(appointments));
     }
 
     void removeAppointment(String key) {
       appointments.removeWhere((app) => app.id == key);
-      appointmentIds.remove(key);
       streamController.add(List.from(appointments));
     }
 
-    final patientQuery = appointmentsRef.orderByChild('patientUid').equalTo(user.uid);
-    final doctorQuery = appointmentsRef.orderByChild('doctorUid').equalTo(user.uid);
+    final doctorsNode = database.child('Doctors/${user.uid}');
+    final patientsNode = database.child('Patients/${user.uid}');
 
-    final patientSubscription = patientQuery.onChildAdded.listen((event) {
+    final isDoctorSnap = await doctorsNode.get();
+    final isPatientSnap = await patientsNode.get();
+
+    Query? query;
+
+    if (isDoctorSnap.exists) {
+      query = appointmentsRef.orderByChild('doctorUid').equalTo(user.uid);
+    } else if (isPatientSnap.exists) {
+      query = appointmentsRef.orderByChild('patientUid').equalTo(user.uid);
+    } else {
+      yield [];
+      continue;
+    }
+
+    final addedSub = query.onChildAdded.listen((event) {
       final key = event.snapshot.key!;
       final value = event.snapshot.value as Map<dynamic, dynamic>;
       updateAppointment(key, value);
     });
-    final patientUpdateSubscription = patientQuery.onChildChanged.listen((event) {
+
+    final changedSub = query.onChildChanged.listen((event) {
       final key = event.snapshot.key!;
       final value = event.snapshot.value as Map<dynamic, dynamic>;
       updateAppointment(key, value);
     });
-    final patientRemoveSubscription = patientQuery.onChildRemoved.listen((event) {
+
+    final removedSub = query.onChildRemoved.listen((event) {
       final key = event.snapshot.key!;
       removeAppointment(key);
     });
 
-    final doctorSubscription = doctorQuery.onChildAdded.listen((event) {
-      final key = event.snapshot.key!;
-      final value = event.snapshot.value as Map<dynamic, dynamic>;
-      updateAppointment(key, value);
-    });
-    final doctorUpdateSubscription = doctorQuery.onChildChanged.listen((event) {
-      final key = event.snapshot.key!;
-      final value = event.snapshot.value as Map<dynamic, dynamic>;
-      updateAppointment(key, value);
-    });
-    final doctorRemoveSubscription = doctorQuery.onChildRemoved.listen((event) {
-      final key = event.snapshot.key!;
-      removeAppointment(key);
-    });
-
-    authService.addRealtimeDbListener(patientSubscription);
-    authService.addRealtimeDbListener(patientUpdateSubscription);
-    authService.addRealtimeDbListener(patientRemoveSubscription);
-    authService.addRealtimeDbListener(doctorSubscription);
-    authService.addRealtimeDbListener(doctorUpdateSubscription);
-    authService.addRealtimeDbListener(doctorRemoveSubscription);
+    authService.addRealtimeDbListener(addedSub);
+    authService.addRealtimeDbListener(changedSub);
+    authService.addRealtimeDbListener(removedSub);
 
     yield* streamController.stream;
 
     ref.onDispose(() {
-      patientSubscription.cancel();
-      patientUpdateSubscription.cancel();
-      patientRemoveSubscription.cancel();
-      doctorSubscription.cancel();
-      doctorUpdateSubscription.cancel();
-      doctorRemoveSubscription.cancel();
+      addedSub.cancel();
+      changedSub.cancel();
+      removedSub.cancel();
       streamController.close();
     });
   }
 });
+
 
 final patientDataByUidProvider = FutureProvider.family<Patient?, String>((ref, patientUid) async {
   final database = ref.read(firebaseDatabaseProvider);
@@ -126,7 +137,9 @@ final appointmentsFilterOptionProvider = StateProvider<String>((ref) => 'All');
 final bookingViewSelectedPatientLabelProvider = StateProvider<String>((ref) => 'My Self');
 final bookingViewPatientNameProvider = StateProvider<String>((ref) => '');
 final bookingViewPatientNumberProvider = StateProvider<String>((ref) => '');
+final bookingViewPatientAgeProvider = StateProvider<int>((ref) => 0);
 final bookingViewPatientNoteProvider = StateProvider<String>((ref) => '');
+final isUploadingAppointmentProvider = StateProvider<bool>((ref) => false);
 
 final appointmentsDateFilterProvider = StateProvider<String>((ref) => 'All');
 final appointmentsPatientFilterProvider = StateProvider<String>((ref) => 'All');
@@ -160,7 +173,10 @@ class BookingRepository {
         'bookerName': newAppointment.bookerName,
         'patientName': newAppointment.patientName,
         'patientNumber': newAppointment.patientNumber,
+        'patientGender': newAppointment.patientGender,
+        'patientAge': newAppointment.patientAge,
         'patientType': newAppointment.patientType,
+        'reminderTime': newAppointment.reminderTime,
         'updatedAt': DateTime.now().toIso8601String(),
       };
       if (newAppointment.patientNotes != null) {

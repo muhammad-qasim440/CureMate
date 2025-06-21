@@ -1106,7 +1106,6 @@ class DoctorDashboardView extends ConsumerWidget {
           }).length;
         }).toList();
 
-    // Calculate appropriate maxY based on data
     final maxValue = weeklyData.reduce((a, b) => a > b ? a : b);
     final interval = _calculateChartInterval(maxValue);
 

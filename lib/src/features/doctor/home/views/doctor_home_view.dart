@@ -403,7 +403,13 @@ class DoctorHomeView extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error:
                       (error, stack) => CustomTextWidget(
-                        text: 'Unable to fetch pending appointments $error ',
+                        textAlignment: TextAlign.center,
+                        text: 'Unable to fetch pending appointments',
+                        textStyle: TextStyle(
+                          fontSize: FontSizes(context).size14,
+                          fontFamily: AppFonts.rubik,
+                          color: AppColors.black,
+                        ),
                       ),
                 ),
               ],
@@ -415,10 +421,23 @@ class DoctorHomeView extends ConsumerWidget {
   }
 
   Widget _buildTodayAppointments(
-    BuildContext context,
-    AsyncValue<List<AppointmentModel>> appointmentsAsync,
-    WidgetRef ref,
-  ) {
+      BuildContext context,
+      AsyncValue<List<AppointmentModel>> appointmentsAsync,
+      WidgetRef ref,
+      ) {
+    final headerStyle = TextStyle(
+      fontSize: FontSizes(context).size12,
+      fontFamily: AppFonts.rubik,
+      fontWeight: FontWeight.w600,
+      color: AppColors.gradientGreen,
+    );
+
+    final valueStyle = TextStyle(
+      fontSize: FontSizes(context).size11,
+      fontFamily: AppFonts.rubik,
+      fontWeight: FontWeight.w500,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -447,14 +466,11 @@ class DoctorHomeView extends ConsumerWidget {
         const SizedBox(height: 10),
         appointmentsAsync.when(
           data: (appointments) {
-            final todayAppointments =
-                appointments
-                    .where((app) {
-                      return app.date ==
-                          DateFormat('yyyy-MM-dd').format(DateTime.now());
-                    })
-                    .take(4)
-                    .toList();
+            final todayAppointments = appointments
+                .where((app) =>
+            app.date == DateFormat('yyyy-MM-dd').format(DateTime.now()))
+                .take(4)
+                .toList();
 
             if (todayAppointments.isEmpty) {
               return Center(
@@ -487,7 +503,7 @@ class DoctorHomeView extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Headers Row
+                  // Header Row
                   Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
@@ -500,55 +516,42 @@ class DoctorHomeView extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        10.width,
-                        CustomTextWidget(
-                          text: 'Time',
-                          textStyle: TextStyle(
-                            fontSize: FontSizes(context).size12,
-                            fontFamily: AppFonts.rubik,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.gradientGreen,
-
+                        Expanded(
+                          child: Center(
+                            child: CustomTextWidget(
+                              text: 'Time',
+                              textStyle: headerStyle,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 20),
-                        CustomTextWidget(
-                          text: 'Patient Name',
-                          textStyle: TextStyle(
-                            fontSize: FontSizes(context).size12,
-                            fontFamily: AppFonts.rubik,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.gradientGreen,
-
+                        Expanded(
+                          child: Center(
+                            child: CustomTextWidget(
+                              text: 'Patient Name',
+                              textStyle: headerStyle,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 20),
-
-                        CustomTextWidget(
-                          text: 'Status',
-                          textStyle: TextStyle(
-                            fontSize: FontSizes(context).size12,
-                            fontFamily: AppFonts.rubik,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.gradientGreen,
-
+                        Expanded(
+                          child: Center(
+                            child: CustomTextWidget(
+                              text: 'Status',
+                              textStyle: headerStyle,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 20),
-
-                        CustomTextWidget(
-                          text: 'Booked By',
-                          textStyle: TextStyle(
-                            fontSize: FontSizes(context).size12,
-                            fontFamily: AppFonts.rubik,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.gradientGreen,
+                        Expanded(
+                          child: Center(
+                            child: CustomTextWidget(
+                              text: 'Booked By',
+                              textStyle: headerStyle,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Appointments List
+                  // Appointment Rows
                   ListView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
@@ -582,43 +585,40 @@ class DoctorHomeView extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              Center(
-                                child: Text(
-                                  appointment.timeSlot,
-                                  style: TextStyle(
-                                    color: _getStatusColor(appointment.status),
-                                    fontSize: FontSizes(context).size11,
-                                    fontFamily: AppFonts.rubik,
-                                    fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    appointment.timeSlot,
+                                    style: valueStyle.copyWith(
+                                      color: _getStatusColor(appointment.status),
+                                    ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 20),
-                              CustomTextWidget(
-                                text: appointment.patientName,
-                                textStyle: TextStyle(
-                                  fontSize: FontSizes(context).size11,
-                                  fontFamily: AppFonts.rubik,
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Center(
+                                  child: CustomTextWidget(
+                                    text: appointment.patientName,
+                                    textStyle: valueStyle,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 20),
-                              CustomTextWidget(
-                                text: appointment.status.toUpperCase(),
-                                textStyle: TextStyle(
-                                  fontSize: FontSizes(context).size11,
-                                  fontFamily: AppFonts.rubik,
-                                  color: _getStatusColor(appointment.status),
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Center(
+                                  child: CustomTextWidget(
+                                    text: appointment.status.toUpperCase(),
+                                    textStyle: valueStyle.copyWith(
+                                      color: _getStatusColor(appointment.status),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 20),
-                              CustomTextWidget(
-                                text: appointment.bookerName.toUpperCase(),
-                                textStyle: TextStyle(
-                                  fontSize: FontSizes(context).size11,
-                                  fontFamily: AppFonts.rubik,
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Center(
+                                  child: CustomTextWidget(
+                                    text: appointment.bookerName.toUpperCase(),
+                                    textStyle: valueStyle,
+                                  ),
                                 ),
                               ),
                             ],
@@ -714,6 +714,8 @@ class DoctorHomeView extends ConsumerWidget {
                           email: '',
                           city: '',
                           dob: '',
+                          gender:'',
+                          age: 0,
                           phoneNumber: '',
                           profileImageUrl: '',
                           profileImagePublicId: '',

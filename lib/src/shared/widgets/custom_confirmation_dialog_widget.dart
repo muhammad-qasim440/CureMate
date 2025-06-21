@@ -61,7 +61,7 @@ class CustomConfirmationDialogWidget extends StatelessWidget {
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(true);
-            onConfirm!();
+            onConfirm?.call();
           },
           child: CustomTextWidget(
             text: confirmText,

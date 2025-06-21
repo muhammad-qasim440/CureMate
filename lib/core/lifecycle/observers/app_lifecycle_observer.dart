@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -22,11 +23,14 @@ class AppLifecycleObserver with WidgetsBindingObserver {
       currentUserProvider,
           (prev, next) async {
         final user = next.value;
-        if (user != null && user.uid != _currentUid) {
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (user != null && firebaseUser != null && user.uid == firebaseUser.uid && user.uid != _currentUid) {
+          logDebug('User authenticated: ${user.uid}');
           _currentUid = user.uid;
           await _updateStatus(user.uid, true);
           _setOnDisconnect(user.uid);
-        } else if (user == null) {
+        } else {
+          logDebug('No valid user');
           _currentUid = null;
         }
       },
@@ -52,6 +56,7 @@ class AppLifecycleObserver with WidgetsBindingObserver {
         'isOnline': isOnline,
         'lastSeen': timestamp,
       });
+      logDebug('Updated status for $uid: isOnline=$isOnline');
     } catch (e) {
       logDebug('Error updating status: $e');
     }
@@ -60,7 +65,11 @@ class AppLifecycleObserver with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final user = ref.read(currentUserProvider).value;
-    if (user == null) return;
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (user == null || firebaseUser == null) {
+      logDebug('No user for lifecycle update');
+      return;
+    }
 
     if (state == AppLifecycleState.resumed) {
       logDebug('App resumed → Online');

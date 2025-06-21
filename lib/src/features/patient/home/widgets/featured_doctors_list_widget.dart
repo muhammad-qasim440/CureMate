@@ -23,7 +23,7 @@ class FeaturedDoctorsListWidget extends ConsumerWidget {
     final favoriteUidsAsync = ref.watch(favoriteDoctorUidsProvider);
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

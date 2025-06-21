@@ -1,12 +1,15 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/core/utils/debug_print.dart';
 import 'package:curemate/src/features/appointments/views/select_time_view.dart';
+import 'package:curemate/src/shared/widgets/custom_drop_down_menu_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../const/app_fonts.dart';
+import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
 import '../../../router/nav.dart';
+import '../../../shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import '../../../shared/widgets/custom_appbar_header_widget.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
@@ -18,6 +21,7 @@ import '../../patient/providers/patient_providers.dart';
 import '../card/doctor_appointment_booking_view_card.dart';
 import '../models/appointment_model.dart';
 import '../providers/appointments_providers.dart';
+import '../utils/appointment_utils.dart';
 
 class AppointmentBookingView extends ConsumerStatefulWidget {
   final Doctor doctor;
@@ -30,21 +34,38 @@ class AppointmentBookingView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AppointmentBookingView> createState() => _AppointmentBookingViewState();
+  ConsumerState<AppointmentBookingView> createState() =>
+      _AppointmentBookingViewState();
 }
 
-class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView> {
+class _AppointmentBookingViewState
+    extends ConsumerState<AppointmentBookingView> {
   final _formKey = GlobalKey<FormState>();
+  bool _hasPrefilled = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.appointment != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(bookingViewPatientNameProvider.notifier).state = widget.appointment!.patientName;
-        ref.read(bookingViewPatientNumberProvider.notifier).state = widget.appointment!.patientNumber;
-        ref.read(bookingViewPatientNoteProvider.notifier).state = widget.appointment!.patientNotes ?? '';
-        ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = widget.appointment!.patientType;
+        ref.read(bookingViewPatientNameProvider.notifier).state =
+            widget.appointment!.patientName;
+        ref.read(bookingViewPatientNumberProvider.notifier).state =
+            widget.appointment!.patientNumber;
+        ref.read(customDropDownProvider(AppStrings.genders).notifier).setSelected(
+            widget.appointment!.patientGender);
+        ref.read(bookingViewPatientAgeProvider.notifier).state =
+            widget.appointment!.patientAge;
+        ref.read(bookingViewPatientNoteProvider.notifier).state =
+            widget.appointment!.patientNotes ?? '';
+        ref.read(bookingViewSelectedPatientLabelProvider.notifier).state =
+            widget.appointment!.patientType;
+      });
+    } else {
+      // New appointment: Set default to "My Self"
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(bookingViewSelectedPatientLabelProvider.notifier).state =
+        'My Self';
       });
     }
   }
@@ -52,6 +73,16 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.appointment != null;
+    final currentUser = ref.watch(currentSignInPatientDataProvider).value;
+    logDebug('currentUser : ${currentUser!.fullName}');
+    if (currentUser != null) {
+      prefillPatientDataIfMySelf(
+        ref: ref,
+        currentUser: currentUser,
+        hasPrefilled: _hasPrefilled,
+        onPrefillChanged: (value) => setState(() => _hasPrefilled = value),
+      );
+    }
 
     return Scaffold(
       body: Form(
@@ -67,7 +98,9 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                   child: SafeArea(
                     child: Column(
                       children: [
-                        CustomAppBarHeaderWidget(title: isEditing ? 'Edit Appointment' : 'Appointment'),
+                        CustomAppBarHeaderWidget(
+                          title: isEditing ? 'Edit Appointment' : 'Appointment',
+                        ),
                         35.height,
                         DoctorAppointmentBookingViewCard(doctor: widget.doctor),
                       ],
@@ -95,10 +128,44 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                             label: 'Patient Name',
                             hintText: 'Enter patient name',
                             initialValue: widget.appointment?.patientName,
-                            onChanged: (value) => ref.read(bookingViewPatientNameProvider.notifier).state = value,
+                            onChanged: (value) => ref
+                                .read(bookingViewPatientNameProvider.notifier)
+                                .state = value,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter the patient name';
+                              }
+                              return null;
+
+                            },
+                          ),
+                          23.height,
+                          const CustomDropdown(
+                            items: AppStrings.genders,
+                            label: 'Gender',
+                            validatorText: 'please select Gender',
+                          ),
+                          23.height,
+                          CustomTextFormFieldWidget(
+                            label: 'Age',
+                            hintText: '23 (number)',
+                            initialValue:
+                            widget.appointment?.patientAge.toString() ?? '',
+                            onChanged: (value) {
+                              final age = int.tryParse(value);
+                              if (age != null) {
+                                ref
+                                    .read(bookingViewPatientAgeProvider.notifier)
+                                    .state = age;
+                              }
+                            },
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter patient age';
+                              }
+                              if (int.tryParse(value) == null) {
+                                return 'Please enter a valid number';
                               }
                               return null;
                             },
@@ -106,16 +173,19 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                           23.height,
                           CustomTextFormFieldWidget(
                             label: 'Contact Number',
-                            hintText: '03XXXXXXXXX',
+                            hintText: '03*********',
                             initialValue: widget.appointment?.patientNumber,
-                            onChanged: (value) => ref.read(bookingViewPatientNumberProvider.notifier).state = value,
+                            onChanged: (value) => ref
+                                .read(bookingViewPatientNumberProvider.notifier)
+                                .state = value,
                             keyboardType: TextInputType.phone,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter the contact number';
                               } else if (!RegExp(r'^\d+$').hasMatch(value)) {
                                 return 'Contact number must contain only digits';
-                              } else if (!value.startsWith('0') || !value.startsWith('3', 1)) {
+                              } else if (!value.startsWith('0') ||
+                                  !value.startsWith('3', 1)) {
                                 return 'Number should start from 03*********';
                               } else if (value.length != 11) {
                                 return 'Contact number should be exactly 11 digits';
@@ -128,7 +198,9 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                             label: 'Note (optional)',
                             hintText: 'Enter your note (optional)',
                             initialValue: widget.appointment?.patientNotes,
-                            onChanged: (value) => ref.read(bookingViewPatientNoteProvider.notifier).state = value,
+                            onChanged: (value) => ref
+                                .read(bookingViewPatientNoteProvider.notifier)
+                                .state = value,
                           ),
                           24.height,
                           const CustomTextWidget(
@@ -149,7 +221,8 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                                 5.width,
                                 _buildPatientOption('My Child', Icons.child_care),
                                 5.width,
-                                _buildPatientOption('My Mother', Icons.woman_2_rounded),
+                                _buildPatientOption(
+                                    'My Mother', Icons.woman_2_rounded),
                                 5.width,
                                 _buildPatientOption('My Father', Icons.man),
                                 5.width,
@@ -174,11 +247,25 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                               onPressed: () {
                                 FocusScope.of(context).unfocus();
                                 if (!_formKey.currentState!.validate()) return;
-                                if (ref.read(bookingViewPatientNameProvider).isEmpty ||
-                                    ref.read(bookingViewPatientNumberProvider).isEmpty) {
+                                if (ref
+                                    .read(bookingViewPatientNameProvider)
+                                    .isEmpty ||
+                                    ref
+                                        .read(bookingViewPatientNumberProvider)
+                                        .isEmpty ||
+                                    ref
+                                        .read(
+                                        customDropDownProvider(AppStrings.genders))
+                                        .selected
+                                        .isEmpty ||
+                                    ref
+                                        .read(bookingViewPatientAgeProvider)
+                                        .toString()
+                                        .isEmpty) {
                                   CustomSnackBarWidget.show(
                                     context: context,
-                                    text: 'Please enter patient name and contact number',
+                                    text:
+                                    'Please enter patient name, contact number, gender and age',
                                   );
                                   return;
                                 }
@@ -205,7 +292,8 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
   }
 
   Widget _buildPatientOption(String label, IconData icon) {
-    final isSelected = ref.watch(bookingViewSelectedPatientLabelProvider) == label;
+    final isSelected =
+        ref.watch(bookingViewSelectedPatientLabelProvider) == label;
     return GestureDetector(
       onTap: () {
         ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = label;
@@ -214,7 +302,9 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gradientGreen.withOpacity(0.1) : Colors.grey[200],
+          color: isSelected
+              ? AppColors.gradientGreen.withOpacity(0.1)
+              : Colors.grey[200],
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? AppColors.gradientGreen : Colors.grey[300]!,
@@ -222,7 +312,10 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.gradientGreen : AppColors.subTextColor),
+            Icon(
+              icon,
+              color: isSelected ? AppColors.gradientGreen : AppColors.subTextColor,
+            ),
             8.width,
             CustomTextWidget(
               text: label,
@@ -230,7 +323,9 @@ class _AppointmentBookingViewState extends ConsumerState<AppointmentBookingView>
                 fontFamily: AppFonts.rubik,
                 fontSize: FontSizes(context).size14,
                 fontWeight: FontWeight.w400,
-                color: isSelected ? AppColors.gradientGreen : AppColors.subTextColor,
+                color: isSelected
+                    ? AppColors.gradientGreen
+                    : AppColors.subTextColor,
               ),
             ),
           ],

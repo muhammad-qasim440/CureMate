@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../const/app_fonts.dart';
-import '../../../../const/font_sizes.dart';
-import '../../../theme/app_colors.dart';
+
 
 class CustomStarRating extends StatelessWidget {
   final double rating;

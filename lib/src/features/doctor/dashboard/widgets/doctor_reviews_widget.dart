@@ -3,7 +3,6 @@ import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../appointments/models/appointment_model.dart';

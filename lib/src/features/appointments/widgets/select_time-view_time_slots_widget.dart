@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../const/app_fonts.dart';
+import '../../../../const/font_sizes.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -17,7 +18,33 @@ class TimeSlotsWidget extends ConsumerWidget {
     final categorizedTimeSlots = ref.watch(categorizedTimeSlotsProvider);
 
     if (!categorizedTimeSlots.values.any((slots) => slots.isNotEmpty)) {
-      return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CustomTextWidget(
+            text: 'Available Time',
+            textStyle: TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
+          ),
+          10.height,
+          Center(
+            child: CustomTextWidget(
+              textAlignment: TextAlign.center,
+              text: 'Available time ends, Please select any other\n available date or day.',
+              textStyle: TextStyle(
+                fontFamily: AppFonts.rubik,
+                fontSize: FontSizes(context).size12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.red,
+              ),
+            ),
+          ),
+        ],
+      );
     }
 
     return Column(

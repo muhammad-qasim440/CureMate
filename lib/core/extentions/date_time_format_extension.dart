@@ -6,6 +6,7 @@ extension DateTimeFormatExtension on DateTime {
     return DateFormat('yyyy/MM/dd').format(this);
   }
 
+
   String get formattedTime {
     return DateFormat('HH:mm').format(this);
   }

@@ -1,4 +1,3 @@
-import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/patient/home/views/all_near_by_doctor_view.dart';
 import 'package:curemate/src/router/nav.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
@@ -26,12 +25,14 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16,),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: [
               CustomTextWidget(
                 text: 'Nearby Doctors',
@@ -41,7 +42,7 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
                   fontSize: FontSizes(context).size18,
                 ),
               ),
-              4.width,
+              const Spacer(),
               CustomButtonWidget(
                 text: 'See all',
                 fontWeight: FontWeight.w500,
@@ -56,15 +57,15 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
               ),
             ],
           ),
-          10.height,
           SizedBox(
-            height: ScreenUtil.scaleHeight(context, 225),
+            height: ScreenUtil.scaleHeight(context, 200),
             child: doctorsAsync.when(
               data:
                   (doctors) =>
                       doctors.isEmpty
                           ? const Center(child: Text('No doctors available'))
                           : ListView.builder(
+                            padding: EdgeInsets.zero,
                             scrollDirection: Axis.horizontal,
                             itemCount: doctors.length > 4 ? 4 : doctors.length,
                             itemBuilder: (context, index) {
@@ -74,7 +75,7 @@ class NearbyDoctorsListWidget extends ConsumerWidget {
                               );
                             },
                           ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator(color:AppColors.gradientGreen)),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),
           ),

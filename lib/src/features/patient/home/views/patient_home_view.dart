@@ -43,6 +43,7 @@ class PatientHomeView extends ConsumerWidget {
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 220.height,
                 DoctorsSpecialityIconsListWidget(),

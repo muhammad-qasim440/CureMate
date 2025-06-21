@@ -11,7 +11,7 @@ import '../../../utils/screen_utils.dart';
 
 class EditablePersonalInfoField extends ConsumerWidget {
   final String title;
-  final StateProvider<String> subtitleProvider;
+  final StateProvider<dynamic> subtitleProvider;
   final StateProvider<bool> isEditingProvider;
   final void Function(String) onChanged;
   final String? Function(String?)? validator;
@@ -63,7 +63,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
           items: dropdownItems ?? [],
           label: dropdownLabel ?? title,
           validatorText: dropdownValidatorText ?? 'Please select $title',
-          initialValue: subtitle,
+          initialValue: subtitle.runtimeType==int?subtitle.toString():subtitle,
           onChanged: (value) {
             onChanged(value);
             ref.read(isEditingProvider.notifier).state = false;
@@ -73,7 +73,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
                     },
         )
             : CustomTextFormFieldWidget(
-          initialValue: subtitle,
+          initialValue:subtitle.runtimeType==int?subtitle.toString(): subtitle,
           onChanged: (value) {
             onChanged(value);
             if (onChangeDetected != null) {
@@ -120,7 +120,7 @@ class EditablePersonalInfoField extends ConsumerWidget {
                     ),
                   ),
                   CustomTextWidget(
-                    text: subtitle,
+                    text:subtitle.runtimeType==int?subtitle.toString(): subtitle,
                     textStyle: TextStyle(
                       fontFamily: AppFonts.rubik,
                       fontSize: FontSizes(context).size16,

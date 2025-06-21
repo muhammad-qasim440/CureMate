@@ -1,18 +1,23 @@
+import 'dart:io';
 
-// ConfirmButtonWidgetimport 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../const/app_fonts.dart';
+import '../../../../const/app_strings.dart';
 import '../../../../const/font_sizes.dart';
 import '../../../../core/utils/debug_print.dart';
 import '../../../router/nav.dart';
 import '../../../shared/providers/check_internet_connectivity_provider.dart';
+import '../../../shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import '../../../shared/widgets/custom_button_widget.dart';
 import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../theme/app_colors.dart';
@@ -36,9 +41,60 @@ class ConfirmButtonWidget extends ConsumerWidget {
   Future<void> _scheduleNotification(
       BuildContext context,
       AppointmentModel appointment,
-      String reminderTime,
+      String? reminderTime,
       ) async {
+    if (reminderTime == null || reminderTime == 'No Reminder') {
+      logDebug('No reminder set for appointment ${appointment.id}');
+      return;
+    }
+
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    /// Ask notification permission
+    final notifStatus = await Permission.notification.status;
+    if (!notifStatus.isGranted) {
+      final result = await Permission.notification.request();
+      if (!result.isGranted) {
+        if (result.isPermanentlyDenied) {
+          CustomSnackBarWidget.show(
+            context: context,
+            text: 'Notification permission permanently denied. Please enable it in app settings to receive reminders.',
+          );
+          await openAppSettings();
+        } else {
+          CustomSnackBarWidget.show(
+            context: context,
+            text: 'Notification permission denied. Please allow notifications to schedule a reminder.',
+          );
+        }
+        return;
+      }
+    }
+
+    /// Ask exact alarm permission on Android 13+ (SDK 33+)
+    if (Platform.isAndroid) {
+      final info = await DeviceInfoPlugin().androidInfo;
+      if (info.version.sdkInt >= 33) {
+        final exactAlarmStatus = await Permission.scheduleExactAlarm.status;
+        if (!exactAlarmStatus.isGranted) {
+          final result = await Permission.scheduleExactAlarm.request();
+          if (!result.isGranted) {
+            const intent = AndroidIntent(
+              action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+              flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            await intent.launch();
+            CustomSnackBarWidget.show(
+              context: context,
+              text: 'Exact alarm permission needed. Please enable it manually to schedule reminders.',
+            );
+            return;
+          }
+        }
+      }
+    }
+
+    /// Schedule notification
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'appointment_channel',
       'Appointment Reminders',
@@ -74,14 +130,18 @@ class ConfirmButtonWidget extends ConsumerWidget {
       final tzNotificationTime = tz.TZDateTime.from(notificationTime, tz.local);
 
       String statusMessage;
-      if (appointment.status == 'pending') {
-        statusMessage = 'Still not accepted by doctor';
-      } else if (appointment.status == 'rejected') {
-        statusMessage = 'Rejected by doctor';
-      } else if (appointment.status == 'accepted') {
-        statusMessage = 'Accepted by doctor';
-      } else {
-        statusMessage = 'Status: ${appointment.status}';
+      switch (appointment.status) {
+        case 'pending':
+          statusMessage = 'Still not accepted by doctor';
+          break;
+        case 'rejected':
+          statusMessage = 'Rejected by doctor';
+          break;
+        case 'accepted':
+          statusMessage = 'Accepted by doctor';
+          break;
+        default:
+          statusMessage = 'Status: ${appointment.status}';
       }
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -94,6 +154,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: 'open_tab_2',
       );
+
       logDebug('Scheduled notification for appointment ${appointment.id} at $tzNotificationTime');
     } catch (e) {
       logDebug('Error scheduling notification: $e');
@@ -117,6 +178,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
 
     return Center(
       child: CustomButtonWidget(
+        isLoading: ref.watch(isUploadingAppointmentProvider),
         text: isEditing ? 'Save Changes' : 'Confirm',
         height: ScreenUtil.scaleHeight(context, 50),
         width: double.infinity,
@@ -125,16 +187,19 @@ class ConfirmButtonWidget extends ConsumerWidget {
         fontSize: FontSizes(context).size16,
         fontWeight: FontWeight.w500,
         textColor: Colors.white,
-        onPressed: () async {
+        onPressed:ref.watch(isUploadingAppointmentProvider)?null: () async {
           logDebug('Starting onPressed for appointment editing');
           logDebug('isEditing: $isEditing');
+          if(ref.read(isUploadingAppointmentProvider.notifier).state==true) return;
           final selectedTimeSlot = ref.read(selectedTimeSlotProvider)?.trim();
           final selectedSlotType = ref.read(selectedSlotTypeProvider)?.trim();
           final patientName = ref.read(bookingViewPatientNameProvider).trim();
+          final patientGender = ref.read(customDropDownProvider(AppStrings.genders)).selected;
+          final patientAge = ref.read(bookingViewPatientAgeProvider);
           final patientNumber = ref.read(bookingViewPatientNumberProvider).trim();
           final patientType = ref.read(bookingViewSelectedPatientLabelProvider).trim();
           final patientNotes = ref.read(bookingViewPatientNoteProvider).trim();
-          final reminderTime = ref.read(reminderProvider).trim();
+          final reminderTime = ref.read(reminderProvider)?.trim();
 
           logDebug('Input values:');
           logDebug('  patientName: "$patientName" (length: ${patientName.length})');
@@ -196,6 +261,15 @@ class ConfirmButtonWidget extends ConsumerWidget {
             return;
           }
           logDebug('Validated: patientName is "$patientName"');
+          if (patientGender.isEmpty) {
+            logDebug('Validation failed: patientGender is empty');
+            CustomSnackBarWidget.show(
+              context: context,
+              text: 'Please enter a valid patient gender',
+            );
+            return;
+          }
+          logDebug('Validated: patientGender is "$patientGender"');
 
           if (patientNumber.isEmpty) {
             logDebug('Validation failed: patientNumber is empty');
@@ -206,6 +280,15 @@ class ConfirmButtonWidget extends ConsumerWidget {
             return;
           }
           logDebug('Validated: patientNumber is "$patientNumber"');
+          if (patientAge==0) {
+            logDebug('Validation failed: patientAge is empty');
+            CustomSnackBarWidget.show(
+              context: context,
+              text: 'Please enter a valid patient age',
+            );
+            return;
+          }
+          logDebug('Validated: patientAge is "$patientAge"');
 
           if (patientType.isEmpty) {
             logDebug('Validation failed: patientType is empty');
@@ -245,6 +328,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
             if (isEditing) {
               logDebug('Processing edit for appointment ID: ${appointment!.id}');
               logDebug('Fetching appointment from Firebase');
+              ref.read(isUploadingAppointmentProvider.notifier).state=true;
               final database = FirebaseDatabase.instance.ref();
               final snapshot = await database
                   .child('Appointments')
@@ -257,6 +341,8 @@ class ConfirmButtonWidget extends ConsumerWidget {
                   text: 'Appointment not found',
                 );
                 AppNavigation.pop();
+                ref.read(isUploadingAppointmentProvider.notifier).state=false;
+
                 return;
               }
               logDebug('Appointment fetched successfully');
@@ -272,6 +358,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
                   context: context,
                   text: 'You are not authorized to edit this appointment',
                 );
+                ref.read(isUploadingAppointmentProvider.notifier).state=false;
                 AppNavigation.pop();
                 return;
               }
@@ -285,6 +372,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
                   context: context,
                   text: 'Only pending appointments can be edited',
                 );
+                ref.read(isUploadingAppointmentProvider.notifier).state=false;
                 AppNavigation.pop();
                 return;
               }
@@ -301,18 +389,31 @@ class ConfirmButtonWidget extends ConsumerWidget {
                 patientNotes: patientNotes.isEmpty ? null : patientNotes,
                 patientName: patientName,
                 patientNumber: patientNumber,
+                patientGender: patientGender,
+                patientAge: patientAge,
                 patientType: patientType,
                 updatedAt: DateTime.now().toIso8601String(),
                 reminderTime: reminderTime,
               );
               logDebug('Updated appointment data: ${updatedAppointment.toMap()}');
+              if(updatedAppointment==appointment) {
+                logDebug('Appointment has no change: ${appointment!.id}');
+                CustomSnackBarWidget.show(
+                  context: context,
+                  text: 'No changes found',
+                );
+                ref.read(isUploadingAppointmentProvider.notifier).state=false;
+                AppNavigation.pop();
+                return;
+              }
+              logDebug('new appointment has changes');
+
+              logDebug('Scheduling new notification');
+              await _scheduleNotification(context, updatedAppointment, reminderTime);
 
               logDebug('Calling updateBooking');
               await ref.read(bookingRepositoryProvider).updateBooking(updatedAppointment);
               logDebug('updateBooking completed successfully');
-
-              logDebug('Scheduling new notification');
-              await _scheduleNotification(context, updatedAppointment, reminderTime);
 
               CustomSnackBarWidget.show(
                 context: context,
@@ -323,6 +424,7 @@ class ConfirmButtonWidget extends ConsumerWidget {
               ref.read(bookingViewPatientNumberProvider.notifier).state = '';
               ref.read(bookingViewPatientNoteProvider.notifier).state = '';
               ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = 'My Self';
+              ref.read(isUploadingAppointmentProvider.notifier).state=false;
 
               logDebug('Navigating to ConfirmationView');
               ConfirmationDialog.show(
@@ -336,6 +438,8 @@ class ConfirmButtonWidget extends ConsumerWidget {
             } else {
               logDebug('Processing new appointment creation');
               logDebug('Fetching patient data for UID: ${user.uid}');
+              ref.read(isUploadingAppointmentProvider.notifier).state=true;
+
               final patientData = await ref.read(patientDataByUidProvider(user.uid).future);
               if (patientData == null) {
                 logDebug('Failed to load patient data');
@@ -343,6 +447,8 @@ class ConfirmButtonWidget extends ConsumerWidget {
                   context: context,
                   text: 'Failed to load patient data',
                 );
+                ref.read(isUploadingAppointmentProvider.notifier).state=false;
+
                 return;
               }
               logDebug('Patient data loaded: fullName=${patientData.fullName}');
@@ -366,6 +472,8 @@ class ConfirmButtonWidget extends ConsumerWidget {
                 bookerName: bookerName,
                 patientName: patientName,
                 patientNumber: patientNumber,
+                patientGender: patientGender,
+                patientAge: patientAge,
                 patientType: patientType,
                 reminderTime: reminderTime,
               );
@@ -387,6 +495,9 @@ class ConfirmButtonWidget extends ConsumerWidget {
               ref.read(bookingViewPatientNumberProvider.notifier).state = '';
               ref.read(bookingViewPatientNoteProvider.notifier).state = '';
               ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = 'My Self';
+              ref.invalidate(reminderProvider);
+              ref.read(isUploadingAppointmentProvider.notifier).state=false;
+
 
               logDebug('Navigating to ConfirmationView');
               ConfirmationDialog.show(

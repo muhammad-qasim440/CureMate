@@ -21,7 +21,7 @@ class PopularDoctorsListWidget extends ConsumerWidget {
     final doctorsAsync = ref.watch(popularDoctorsProvider);
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left:16,right:16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,7 +53,7 @@ class PopularDoctorsListWidget extends ConsumerWidget {
           ),
           10.height,
           SizedBox(
-            height: ScreenUtil.scaleHeight(context, 220),
+            height: ScreenUtil.scaleHeight(context, 200),
             child: doctorsAsync.when(
               data: (doctors) {
 

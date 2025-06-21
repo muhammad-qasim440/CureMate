@@ -1,4 +1,3 @@
-import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:flutter/material.dart';
 import '../../../../const/app_fonts.dart';
 import '../../../../const/font_sizes.dart';
@@ -39,7 +38,7 @@ class DiagnosisResultsWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomTextWidget(
-                text: 'Possible Health Conditions',
+                text: 'Possible Diseases',
                 textStyle: TextStyle(
                   fontFamily: AppFonts.rubik,
                   fontSize: FontSizes(context).size18,

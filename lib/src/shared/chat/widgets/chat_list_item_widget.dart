@@ -35,7 +35,11 @@ class ChatListItem extends ConsumerWidget {
     final messageDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-    final messageDay = DateTime(messageDate.year, messageDate.month, messageDate.day);
+    final messageDay = DateTime(
+      messageDate.year,
+      messageDate.month,
+      messageDate.day,
+    );
 
     if (messageDay == today) {
       return DateFormat('hh:mm a').format(messageDate);
@@ -50,85 +54,127 @@ class ChatListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(otherUserProfileProvider(otherUserId));
     final currentUser = ref.watch(currentUserProvider).value;
-    final isCurrentUserSender = senderId != null && currentUser != null && senderId == currentUser.uid;
+    final isCurrentUserSender =
+        senderId != null && currentUser != null && senderId == currentUser.uid;
     final unseenCount = ref.watch(unseenMessagesProvider(chatId));
-    
-    return ListTile(
-      leading: profile.when(
-        data: (data) => CircleAvatar(
-          radius: 20,
-          child: CachedNetworkImage(
-            imageUrl: data['profileImageUrl']?.isNotEmpty == true
-                ? data['profileImageUrl']
-                : '',
-            placeholder: (context, url) => const CircularProgressIndicator(color: AppColors.gradientGreen,),
-            errorWidget: (context, url, error) => Text(
-              otherUserName.isNotEmpty ? otherUserName[0] : '?',
-              style: const TextStyle(fontSize: 20),
+    final isOnline =
+        ref.watch(formattedStatusProvider(otherUserId)).value == 'Online';
+    return Stack(
+      children: [
+        ListTile(
+          leading: Stack(
+            children: [profile.when(
+              data:
+                  (data) => CircleAvatar(
+                    radius: 20,
+                    child: CachedNetworkImage(
+                      imageUrl:
+                          data['profileImageUrl']?.isNotEmpty == true
+                              ? data['profileImageUrl']
+                              : '',
+                      placeholder:
+                          (context, url) => const CircularProgressIndicator(
+                            color: AppColors.gradientGreen,
+                          ),
+                      errorWidget:
+                          (context, url, error) => Text(
+                            otherUserName.isNotEmpty ? otherUserName[0] : '?',
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                      imageBuilder:
+                          (context, imageProvider) =>
+                              CircleAvatar(backgroundImage: imageProvider),
+                    ),
+                  ),
+              loading:
+                  () => const CircleAvatar(
+                    child: CircularProgressIndicator(
+                      color: AppColors.gradientGreen,
+                    ),
+                  ),
+              error:
+                  (error, _) => CircleAvatar(
+                    child: Text(
+                      otherUserName.isNotEmpty ? otherUserName[0] : '?',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
             ),
-            imageBuilder: (context, imageProvider) => CircleAvatar(
-              backgroundImage: imageProvider,
-            ),
-          ),
-        ),
-        loading: () => const CircleAvatar(child: CircularProgressIndicator(color: AppColors.gradientGreen,)),
-        error: (error, _) => CircleAvatar(
-          child: Text(
-            otherUserName.isNotEmpty ? otherUserName[0] : '?',
-            style: const TextStyle(fontSize: 20),
-          ),
-        ),
-      ),
-      title: Text(otherUserName.isNotEmpty ? otherUserName : 'Unknown User',style: const TextStyle(
-        fontFamily: AppFonts.rubik,
-         fontSize: 18,
-        fontWeight: FontWeight.w400,
-      ),),
-      subtitle: Text(
-        lastMessage.isNotEmpty
-            ? (isCurrentUserSender ? 'You: $lastMessage' : lastMessage)
-            : 'No messages',
-        style: TextStyle(
-          fontSize: FontSizes(context).size18,
-          fontFamily: AppFonts.rubik,
-          fontWeight: FontWeight.w400,
-          color: unseenCount.when(
-            data: (count) => count > 0 ? AppColors.gradientGreen : Colors.grey,
-            loading: () => Colors.grey,
-            error: (error, _) => Colors.grey,
-          ),
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(_formatTimestamp(timestamp)),
-          unseenCount.when(
-            data: (count) => count > 0
-                ? Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppColors.gradientGreen,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                '$count',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+              Positioned(
+                top: 5,
+                left: 0,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isOnline ? AppColors.gradientGreen : AppColors.subTextColor,
+                    border: Border.all(color: AppColors.black, width: 1),
+                  ),
                 ),
               ),
-            )
-                : const SizedBox.shrink(),
-            loading: () => const SizedBox.shrink(),
-            error: (error, _) => const SizedBox.shrink(),
+    ],
           ),
-        ],
-      ),
-      onTap: onTap,
+          title: Text(
+            otherUserName.isNotEmpty ? otherUserName : 'Unknown User',
+            style: const TextStyle(
+              fontFamily: AppFonts.rubik,
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          subtitle: Text(
+            lastMessage.isNotEmpty
+                ? (isCurrentUserSender ? 'You: $lastMessage' : lastMessage)
+                : 'No messages',
+            style: TextStyle(
+              fontSize: FontSizes(context).size18,
+              fontFamily: AppFonts.rubik,
+              fontWeight: FontWeight.w400,
+              color: unseenCount.when(
+                data:
+                    (count) =>
+                        count > 0 ? AppColors.gradientGreen : Colors.grey,
+                loading: () => Colors.grey,
+                error: (error, _) => Colors.grey,
+              ),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_formatTimestamp(timestamp)),
+              unseenCount.when(
+                data:
+                    (count) =>
+                        count > 0
+                            ? Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppColors.gradientGreen,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                            : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (error, _) => const SizedBox.shrink(),
+              ),
+
+            ],
+          ),
+          onTap: onTap,
+        ),
+      ],
     );
   }
 }

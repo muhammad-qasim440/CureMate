@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../const/app_fonts.dart';
 import '../../../../../const/font_sizes.dart';
-import '../../../../shared/widgets/custom_snackbar_widget.dart';
+import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../utils/screen_utils.dart';
@@ -26,6 +26,8 @@ class FeaturedDoctorCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isOnline =
+        ref.watch(formattedStatusProvider(doctor.uid)).value == 'Online';
     return GestureDetector(
       onTap: () {
         AppNavigation.push(DoctorProfileView(doctor: doctor));
@@ -48,53 +50,84 @@ class FeaturedDoctorCard extends ConsumerWidget {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Container(
-                  width: ScreenUtil.scaleWidth(context, 100),
-                  height: ScreenUtil.scaleHeight(context, 100),
-                  margin: const EdgeInsets.only(top: 8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image:
-                    doctor.profileImageUrl.isNotEmpty
-                        ? DecorationImage(
-                      image: NetworkImage(doctor.profileImageUrl),
-                      fit: BoxFit.cover,
-                    )
-                        : null,
-                  ),
-                  child:
-                  doctor.profileImageUrl.isEmpty
-                      ? Center(
-                    child: Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.grey.shade600,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: ScreenUtil.scaleWidth(context, 100),
+                      height: ScreenUtil.scaleHeight(context, 100),
+                      margin: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image:
+                              doctor.profileImageUrl.isNotEmpty
+                                  ? DecorationImage(
+                                    image: NetworkImage(doctor.profileImageUrl),
+                                    fit: BoxFit.cover,
+                                  )
+                                  : null,
+                          color:
+                              doctor.profileImageUrl.isEmpty
+                                  ? Colors.grey.shade200
+                                  : null,
+                        ),
+                        child:
+                            doctor.profileImageUrl.isEmpty
+                                ? Center(
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 40,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                )
+                                : null,
+                      ),
                     ),
-                  )
-                      : null,
+
+                    8.height,
+                    CustomTextWidget(
+                      text: doctor.fullName,
+                      textAlignment: TextAlign.center,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontFamily: AppFonts.rubik,
+                        fontSize: FontSizes(context).size14,
+                      ),
+                    ),
+                    4.height,
+                    CustomTextWidget(
+                      text: '${doctor.consultationFee.toString()} PKR',
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontFamily: AppFonts.rubik,
+                        fontSize: FontSizes(context).size14,
+                        color: AppColors.gradientGreen,
+                      ),
+                    ),
+                  ],
                 ),
-                8.height,
-                CustomTextWidget(
-                  text: doctor.fullName,
-                  textAlignment: TextAlign.center,
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: AppFonts.rubik,
-                    fontSize: FontSizes(context).size14,
-                  ),
-                ),
-                4.height,
-                CustomTextWidget(
-                  text:
-                  '${doctor.consultationFee.toString()} PKR',
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: AppFonts.rubik,
-                    fontSize: FontSizes(context).size14,
-                    color: AppColors.gradientGreen,
+                Positioned(
+                  bottom: 70,
+                  right: 18,
+                  child: Container(
+                    width: 13,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color:
+                          isOnline
+                              ? AppColors.gradientGreen
+                              : AppColors.subTextColor,
+                      border: Border.all(color: AppColors.black, width: 1),
+
+                    ),
                   ),
                 ),
               ],
@@ -131,11 +164,7 @@ class FeaturedDoctorCard extends ConsumerWidget {
             right: ScreenUtil.scaleWidth(context, 20),
             child: Row(
               children: [
-                const Icon(
-                  Icons.star,
-                  size: 16,
-                  color: Colors.amber,
-                ),
+                const Icon(Icons.star, size: 16, color: Colors.amber),
                 4.width,
                 CustomTextWidget(
                   text: (doctor.averageRatings).toStringAsFixed(1),
@@ -153,75 +182,4 @@ class FeaturedDoctorCard extends ConsumerWidget {
       ),
     );
   }
-
-  // void _showRatingDialog(BuildContext context, WidgetRef ref) {
-  //   double rating = 0.0; // Rating out of 5, will convert to 10
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text('${doctor.fullName}',textAlign: TextAlign.center,),
-  //       contentPadding: EdgeInsets.all(10),
-  //       content: Column(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           const Text('Please provide your rating (out of 5 stars)',textAlign: TextAlign.center),
-  //           16.height,
-  //           StarRating(
-  //             rating: rating,
-  //             onRatingChanged: (newRating) => rating = newRating,
-  //           ),
-  //         ],
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: const Text('Cancel'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             if (rating > 0) {
-  //               _submitRating(context,ref, rating * 2);
-  //               Navigator.pop(context);
-  //             } else {
-  //               CustomSnackBarWidget.show(context: context, text: 'Please select a rating');
-  //             }
-  //           },
-  //           child: const Text('Submit'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-  //
-  // void _submitRating(BuildContext context, WidgetRef ref, double rating) async {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   if (user == null) {
-  //     CustomSnackBarWidget.show(context: context, text: 'Please sign in to rate');
-  //     return;
-  //   }
-  //
-  //   // Check if the user is a patient
-  //   final database = FirebaseDatabase.instance.ref();
-  //   final userTypeSnapshot = await database.child('Patients').child(user.uid).child('userType').get();
-  //   if (!userTypeSnapshot.exists || userTypeSnapshot.value != 'Patient') {
-  //     CustomSnackBarWidget.show(context: context, text: 'Only patients can submit ratings');
-  //     return;
-  //   }
-  //
-  //   final ratingRef = database.child('Doctors').child(doctor.uid).child('ratings').child(user.uid);
-  //
-  //   try {
-  //     await ratingRef.set({
-  //       'rating': rating, // Rating out of 10
-  //       'timestamp': DateTime.now().toIso8601String(),
-  //     });
-  //     CustomSnackBarWidget.show(context: context, text: 'Rating submitted successfully');
-  //   } catch (e) {
-  //     String errorMessage = 'Error submitting rating: $e';
-  //     if (e.toString().contains('PERMISSION_DENIED')) {
-  //       errorMessage = 'Permission denied. Ensure you are a patient and signed in.';
-  //     }
-  //     CustomSnackBarWidget.show(context: context, text: errorMessage);
-  //   }
-  // }
 }

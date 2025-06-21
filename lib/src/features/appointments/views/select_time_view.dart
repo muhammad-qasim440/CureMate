@@ -1,4 +1,5 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/appointments/providers/appointments_providers.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,7 +19,7 @@ final selectedDayProvider = StateProvider<DateTime?>((ref) => null);
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final selectedTimeSlotProvider = StateProvider<String?>((ref) => null);
 final selectedSlotTypeProvider = StateProvider<String?>((ref) => null);
-final reminderProvider = StateProvider<String>((ref) => '25 min');
+final reminderProvider = StateProvider<String?>((ref) => 'No Reminder');
 final categorizedTimeSlotsProvider = StateProvider<Map<String, List<String>>>(
       (ref) => {},
 );
@@ -302,7 +303,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                           30.height,
                           const TimeSlotsWidget(),
                           24.height,
-                          const ReminderWidget(),
+                          ReminderWidget(reminderTime:isEditing?widget.appointment!.reminderTime:''),
                           24.height,
                           ConfirmButtonWidget(
                             doctor: widget.doctor,

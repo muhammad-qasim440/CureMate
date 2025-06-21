@@ -3,6 +3,7 @@ import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/core/extentions/date_time_format_extension.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/shared/widgets/back_view_icon_widget.dart';
+import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../theme/app_colors.dart';
@@ -32,10 +33,14 @@ class DoctorAllReviewsView extends ConsumerWidget {
       ),
       body: appointmentsAsync.when(
         data: (appointments) {
-          final ratedAppointments = appointments
-              .where((apt) => apt.isRated && apt.rating != null && apt.review != null)
-              .toList()
-            ..sort((a, b) => (b.ratedAt ?? '').compareTo(a.ratedAt ?? ''));
+          final ratedAppointments =
+              appointments
+                  .where(
+                    (apt) =>
+                        apt.isRated && apt.rating != null && apt.review != null,
+                  )
+                  .toList()
+                ..sort((a, b) => (b.ratedAt ?? '').compareTo(a.ratedAt ?? ''));
 
           if (ratedAppointments.isEmpty) {
             return _buildEmptyReviews();
@@ -44,52 +49,60 @@ class DoctorAllReviewsView extends ConsumerWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: ratedAppointments.length,
-            itemBuilder: (context, index) => _buildReviewCard(
-              context,
-              ratedAppointments[index],
-            ),
+            itemBuilder:
+                (context, index) =>
+                    _buildReviewCard(context, ratedAppointments[index]),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.gradientGreen),
-          ),
-        ),
-        error: (error, stack) => Center(
-          child: Text(
-            'Error loading reviews',
-            style: TextStyle(
-              color: Colors.red[400],
-              fontSize: FontSizes(context).size14,
-              fontFamily: AppFonts.rubik,
+        loading:
+            () => const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.gradientGreen,
+                ),
+              ),
             ),
-          ),
-        ),
+        error:
+            (error, stack) => Center(
+              child: Text(
+                'Error loading reviews',
+                style: TextStyle(
+                  color: Colors.red[400],
+                  fontSize: FontSizes(context).size14,
+                  fontFamily: AppFonts.rubik,
+                ),
+              ),
+            ),
       ),
     );
   }
 
   Widget _buildEmptyReviews() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.rate_review_outlined,
-            size: 64,
-            color: Colors.grey[400],
+    return const Stack(
+      children: [
+        LowerBackgroundEffectsWidgets(),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.rate_review_outlined,
+                size: 64,
+                color: AppColors.gradientGreen,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'No reviews yet',
+                style: TextStyle(
+                  color: AppColors.black,
+                  fontSize: 16,
+                  fontFamily: AppFonts.rubik,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'No reviews yet',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
-              fontFamily: AppFonts.rubik,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -144,7 +157,7 @@ class DoctorAllReviewsView extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                           appointment.ratedAt!.formattedDateTime,
+                            appointment.ratedAt!.formattedDateTime,
                             style: TextStyle(
                               fontSize: FontSizes(context).size12,
                               fontFamily: AppFonts.rubik,
@@ -165,11 +178,7 @@ class DoctorAllReviewsView extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 16,
-                    ),
+                    const Icon(Icons.star, color: Colors.amber, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       appointment.rating!.toStringAsFixed(1),
@@ -186,20 +195,21 @@ class DoctorAllReviewsView extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if(appointment.review!='')...[
-          Text(
-           'Review: ${appointment.review!}',
-            style: TextStyle(
-              fontSize: FontSizes(context).size14,
-              fontFamily: AppFonts.rubik,
-              color: AppColors.subTextColor,
+          if (appointment.review != '') ...[
+            Text(
+              'Review: ${appointment.review!}',
+              style: TextStyle(
+                fontSize: FontSizes(context).size14,
+                fontFamily: AppFonts.rubik,
+                color: AppColors.subTextColor,
+              ),
             ),
-          ),
           ],
           const SizedBox(height: 8),
           Text(
-            appointment.patientType=='My Self'?'Booked for: ${appointment.bookerName }'
-            :'Booked for: ${appointment.patientName}',
+            appointment.patientType == 'My Self'
+                ? 'Booked for: ${appointment.bookerName}'
+                : 'Booked for: ${appointment.patientName}',
             style: TextStyle(
               fontSize: FontSizes(context).size12,
               fontFamily: AppFonts.rubik,
@@ -219,4 +229,4 @@ class DoctorAllReviewsView extends ConsumerWidget {
       ),
     );
   }
-} 
+}

@@ -16,6 +16,8 @@ class AppointmentModel {
   final String bookerName;
   final String patientName;
   final String patientNumber;
+  final String patientGender;
+  final int patientAge;
   final String patientType;
   final String? reminderTime;
   final bool isRated;
@@ -41,6 +43,8 @@ class AppointmentModel {
     required this.bookerName,
     required this.patientName,
     required this.patientNumber,
+    required this.patientGender,
+    required this.patientAge,
     required this.patientType,
     this.reminderTime,
     this.isRated = false,
@@ -68,6 +72,8 @@ class AppointmentModel {
       bookerName: map['bookerName'] ?? '',
       patientName: map['patientName'] ?? '',
       patientNumber: map['patientNumber'] ?? '',
+      patientGender: map['patientGender'] ?? '',
+      patientAge: map['patientAge']?.toInt() ?? 0,
       patientType: map['patientType'] ?? 'Myself',
       reminderTime: map['reminderTime'],
       isRated: map['isRated'] ?? false,
@@ -95,6 +101,8 @@ class AppointmentModel {
       'bookerName': bookerName,
       'patientName': patientName,
       'patientNumber': patientNumber,
+      'patientGender': patientGender,
+      'patientAge': patientAge,
       'patientType': patientType,
       'reminderTime': reminderTime,
       'isRated': isRated,
@@ -122,6 +130,8 @@ class AppointmentModel {
     String? bookerName,
     String? patientName,
     String? patientNumber,
+    String? patientGender,
+    int? patientAge,
     String? patientType,
     String? reminderTime,
     bool? isRated,
@@ -147,6 +157,8 @@ class AppointmentModel {
       bookerName: bookerName ?? this.bookerName,
       patientName: patientName ?? this.patientName,
       patientNumber: patientNumber ?? this.patientNumber,
+      patientGender: patientGender ?? this.patientGender,
+      patientAge: patientAge ?? this.patientAge,
       patientType: patientType ?? this.patientType,
       reminderTime: reminderTime ?? this.reminderTime,
       isRated: isRated ?? this.isRated,

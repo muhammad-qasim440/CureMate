@@ -50,6 +50,7 @@ dependencies:
   file_picker: ^8.0.7
   device_info_plus: ^9.0.0
   flutter_local_notifications: ^17.2.2
+  android_intent_plus: ^5.3.0
   timezone: ^0.9.4
 
 

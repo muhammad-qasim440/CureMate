@@ -1,5 +1,4 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
-import 'package:curemate/src/features/patient/favorites/widgets/favorite_view_patient_appointment_with_doctors_cards_list_widget.dart';
 import 'package:curemate/src/features/patient/providers/patient_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -3,7 +3,6 @@ import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/const/font_sizes.dart';
 import 'package:curemate/src/shared/repository/doctor_repository.dart';
 import 'package:curemate/src/shared/widgets/back_view_icon_widget.dart';
-import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_snackbar_widget.dart';
 import 'package:curemate/src/shared/widgets/lower_background_effects_widgets.dart';
 import 'package:curemate/src/theme/app_colors.dart';
@@ -16,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/flutter_cache_manager.dart';
 import '../../../../router/nav.dart';
+import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../shared/chat/views/chat_screen.dart';
 import '../../../../shared/widgets/custom_text_widget.dart';
 import '../../../appointments/views/appointment_booking_view.dart';
@@ -137,7 +137,8 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
   Widget build(BuildContext context) {
     final favoriteDocids = ref.watch(favoriteDoctorUidsProvider).value ?? [];
     final isFavorite = favoriteDocids.contains(widget.doctor.uid);
-
+    final isOnline =
+        ref.watch(formattedStatusProvider(widget.doctor.uid)).value == 'Online';
     return Scaffold(
       body: Stack(
         children: [
@@ -183,7 +184,7 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
                       fit: StackFit.expand,
                       clipBehavior: Clip.none,
                       children: [
-                        // Background container with rounded corners that's always visible
+                        /// Background container with rounded corners that's always visible
                         Container(
                           decoration: const BoxDecoration(
                             borderRadius: BorderRadius.only(
@@ -223,34 +224,50 @@ class _DoctorProfileViewState extends ConsumerState<DoctorProfileView>
                                         ),
                                       ],
                                     ),
-                                    child: CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: Colors.white,
-                                      child: CachedNetworkImage(
-                                        imageUrl: widget.doctor.profileImageUrl.isNotEmpty == true
-                                            ? widget.doctor.profileImageUrl
-                                            : '',
-                                        cacheManager: CustomCacheManager.instance,
-                                        placeholder: (context, url) =>
-                                        const CircularProgressIndicator(
-                                          color: AppColors.gradientGreen,
+                                    child: Stack(
+                                      children:[ CircleAvatar(
+                                        radius: 30,
+                                        backgroundColor: Colors.white,
+                                        child: CachedNetworkImage(
+                                          imageUrl: widget.doctor.profileImageUrl.isNotEmpty == true
+                                              ? widget.doctor.profileImageUrl
+                                              : '',
+                                          cacheManager: CustomCacheManager.instance,
+                                          placeholder: (context, url) =>
+                                          const CircularProgressIndicator(
+                                            color: AppColors.gradientGreen,
+                                          ),
+                                          errorWidget: (context, url, error) => Text(
+                                            widget.doctor.fullName.isNotEmpty == true
+                                                ? widget.doctor.fullName[0]
+                                                : '?',
+                                            style: TextStyle(
+                                              fontSize: 40,
+                                              fontFamily: AppFonts.rubik,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          imageBuilder: (context, imageProvider) =>
+                                              CircleAvatar(
+                                                radius: 50,
+                                                backgroundImage: imageProvider,
+                                              ),
                                         ),
-                                        errorWidget: (context, url, error) => Text(
-                                          widget.doctor.fullName.isNotEmpty == true
-                                              ? widget.doctor.fullName[0]
-                                              : '?',
-                                          style: TextStyle(
-                                            fontSize: 40,
-                                            fontFamily: AppFonts.rubik,
-                                            color: Colors.grey.shade600,
+                                      ),
+                                        Positioned(
+                                          bottom: 4,
+                                          left: 17,
+                                          child: Container(
+                                            width: 15,
+                                            height: 15,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isOnline ? AppColors.gradientGreen : AppColors.subTextColor,
+                                              border: Border.all(color: AppColors.black, width: 2),
+                                            ),
                                           ),
                                         ),
-                                        imageBuilder: (context, imageProvider) =>
-                                            CircleAvatar(
-                                              radius: 50,
-                                              backgroundImage: imageProvider,
-                                            ),
-                                      ),
+                                     ],
                                     ),
                                   ),
                                   const SizedBox(height: 12),

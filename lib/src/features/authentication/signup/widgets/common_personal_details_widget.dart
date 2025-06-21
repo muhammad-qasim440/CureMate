@@ -1,4 +1,5 @@
 import 'package:curemate/core/extentions/widget_extension.dart';
+import 'package:curemate/src/features/authentication/signin/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:location/location.dart';
@@ -117,7 +118,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
           ),
         ),
         23.height,
-        // Date of Birth
+        /// Date of Birth
         CustomTextFormFieldWidget(
           controller: dateOfBirthController,
           label: 'Date of Birth',
@@ -170,7 +171,56 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
           ),
         ),
         23.height,
-        // city
+        const CustomDropdown(
+          items: AppStrings.genders,
+          label: 'Gender',
+          validatorText: 'please select your gender',
+        ),
+        23.height,
+        CustomTextFormFieldWidget(
+          label: 'Age',
+          hintText: '23 (number)',
+          onChanged:(value){
+            final age = int.tryParse(value);
+            if (age != null) {
+              ref
+                  .read(ageProvider.notifier)
+                  .state = age;
+            }
+          },
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter patient age';
+            }
+            if (int.tryParse(value) == null) {
+              return 'Please enter a valid number';
+            }
+            return null;
+          },
+          textStyle: TextStyle(
+            fontFamily: AppFonts.rubik,
+            fontWeight: FontWeight.w400,
+            fontSize: FontSizes(context).size14,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: const BorderSide(color: AppColors.grey),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: const BorderSide(color: AppColors.grey),
+          ),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+            fontFamily: AppFonts.rubik,
+            color: AppColors.subTextColor,
+          ),
+        ),
+        23.height,
+
+        /// city
         const CustomDropdown(
           items: AppStrings.cities,
           label: 'City',
@@ -262,9 +312,9 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
                 locationController.text = '${locationData.latitude} - ${locationData.longitude}';
                 ref.read(locationLatitudeProvider.notifier).state = locationData.latitude!;
                 ref.read(locationLongitudeProvider.notifier).state = locationData.longitude!;
+
               } else if (status.isDenied || status.isRestricted || status.isLimited) {
                 perm.PermissionStatus result = await perm.Permission.location.request();
-
                 if (result.isGranted) {
                   final locationData = await _location.getLocation();
                   locationController.text = '${locationData.latitude} - ${locationData.longitude}';
@@ -284,7 +334,7 @@ class _CommonPersonalDetailsWidgetState extends ConsumerState<CommonPersonalDeta
                     });
                   }
                 }
-              }
+              } 
             },
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:curemate/const/app_fonts.dart';
 import 'package:curemate/core/extentions/widget_extension.dart';
 import 'package:curemate/src/features/drawer/widgets/patient_drawer_editable_personal_info_field_widget.dart';
 import 'package:curemate/src/features/drawer/widgets/drawer_update_email_view_widget.dart';
+import 'package:curemate/src/shared/providers/drop_down_provider/custom_drop_down_provider.dart';
 import 'package:curemate/src/shared/widgets/custom_appbar_header_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_button_widget.dart';
 import 'package:curemate/src/shared/widgets/custom_centered_text_widget.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:location/location.dart' as loc;
 import '../../../../../const/font_sizes.dart';
+import '../../../../const/app_strings.dart';
 import '../../../shared/providers/profile_image_picker_provider/profile_image_picker_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -22,6 +24,7 @@ import '../providers/drawer_providers.dart';
 
 final isUpdatingProfileProvider = StateProvider<bool>((ref) => false);
 final hasChangesProvider = StateProvider<bool>((ref) => false);
+
 class PatientDrawerProfileViewWidget extends ConsumerStatefulWidget {
   const PatientDrawerProfileViewWidget({super.key});
 
@@ -38,41 +41,49 @@ class _PatientDrawerProfileViewWidgetState
   @override
   void initState() {
     super.initState();
-     WidgetsBinding.instance.addPostFrameCallback((_){
-       final user = ref.read(currentSignInPatientDataProvider).value;
-       if (user != null) {
-         originalValues['name'] = user.fullName;
-         originalValues['phone'] = user.phoneNumber;
-         originalValues['city'] = user.city;
-         originalValues['latitude'] = user.latitude.toString();
-         originalValues['longitude'] = user.longitude.toString();
-         originalValues['dob'] = user.dob;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(currentSignInPatientDataProvider).value;
+      if (user != null) {
+        originalValues['name'] = user.fullName;
+        originalValues['phone'] = user.phoneNumber;
+        originalValues['city'] = user.city;
+        originalValues['latitude'] = user.latitude.toString();
+        originalValues['longitude'] = user.longitude.toString();
+        originalValues['dob'] = user.dob;
+        originalValues['age'] = user.age.toString();
+        originalValues['gender'] = user.gender;
 
-         if (ref.read(userUpdatedNameProvider) == '') {
-           ref.read(userUpdatedNameProvider.notifier).state = user.fullName;
-         }
-         if (ref.read(userUpdatedPhoneNumberProvider) == '') {
-           ref.read(userUpdatedPhoneNumberProvider.notifier).state =
-               user.phoneNumber;
-         }
-         if (ref.read(userUpdatedCityProvider) == '') {
-           ref.read(userUpdatedCityProvider.notifier).state = user.city;
-         }
-         if (ref.read(userUpdatedLatitudeProvider) == '') {
-           ref.read(userUpdatedLatitudeProvider.notifier).state =
-               user.latitude.toString();
-         }
-         if (ref.read(userUpdatedLongitudeProvider) == '') {
-           ref.read(userUpdatedLongitudeProvider.notifier).state =
-               user.longitude.toString();
-         }
-         if (ref.read(userUpdatedDOBProvider) == '') {
-           ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
-         }
-       }
-       ref.read(isUpdatingProfileProvider.notifier).state = false;
-       ref.read(hasChangesProvider.notifier).state = false;
-     });
+        if (ref.read(userUpdatedNameProvider) == '') {
+          ref.read(userUpdatedNameProvider.notifier).state = user.fullName;
+        }
+        if (ref.read(userUpdatedPhoneNumberProvider) == '') {
+          ref.read(userUpdatedPhoneNumberProvider.notifier).state =
+              user.phoneNumber;
+        }
+        if (ref.read(userUpdatedCityProvider) == '') {
+          ref.read(userUpdatedCityProvider.notifier).state = user.city;
+        }
+        if (ref.read(userUpdatedLatitudeProvider) == '') {
+          ref.read(userUpdatedLatitudeProvider.notifier).state =
+              user.latitude.toString();
+        }
+        if (ref.read(userUpdatedLongitudeProvider) == '') {
+          ref.read(userUpdatedLongitudeProvider.notifier).state =
+              user.longitude.toString();
+        }
+        if (ref.read(userUpdatedDOBProvider) == '') {
+          ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
+        }
+        if (ref.read(userUpdatedAgeProvider) == 0) {
+          ref.read(userUpdatedAgeProvider.notifier).state = user.age;
+        }
+        if (ref.read(userUpdatedGenderProvider) == '') {
+          ref.read(userUpdatedGenderProvider.notifier).state = user.gender;
+        }
+      }
+      ref.read(isUpdatingProfileProvider.notifier).state = false;
+      ref.read(hasChangesProvider.notifier).state = false;
+    });
   }
 
   @override
@@ -88,21 +99,21 @@ class _PatientDrawerProfileViewWidgetState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UpdateEmailScreen(
-          currentEmail: currentEmail,
-          onUpdate: (newEmail, currentPassword, newPassword) async {
-            await drawerHelpers.updateUserEmail(
-              context: context,
-              ref: ref,
-              newEmail: newEmail,
-              currentPassword: currentPassword,
-              newPassword: newPassword,
+        builder:
+            (context) => UpdateEmailScreen(
               currentEmail: currentEmail,
-              isDoctor: false,
-
-            );
-          },
-        ),
+              onUpdate: (newEmail, currentPassword, newPassword) async {
+                await drawerHelpers.updateUserEmail(
+                  context: context,
+                  ref: ref,
+                  newEmail: newEmail,
+                  currentPassword: currentPassword,
+                  newPassword: newPassword,
+                  currentEmail: currentEmail,
+                  isDoctor: false,
+                );
+              },
+            ),
       ),
     );
   }
@@ -114,7 +125,9 @@ class _PatientDrawerProfileViewWidgetState
     final currentLatitude = ref.read(userUpdatedLatitudeProvider);
     final currentLongitude = ref.read(userUpdatedLongitudeProvider);
     final currentDob = ref.read(userUpdatedDOBProvider);
-    final newProfileImage=ref.read(profileImagePickerProvider);
+    final currentGender = ref.read(userUpdatedGenderProvider);
+    final currentAge = ref.read(userUpdatedAgeProvider);
+    final newProfileImage = ref.read(profileImagePickerProvider);
 
     final hasChanges =
         currentName != originalValues['name'] ||
@@ -123,15 +136,15 @@ class _PatientDrawerProfileViewWidgetState
         currentLatitude != originalValues['latitude'] ||
         currentLongitude != originalValues['longitude'] ||
         currentDob != originalValues['dob'] ||
-        newProfileImage.croppedImage !=null;
-
+        currentGender != originalValues['gender'] ||
+        currentAge != int.tryParse(originalValues['age']!) ||
+        newProfileImage.croppedImage != null;
     ref.read(hasChangesProvider.notifier).state = hasChanges;
   }
 
   void _saveChanges() async {
     await drawerHelpers.updatePatientProfile(context, ref);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +333,9 @@ class _PatientDrawerProfileViewWidgetState
                               return null;
                             },
                             isEnabled: !isUpdating,
-                            onChangeDetected: () {_checkForChanges(ref);},
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
                           ),
                           EditablePersonalInfoField(
                             title: 'Date of Birth',
@@ -361,9 +376,54 @@ class _PatientDrawerProfileViewWidgetState
                               },
                             ),
                             isEnabled: !isUpdating,
-                            onChangeDetected: () {_checkForChanges(ref);},
-
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
                           ),
+                          EditablePersonalInfoField(
+                            title: 'Age',
+                            subtitleProvider: userUpdatedAgeProvider,
+                            isEditingProvider: isEditingAgeProvider,
+                            onChanged:
+                                (value) =>
+                                    ref
+                                        .read(userUpdatedAgeProvider.notifier)
+                                        .state = int.tryParse(value)!,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your age';
+                              }
+                              return null;
+                            },
+                            keyboardType: TextInputType.number,
+                            isEnabled: !isUpdating,
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
+                          ),
+                          EditablePersonalInfoField(
+                            title: 'Gender',
+                            subtitleProvider: userUpdatedGenderProvider,
+                            isEditingProvider: isEditingGenderProvider,
+                            onChanged: (value) => ref
+                                .read(userUpdatedGenderProvider.notifier)
+                                .state = value,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select your gender';
+                              }
+                              return null;
+                            },
+                            isEnabled: !isUpdating,
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
+                            isDropdown: true,
+                            dropdownItems: AppStrings.genders,
+                            dropdownLabel: 'Gender',
+                            dropdownValidatorText: 'Please select your gender',
+                          ),
+
                           EditablePersonalInfoField(
                             title: 'Contact Number',
                             subtitleProvider: userUpdatedPhoneNumberProvider,
@@ -384,8 +444,9 @@ class _PatientDrawerProfileViewWidgetState
                             },
                             keyboardType: TextInputType.phone,
                             isEnabled: !isUpdating,
-                            onChangeDetected: () {_checkForChanges(ref);},
-
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
                           ),
                           EditablePersonalInfoField(
                             title: 'City',
@@ -403,8 +464,9 @@ class _PatientDrawerProfileViewWidgetState
                               return null;
                             },
                             isEnabled: !isUpdating,
-                            onChangeDetected: () {_checkForChanges(ref);},
-
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
                           ),
                           EditablePersonalInfoField(
                             title: 'Location',
@@ -562,20 +624,33 @@ class _PatientDrawerProfileViewWidgetState
                               },
                             ),
                             isEnabled: !isUpdating,
-                            onChangeDetected: () {_checkForChanges(ref);},
-
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
                           ),
                           30.height,
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              if (hasChanges || profileImageState.croppedImage!=null) ...[
+                              if (hasChanges ||
+                                  profileImageState.croppedImage != null) ...[
                                 CustomButtonWidget(
-                                  text:isUpdating?'Updating...': 'Save Changes',
-                                  onPressed: isUpdating ? null :(){ _saveChanges();
-                                  ref.read(hasChangesProvider.notifier).state=false;
-                                    },
+                                  text:
+                                      isUpdating
+                                          ? 'Updating...'
+                                          : 'Save Changes',
+                                  onPressed:
+                                      isUpdating
+                                          ? null
+                                          : () {
+                                            _saveChanges();
+                                            ref
+                                                .read(
+                                                  hasChangesProvider.notifier,
+                                                )
+                                                .state = false;
+                                          },
                                   backgroundColor: AppColors.gradientGreen,
                                   textColor: Colors.white,
                                   borderRadius: 8,
@@ -587,7 +662,9 @@ class _PatientDrawerProfileViewWidgetState
                                   onPressed:
                                       isUpdating
                                           ? null
-                                          : () { drawerHelpers.clearChanges(ref);},
+                                          : () {
+                                            drawerHelpers.clearChanges(ref);
+                                          },
                                   backgroundColor: AppColors.subTextColor,
                                   textColor: Colors.white,
                                   borderRadius: 8,

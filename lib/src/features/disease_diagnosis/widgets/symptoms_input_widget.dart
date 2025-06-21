@@ -36,7 +36,8 @@ class SymptomsInputWidget extends StatelessWidget {
           Expanded(
             child: CustomTextFormFieldWidget(
               controller: controller,
-              hintText: 'Enter your symptoms (e.g., fever, cough)',
+               maxLines: 3,
+              hintText: 'Enter your symptoms by comma separated (e.g. fever, cough)',
               keyboardType: TextInputType.multiline,
               textStyle: TextStyle(
                 fontFamily: AppFonts.rubik,

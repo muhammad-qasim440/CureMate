@@ -9,9 +9,11 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/adapters.dart';
 import '../const/app_strings.dart';
 import '../core/lifecycle/observers/app_lifecycle_observer.dart';
 import '../core/utils/cache_network_image_utils.dart';
+import '../core/utils/debug_print.dart';
 import '../databases/local/hive/initialize_and_open_hive_db.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -22,22 +24,37 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class App extends ConsumerStatefulWidget {
   const App._();
 
-  static void initilizationAndRun() async {
+  static Future<void> initilizationAndRun() async {
     WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp();
-    FirebaseDatabase.instance.setLoggingEnabled(true);
-    FirebaseAuth.instance.authStateChanges().listen((user) {});
+    await Future.wait([
+      Firebase.initializeApp().then((_) async {
+        FirebaseDatabase.instance.setLoggingEnabled(true);
+        /// Log auth state for debugging
+        FirebaseAuth.instance.authStateChanges().listen((user) {
+          logDebug('Auth state changed: ${user?.uid}');
+        });
+      }),
+     Hive.initFlutter().then((_) async {
+        /// Check if this is a fresh install
+        final box = await Hive.openBox('appConfig');
+        final isFirstRun = box.get('isFirstRun', defaultValue: true);
+        if (isFirstRun) {
+          logDebug('First run detected, clearing Hive and resetting onboarding');
+          await Hive.deleteBoxFromDisk('showOnBoardingViewsDb');
+          await box.put('isFirstRun', false);
+        }
+        await initializeHiveDB();
+        await openBoxShowOnBoardingViewsDb();
+      }),
+      CacheUtils.clearCache(),
+    ]);
 
     tz.initializeTimeZones();
 
-    /// Initialize flutter_local_notifications
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
+    const initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
 
-    /// Handle tap when app is in foreground/background
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
@@ -45,24 +62,17 @@ class App extends ConsumerStatefulWidget {
       },
     );
 
-    /// Handle tap when app is launched from terminated state
     final details = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp ?? false) {
       _handleNotificationTap(details!.notificationResponse?.payload);
     }
 
-    /// Ask for notification permission
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
 
-    await initializeHiveDB();
-    await openBoxShowOnBoardingViewsDb();
-    await CacheUtils.clearCache();
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.dumpErrorToConsole(details);
       Zone.current.handleUncaughtError(details.exception, details.stack!);
     };
+
     runApp(const ProviderScope(
       overrides: [],
       child: App._(),

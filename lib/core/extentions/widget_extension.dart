@@ -26,6 +26,16 @@ extension DateFormatExtension on String {
     }
   }
 
+  ///     04 May 2025
+  String get formattedDateMonthYear {
+    try {
+      final dateTime=DateTime.parse(this);
+      return DateFormat('dd MMM yyyy').format(dateTime);
+    } catch (e) {
+      return 'Invalid date';
+    }
+  }
+
   /// Returns date like: 04\nMAY
   String get dayBYMonthDisplay {
     try {
