@@ -165,7 +165,7 @@ class _PatientDrawerProfileViewWidgetState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Green Header
+                  /// Top Green Header
                   Container(
                     width: ScreenUtil.scaleWidth(context, 375),
                     height: ScreenUtil.scaleHeight(context, 357),

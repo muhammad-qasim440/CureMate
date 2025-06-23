@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../../core/lifecycle/observers/app_lifecycle_observer.dart';
+import '../../../../app.dart';
 import '../../../../shared/chat/providers/chatting_auth_providers.dart';
 import '../../../../shared/chat/providers/chatting_providers.dart';
 import '../../../../../core/utils/debug_print.dart';
@@ -103,10 +104,15 @@ class AuthService {
         'longitude': longitude,
         'userType': userType.selected,
         'createdAt': DateTime.now().toIso8601String(),
-        'favorites': {},
-        'MedicalRecords': {},
+
       };
 
+      if(userType.selected=="Patient"){
+        userData.addAll({
+          'favorites': {},
+          'MedicalRecords': {},
+        });
+      }
       if (userType.selected == 'Doctor') {
         userData.addAll({
           'qualification': docQualification,
@@ -114,12 +120,11 @@ class AuthService {
           'yearsOfExperience': docExperience,
           'hospital': docHospital,
           'consultationFee': docConsultationFee,
-          // 'totalReviews': 0,
-          // 'averageRatings': 0.0,
-          // 'totalPatientConsulted': 0,
-          // 'profileViews': 0,
-          // 'viewedBy': {},
-          // 'availability': daySlotConfigs,
+          'totalReviews': 0,
+          'averageRatings': 0.0,
+          'totalPatientConsulted': 0,
+          'profileViews': 0,
+          'availability': daySlotConfigs,
         });
       }
       String userTypePath = userType.selected == 'Doctor' ? 'Doctors' : 'Patients';
@@ -134,12 +139,12 @@ class AuthService {
         logDebug('Error writing to $userTypePath/$uid: $e');
         return 'Failed to write user data: $e';
       }
-
+     String? profileImageUrl='';
       /// Upload profile image if provided
       if (profileImage != null) {
         final cloudinaryImageData = await uploadImageToCloudinary(File(profileImage.path));
         if (cloudinaryImageData != null) {
-          final profileImageUrl = cloudinaryImageData['secure_url'];
+           profileImageUrl = cloudinaryImageData['secure_url'];
           final profileImagePublicId = cloudinaryImageData['public_id'];
           try {
             await database.child(userTypePath).child(uid).update({
@@ -160,7 +165,7 @@ class AuthService {
           'fullName': fullName,
           'email': email,
           'userType': userType.selected,
-          'profileImageUrl': '',
+          'profileImageUrl': profileImageUrl,
           'status': {
             'isOnline': true,
             'lastSeen': ServerValue.timestamp,
@@ -460,73 +465,28 @@ class AuthService {
     try {
       logDebug('Starting logout process...');
       await FirebaseDatabase.instance.goOffline();
-
       for (var subscription in _realtimeDbListeners) {
         await subscription.cancel();
       }
       _realtimeDbListeners.clear();
       logDebug('Realtime DB listeners cleared.');
-
       final appLifecycleObserver = _ref.read(appLifecycleObserverProvider);
       appLifecycleObserver.dispose();
       logDebug('App lifecycle observer disposed.');
-
-      // Invalidate providers
-      _ref.invalidate(currentSignInPatientDataProvider);
-      _ref.invalidate(doctorsProvider);
-      _ref.invalidate(favoriteDoctorUidsProvider);
-      _ref.invalidate(favoriteDoctorsProvider);
-      _ref.invalidate(appointmentsProvider);
-      _ref.invalidate(patientDoctorsWithBookingsProvider);
-      _ref.invalidate(nearByDoctorsProvider);
-      _ref.invalidate(chatListProvider);
-      _ref.invalidate(chatMessagesProvider);
-      _ref.invalidate(typingIndicatorProvider);
-      _ref.invalidate(chatSettingsProvider);
-      _ref.invalidate(otherUserProfileProvider);
-      _ref.invalidate(formattedStatusProvider);
-      _ref.invalidate(unseenMessagesProvider);
-      _ref.invalidate(currentUserProvider);
-      _ref.invalidate(customDropDownProvider(AppStrings.userTypes));
-      _ref.invalidate(emailProvider);
-      _ref.invalidate(passwordProvider);
-      _ref.read(patientBottomNavIndexProvider.notifier).state = 0;
-      _ref.read(doctorBottomNavIndexProvider.notifier).state = 0;
-      _ref.read(userUpdatedNameProvider.notifier).state = '';
-      _ref.read(userUpdatedPhoneNumberProvider.notifier).state = '';
-      _ref.read(userUpdatedCityProvider.notifier).state = '';
-      _ref.read(userUpdatedLatitudeProvider.notifier).state = '';
-      _ref.read(userUpdatedLongitudeProvider.notifier).state = '';
-      _ref.read(userUpdatedDOBProvider.notifier).state = '';
-      _ref.read(userUpdatedQualificationProvider.notifier).state = '';
-      _ref.read(userUpdatedYearsOfExperienceProvider.notifier).state = '';
-      _ref.read(userUpdatedCategoryProvider.notifier).state = '';
-      _ref.read(userUpdatedHospitalProvider.notifier).state = '';
-      _ref.read(userUpdatedConsultationFeeProvider.notifier).state = 0;
-      _ref.read(profileImagePickerProvider.notifier).reset(_ref);
-      _ref.invalidate(ngrokApiProvider);
-      logDebug('Providers invalidated.');
-
       await auth.signOut();
       logDebug('Firebase Auth sign-out completed.');
-
-      _ref.invalidate(currentUserProvider);
-
       if (context.mounted) {
         CustomSnackBarWidget.show(
           backgroundColor: AppColors.gradientGreen,
           context: context,
           text: 'You have been logged out successfully.',
         );
-      } else {
-        logDebug('Context not mounted, cannot show success snackbar.');
+      }
+      if (context.mounted) {
+        AppWrapper.of(context)?.restartApp();
+        AppNavigation.pushAndRemoveUntil(const SignInView());
       }
 
-      if (context.mounted) {
-        AppNavigation.pushAndRemoveUntil(const SignInView());
-      } else {
-        logDebug('Context not mounted, cannot navigate to SignInView.');
-      }
     } catch (e, stackTrace) {
       logDebug('Logout error: $e\nStackTrace: $stackTrace');
       if (context.mounted) {
@@ -534,9 +494,8 @@ class AuthService {
           context: context,
           text: 'Failed to log out: $e',
         );
-      } else {
-        logDebug('Context not mounted, cannot show error snackbar.');
       }
     }
   }
+
 }

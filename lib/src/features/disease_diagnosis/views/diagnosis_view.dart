@@ -381,6 +381,7 @@ class _DiagnosisViewState extends ConsumerState<DiagnosisView> {
                 onSubmit:(){diagnoseSymptoms(ref,api);},
                 isLoading: isLoading,
               ),
+              40.height,
             ],
           ),
         ],

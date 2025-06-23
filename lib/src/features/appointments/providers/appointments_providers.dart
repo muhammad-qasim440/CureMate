@@ -29,34 +29,16 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
       } else {
         appointments[index] = appointment;
       }
-      logDebug("🧪 Sorting Appointments:");
-      for (var app in appointments) {
-        final sortDate = (app.updatedAt?.isNotEmpty ?? false) ? app.updatedAt : app.createdAt;
-        logDebug('before sorting ${app.id} | updatedAt: ${app.updatedAt} | createdAt: ${app.createdAt} | sort: $sortDate');
-      }
+
+      // Sort appointments by updatedAt or createdAt
       appointments.sort((a, b) {
-        try {
-          final aDate = DateTime.tryParse(
-            (a.updatedAt?.isNotEmpty ?? false) ? a.updatedAt! : a.createdAt,
-          );
-          final bDate = DateTime.tryParse(
-            (b.updatedAt?.isNotEmpty ?? false) ? b.updatedAt! : b.createdAt,
-          );
-
-          if (aDate == null && bDate == null) return 0;
-          if (aDate == null) return 1;
-          if (bDate == null) return -1;
-
-          return bDate.compareTo(aDate);
-        } catch (e) {
-          logDebug('❌ Sort error: $e');
-          return 0;
-        }
+        final aDate = DateTime.tryParse((a.updatedAt?.isNotEmpty ?? false) ? a.updatedAt! : a.createdAt);
+        final bDate = DateTime.tryParse((b.updatedAt?.isNotEmpty ?? false) ? b.updatedAt! : b.createdAt);
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+        return bDate.compareTo(aDate); // latest first
       });
-
-
-
-
 
       streamController.add(List.from(appointments));
     }
@@ -83,6 +65,21 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
       continue;
     }
 
+    // Initial fetch to emit empty list if no appointments exist
+    final snapshot = await query.get();
+    if (!snapshot.exists) {
+      yield [];
+    } else {
+      // Pre-fill from existing data
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      data.forEach((key, value) {
+        if (value is Map<dynamic, dynamic>) {
+          updateAppointment(key, value);
+        }
+      });
+    }
+
+    // Setup real-time listeners
     final addedSub = query.onChildAdded.listen((event) {
       final key = event.snapshot.key!;
       final value = event.snapshot.value as Map<dynamic, dynamic>;
@@ -100,12 +97,15 @@ final appointmentsProvider = StreamProvider<List<AppointmentModel>>((ref) async*
       removeAppointment(key);
     });
 
+    // Attach listeners to auth service for cleanup
     authService.addRealtimeDbListener(addedSub);
     authService.addRealtimeDbListener(changedSub);
     authService.addRealtimeDbListener(removedSub);
 
+    // Yield the stream
     yield* streamController.stream;
 
+    // Handle provider disposal
     ref.onDispose(() {
       addedSub.cancel();
       changedSub.cancel();

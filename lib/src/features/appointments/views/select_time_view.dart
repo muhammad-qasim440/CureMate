@@ -303,7 +303,7 @@ class _SelectTimeViewState extends ConsumerState<SelectTimeView> {
                           30.height,
                           const TimeSlotsWidget(),
                           24.height,
-                          ReminderWidget(reminderTime:isEditing?widget.appointment!.reminderTime:''),
+                          ReminderWidget(reminderTime:isEditing?widget.appointment!.reminderTime:null),
                           24.height,
                           ConfirmButtonWidget(
                             doctor: widget.doctor,

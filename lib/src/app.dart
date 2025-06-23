@@ -73,10 +73,7 @@ class App extends ConsumerStatefulWidget {
       Zone.current.handleUncaughtError(details.exception, details.stack!);
     };
 
-    runApp(const ProviderScope(
-      overrides: [],
-      child: App._(),
-    ));
+    runApp(const AppWrapper()); // ✅ Load app with AppWrapper
   }
 
 
@@ -125,5 +122,33 @@ void _handleNotificationTap(String? payload) {
         container.read(patientBottomNavIndexProvider.notifier).state = 2;
       }
     });
+  }
+}
+
+class AppWrapper extends StatefulWidget {
+  const AppWrapper({super.key});
+
+  static _AppWrapperState? of(BuildContext context) =>
+      context.findAncestorStateOfType<_AppWrapperState>();
+
+  @override
+  State<AppWrapper> createState() => _AppWrapperState();
+}
+
+class _AppWrapperState extends State<AppWrapper> {
+  Key _providerKey = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      _providerKey = UniqueKey(); // 🔁 This resets all Riverpod providers
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      key: _providerKey,
+      child: const App._(),
+    );
   }
 }

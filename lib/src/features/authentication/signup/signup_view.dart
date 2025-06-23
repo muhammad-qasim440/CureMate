@@ -97,6 +97,20 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
                             onPressed:_signUp,
                         ),
                       ),
+                          10.height,
+                          Padding(
+                            padding: const EdgeInsets.only(left:20.0,right: 20),
+                            child: CustomButtonWidget(
+                              text: 'Logout',
+                              height: ScreenUtil.scaleHeight(context, 54),
+                              backgroundColor: AppColors.btnBgColor,
+                              fontFamily: AppFonts.rubik,
+                              fontSize: FontSizes(context).size18,
+                              fontWeight: FontWeight.w900,
+                              textColor: AppColors.gradientWhite,
+                              onPressed:()async{await ref.read(authProvider).logout(context);},
+                            ),
+                          ),
                           30.height,
                           const SignInLinkSection(),
                           SizedBox(
@@ -120,6 +134,7 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
   Future<void> _signUp() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+    final daySlotConfigs = ref.read(daySlotConfigsProvider);
     final profileImage = ref.read(userProfileProvider);
     final isConnected = await ref.read(checkInternetConnectionProvider.future);
     final userType = ref.read(customDropDownProvider(AppStrings.userTypes));
@@ -129,6 +144,13 @@ class _SignUpViewScreenState extends ConsumerState<SignUpView> {
           context: context,
           text: "Please upload a profile image",
         );
+      return;
+    }
+    if (daySlotConfigs.isEmpty) {
+      CustomSnackBarWidget.show(
+        context: context,
+        text: "Please add available time slot in list",
+      );
       return;
     }
     if (!isConnected) {

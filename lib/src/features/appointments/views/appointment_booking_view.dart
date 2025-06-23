@@ -23,6 +23,12 @@ import '../models/appointment_model.dart';
 import '../providers/appointments_providers.dart';
 import '../utils/appointment_utils.dart';
 
+// Provider for age as string to sync with TextFormField
+final bookingViewPatientAgeStringProvider = StateProvider<String>((ref) {
+  final age = ref.watch(bookingViewPatientAgeProvider);
+  return age.toString();
+});
+
 class AppointmentBookingView extends ConsumerStatefulWidget {
   final Doctor doctor;
   final AppointmentModel? appointment;
@@ -41,12 +47,13 @@ class AppointmentBookingView extends ConsumerStatefulWidget {
 class _AppointmentBookingViewState
     extends ConsumerState<AppointmentBookingView> {
   final _formKey = GlobalKey<FormState>();
-  bool _hasPrefilled = false;
+  final FocusNode nameFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     if (widget.appointment != null) {
+      // Edit mode: Prefill with appointment data
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(bookingViewPatientNameProvider.notifier).state =
             widget.appointment!.patientName;
@@ -60,29 +67,64 @@ class _AppointmentBookingViewState
             widget.appointment!.patientNotes ?? '';
         ref.read(bookingViewSelectedPatientLabelProvider.notifier).state =
             widget.appointment!.patientType;
+        debugPrint('Edit mode: Prefilled appointment data');
       });
     } else {
-      // New appointment: Set default to "My Self"
+      // New appointment: Set default to "My Self" and prefill user data
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(bookingViewSelectedPatientLabelProvider.notifier).state =
         'My Self';
+        final currentUserAsync = ref.read(currentSignInPatientDataProvider);
+        if (currentUserAsync is AsyncData && currentUserAsync.value != null) {
+          prefillPatientData(ref: ref, currentUser: currentUserAsync.value!);
+        }
+        debugPrint('New appointment: Set default to My Self and prefilled data');
       });
     }
   }
 
   @override
+  void dispose() {
+    nameFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isEditing = widget.appointment != null;
-    final currentUser = ref.watch(currentSignInPatientDataProvider).value;
-    logDebug('currentUser : ${currentUser!.fullName}');
-    if (currentUser != null) {
-      prefillPatientDataIfMySelf(
-        ref: ref,
-        currentUser: currentUser,
-        hasPrefilled: _hasPrefilled,
-        onPrefillChanged: (value) => setState(() => _hasPrefilled = value),
-      );
-    }
+    final selectedLabel = ref.watch(bookingViewSelectedPatientLabelProvider);
+    final currentUserAsync = ref.watch(currentSignInPatientDataProvider);
+
+    // Sync age string provider with int provider
+    ref.listen(bookingViewPatientAgeStringProvider, (previous, next) {
+      final age = int.tryParse(next);
+      if (age != null && age != ref.read(bookingViewPatientAgeProvider)) {
+        ref.read(bookingViewPatientAgeProvider.notifier).state = age;
+        debugPrint('Updated age provider: $age');
+      }
+    });
+
+    ref.listen(bookingViewPatientAgeProvider, (previous, next) {
+      final stringValue = ref.read(bookingViewPatientAgeStringProvider);
+      if (stringValue != next.toString()) {
+        ref.read(bookingViewPatientAgeStringProvider.notifier).state =
+            next.toString();
+        debugPrint('Synced age string provider: ${next.toString()}');
+      }
+    });
+
+    // Handle clearing data when patient label changes
+    ref.listen(bookingViewSelectedPatientLabelProvider, (previous, next) {
+      if (!isEditing && previous != next) {
+        if (next == 'My Self' &&
+            currentUserAsync is AsyncData &&
+            currentUserAsync.value != null) {
+          prefillPatientData(ref: ref, currentUser: currentUserAsync.value!);
+        } else {
+          clearPatientData(ref: ref);
+        }
+      }
+    });
 
     return Scaffold(
       body: Form(
@@ -126,39 +168,30 @@ class _AppointmentBookingViewState
                           23.height,
                           CustomTextFormFieldWidget(
                             label: 'Patient Name',
+                            focusNode: nameFocusNode,
                             hintText: 'Enter patient name',
-                            initialValue: widget.appointment?.patientName,
-                            onChanged: (value) => ref
-                                .read(bookingViewPatientNameProvider.notifier)
-                                .state = value,
+                            provider: bookingViewPatientNameProvider,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter the patient name';
                               }
                               return null;
-
                             },
                           ),
                           23.height,
-                          const CustomDropdown(
+                          CustomDropdown(
                             items: AppStrings.genders,
                             label: 'Gender',
-                            validatorText: 'please select Gender',
+                            validatorText: 'Please select Gender',
+                            initialValue: isEditing
+                                ? widget.appointment?.patientGender
+                                : null,
                           ),
                           23.height,
                           CustomTextFormFieldWidget(
                             label: 'Age',
                             hintText: '23 (number)',
-                            initialValue:
-                            widget.appointment?.patientAge.toString() ?? '',
-                            onChanged: (value) {
-                              final age = int.tryParse(value);
-                              if (age != null) {
-                                ref
-                                    .read(bookingViewPatientAgeProvider.notifier)
-                                    .state = age;
-                              }
-                            },
+                            provider: bookingViewPatientAgeStringProvider,
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -167,6 +200,9 @@ class _AppointmentBookingViewState
                               if (int.tryParse(value) == null) {
                                 return 'Please enter a valid number';
                               }
+                              if (value.length > 3) {
+                                return 'Please enter a valid age number';
+                              }
                               return null;
                             },
                           ),
@@ -174,10 +210,7 @@ class _AppointmentBookingViewState
                           CustomTextFormFieldWidget(
                             label: 'Contact Number',
                             hintText: '03*********',
-                            initialValue: widget.appointment?.patientNumber,
-                            onChanged: (value) => ref
-                                .read(bookingViewPatientNumberProvider.notifier)
-                                .state = value,
+                            provider: bookingViewPatientNumberProvider,
                             keyboardType: TextInputType.phone,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -197,10 +230,9 @@ class _AppointmentBookingViewState
                           CustomTextFormFieldWidget(
                             label: 'Note (optional)',
                             hintText: 'Enter your note (optional)',
-                            initialValue: widget.appointment?.patientNotes,
-                            onChanged: (value) => ref
-                                .read(bookingViewPatientNoteProvider.notifier)
-                                .state = value,
+                            provider: bookingViewPatientNoteProvider,
+                            initialValue:
+                            isEditing ? widget.appointment?.patientNotes : null,
                           ),
                           24.height,
                           const CustomTextWidget(
@@ -254,8 +286,8 @@ class _AppointmentBookingViewState
                                         .read(bookingViewPatientNumberProvider)
                                         .isEmpty ||
                                     ref
-                                        .read(
-                                        customDropDownProvider(AppStrings.genders))
+                                        .read(customDropDownProvider(
+                                        AppStrings.genders))
                                         .selected
                                         .isEmpty ||
                                     ref
@@ -283,6 +315,8 @@ class _AppointmentBookingViewState
                     ),
                   ),
                 ),
+                40.height,
+
               ],
             ),
           ],
@@ -297,7 +331,8 @@ class _AppointmentBookingViewState
     return GestureDetector(
       onTap: () {
         ref.read(bookingViewSelectedPatientLabelProvider.notifier).state = label;
-        logDebug('labelllll $label');
+        nameFocusNode.requestFocus();
+        debugPrint('Selected label: $label');
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_colors.dart';
 
-class CustomTextFormFieldWidget extends StatelessWidget {
+class CustomTextFormFieldWidget extends ConsumerStatefulWidget {
+  final StateProvider<String>? provider; // Changed to StateProvider<String>
   final TextEditingController? controller;
   final String? label;
   final TextStyle? labelStyle;
@@ -28,14 +30,16 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final InputBorder? focusedBorder;
   final InputBorder? enabledBorder;
   final InputBorder? errorBorder;
-   final FocusNode? focusNode;
-   final TextAlign? textAlign;
-   final bool? readOnly;
-   final VoidCallback? onTap;
-   final Color?fillColor;
+  final FocusNode? focusNode;
+  final TextAlign? textAlign;
+  final bool? readOnly;
+  final VoidCallback? onTap;
+  final Color? fillColor;
+
   const CustomTextFormFieldWidget({
     super.key,
-     this.controller,
+    this.provider,
+    this.controller,
     this.label,
     this.labelStyle,
     this.textStyle,
@@ -69,52 +73,89 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   });
 
   @override
+  ConsumerState<CustomTextFormFieldWidget> createState() =>
+      _CustomTextFormFieldWidgetState();
+}
+
+class _CustomTextFormFieldWidgetState extends ConsumerState<CustomTextFormFieldWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Sync with provider if provided
+    if (widget.provider != null) {
+      final value = ref.watch(widget.provider!);
+      if (_controller.text != value) {
+        _controller.text = value;
+        debugPrint('Updated ${widget.label} controller: $value');
+      }
+    }
+
     return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      readOnly: readOnly??false,
-      onTap: onTap??(){},
+      controller: _controller,
+      focusNode: widget.focusNode,
+      enabled: widget.enabled,
+      readOnly: widget.readOnly ?? false,
+      onTap: widget.onTap ?? () {},
       strutStyle: const StrutStyle(height: 0),
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      textAlign: textAlign??TextAlign.start,
-      onChanged: onChanged,
-      focusNode: focusNode,
+      obscureText: widget.obscureText,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      validator: widget.validator,
+      textAlign: widget.textAlign ?? TextAlign.start,
+      onChanged: (value) {
+        if (widget.provider != null) {
+          ref.read(widget.provider!.notifier).state = value;
+        }
+        widget.onChanged?.call(value);
+        debugPrint('User updated ${widget.label}: $value');
+      },
       cursorColor: AppColors.gradientGreen,
-      onFieldSubmitted: onFieldSubmitted,
-      style: textStyle?.copyWith(
-        decoration: decorationStyle,
+      onFieldSubmitted: widget.onFieldSubmitted,
+      style: widget.textStyle?.copyWith(
+        decoration: widget.decorationStyle,
       ),
-      maxLines: obscureText ? 1 : maxLines,
-      minLines: minLines,
-      maxLength: maxLength,
-      initialValue: initialValue,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      minLines: widget.minLines,
+      maxLength: widget.maxLength,
       decoration: InputDecoration(
-         fillColor: fillColor,
-        labelText: label,
-        labelStyle: labelStyle,
-        hintText: hintText,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        contentPadding: contentPadding,
-        border: border ??
+        fillColor: widget.fillColor,
+        filled: widget.fillColor != null,
+        labelText: widget.label,
+        labelStyle: widget.labelStyle,
+        hintText: widget.hintText,
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.suffixIcon,
+        contentPadding: widget.contentPadding,
+        border: widget.border ??
             OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-        focusedBorder: focusedBorder ??
+        focusedBorder: widget.focusedBorder ??
             OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.grey),
             ),
-        enabledBorder: enabledBorder ??
+        enabledBorder: widget.enabledBorder ??
             OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
-        errorBorder: errorBorder ??
+        errorBorder: widget.errorBorder ??
             OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.red),

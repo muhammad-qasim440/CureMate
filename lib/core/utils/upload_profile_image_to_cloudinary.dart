@@ -28,6 +28,8 @@ Future<Map<String, String>?> uploadImageToCloudinary(File imageFile) async {
 }
 
 Future<void> deleteImageFromCloudinary(String publicId) async {
+  logDebug('I am here in deletion');
+
   final url = Uri.parse('https://api.cloudinary.com/v1_1/dqijptmo0/image/destroy');
 
   var request = http.MultipartRequest('POST', url)
@@ -35,7 +37,7 @@ Future<void> deleteImageFromCloudinary(String publicId) async {
     ..fields['upload_preset'] = 'curemate_preset';
 
   var response = await request.send();
-
+   logDebug('image deletion response : $response');
   if (response.statusCode == 200) {
     logDebug('Image deleted successfully');
   } else {

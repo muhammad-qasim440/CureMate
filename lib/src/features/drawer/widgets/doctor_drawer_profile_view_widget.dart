@@ -50,6 +50,8 @@ class _DoctorDrawerProfileViewWidgetState
         originalValues['latitude'] = user.latitude.toString();
         originalValues['longitude'] = user.longitude.toString();
         originalValues['dob'] = user.dob;
+        originalValues['age'] = user.age.toString();
+        originalValues['gender'] = user.gender;
         originalValues['qualification'] = user.qualification;
         originalValues['yearsOfExperience'] = user.yearsOfExperience;
         originalValues['category'] = user.category;
@@ -76,6 +78,12 @@ class _DoctorDrawerProfileViewWidgetState
         }
         if (ref.read(userUpdatedDOBProvider) == '') {
           ref.read(userUpdatedDOBProvider.notifier).state = user.dob;
+        }
+        if (ref.read(userUpdatedAgeProvider) == 0) {
+          ref.read(userUpdatedAgeProvider.notifier).state = user.age;
+        }
+        if (ref.read(userUpdatedGenderProvider) == '') {
+          ref.read(userUpdatedGenderProvider.notifier).state = user.gender;
         }
         if (ref.read(userUpdatedQualificationProvider) == '') {
           ref.read(userUpdatedQualificationProvider.notifier).state =
@@ -139,6 +147,8 @@ class _DoctorDrawerProfileViewWidgetState
     final currentLatitude = ref.read(userUpdatedLatitudeProvider);
     final currentLongitude = ref.read(userUpdatedLongitudeProvider);
     final currentDob = ref.read(userUpdatedDOBProvider);
+    final currentGender = ref.read(userUpdatedGenderProvider);
+    final currentAge = ref.read(userUpdatedAgeProvider);
     final currentQualification = ref.read(userUpdatedQualificationProvider);
     final currentYearsOfExperience = ref.read(userUpdatedYearsOfExperienceProvider);
     final currentCategory = ref.read(userUpdatedCategoryProvider);
@@ -153,6 +163,8 @@ class _DoctorDrawerProfileViewWidgetState
             currentLatitude != originalValues['latitude'] ||
             currentLongitude != originalValues['longitude'] ||
             currentDob != originalValues['dob'] ||
+            currentGender != originalValues['gender'] ||
+            currentAge != int.tryParse(originalValues['age']!) ||
             currentQualification != originalValues['qualification'] ||
             currentYearsOfExperience != originalValues['yearsOfExperience'] ||
             currentCategory != originalValues['category'] ||
@@ -393,6 +405,50 @@ class _DoctorDrawerProfileViewWidgetState
                               _checkForChanges(ref);
                             },
                           ),
+                          EditablePersonalInfoField(
+                            title: 'Age',
+                            subtitleProvider: userUpdatedAgeProvider,
+                            isEditingProvider: isEditingAgeProvider,
+                            onChanged:
+                                (value) =>
+                            ref
+                                .read(userUpdatedAgeProvider.notifier)
+                                .state = int.tryParse(value)!,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your age';
+                              }
+                              return null;
+                            },
+                            keyboardType: TextInputType.number,
+                            isEnabled: !isUpdating,
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
+                          ),
+                          EditablePersonalInfoField(
+                            title: 'Gender',
+                            subtitleProvider: userUpdatedGenderProvider,
+                            isEditingProvider: isEditingGenderProvider,
+                            onChanged: (value) => ref
+                                .read(userUpdatedGenderProvider.notifier)
+                                .state = value,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select your gender';
+                              }
+                              return null;
+                            },
+                            isEnabled: !isUpdating,
+                            onChangeDetected: () {
+                              _checkForChanges(ref);
+                            },
+                            isDropdown: true,
+                            dropdownItems: AppStrings.genders,
+                            dropdownLabel: 'Gender',
+                            dropdownValidatorText: 'Please select your gender',
+                          ),
+
                           EditablePersonalInfoField(
                             title: 'Contact Number',
                             subtitleProvider: userUpdatedPhoneNumberProvider,

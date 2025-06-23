@@ -29,68 +29,82 @@ class DoctorTimePickerFieldWidget extends ConsumerWidget {
         final format = DateFormat('h:mm a');
         final dateTime = format.parse(timeString);
         initialTime = TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
-      } catch (e) {}
+      } catch (_) {}
     }
 
-    return InkWell(
-      onTap: () async {
-        final TimeOfDay? picked = await showTimePicker(
-          context: context,
-          initialTime: initialTime,
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: AppColors.btnBgColor,
-                  onPrimary: AppColors.gradientWhite,
-                  onSurface: AppColors.subTextColor,
-                ),
-                textButtonTheme: TextButtonThemeData(
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.gradientGreen,
+    final controller = TextEditingController(
+      text: timeString.isNotEmpty ? timeString : '',
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () async {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: initialTime,
+              builder: (BuildContext context, Widget? child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: AppColors.btnBgColor,
+                      onPrimary: AppColors.gradientWhite,
+                      onSurface: AppColors.subTextColor,
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.gradientGreen,
+                      ),
+                    ),
                   ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) {
+              final formattedTime = picked.format(context);
+              ref.read(provider.notifier).state = formattedTime;
+            }
+          },
+          child: IgnorePointer(
+            child: TextFormField(
+              controller: controller,
+              enabled: false,
+              style: TextStyle(
+                fontFamily: AppFonts.rubik,
+                fontWeight: FontWeight.w400,
+                fontSize: FontSizes(context).size14,
+                color: AppColors.subTextColor,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                labelText: label,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  fontFamily: AppFonts.rubik,
+                  color: AppColors.subTextColor,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: AppColors.grey),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: AppColors.grey),
                 ),
               ),
-              child: child!,
-            );
-          },
-        );
-        if (picked != null) {
-          final formattedTime = picked.format(context);
-          ref.read(provider.notifier).state = formattedTime;
-        }
-      },
-      child: CustomTextFormFieldWidget(
-        label: label,
-        hintText: hintText,
-        enabled: false,
-        controller: TextEditingController(text: timeString),
-        validator: (value) {
-          if (timeString.isEmpty) {
-            return 'Please select a time';
-          }
-          return null;
-        },
-        textStyle: TextStyle(
-          fontFamily: AppFonts.rubik,
-          fontWeight: FontWeight.w400,
-          fontSize: FontSizes(context).size14,
+              validator: (_) {
+                if (timeString.isEmpty) {
+                  return 'Please select a time';
+                }
+                return null;
+              },
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: AppColors.grey),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: AppColors.grey),
-        ),
-        labelStyle: TextStyle(
-          fontWeight: FontWeight.w400,
-          fontSize: FontSizes(context).size14,
-          fontFamily: AppFonts.rubik,
-          color: AppColors.subTextColor,
-        ),
-      ),
+      ],
     );
   }
 }

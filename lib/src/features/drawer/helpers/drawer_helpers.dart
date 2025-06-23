@@ -562,6 +562,8 @@ class DrawerHelpers {
     final currentLatitude = ref.read(userUpdatedLatitudeProvider);
     final currentLongitude = ref.read(userUpdatedLongitudeProvider);
     final currentDob = ref.read(userUpdatedDOBProvider);
+    final currentGender = ref.read(userUpdatedGenderProvider);
+    final currentAge = ref.read(userUpdatedAgeProvider);
     final currentQualification = ref.read(userUpdatedQualificationProvider);
     final currentYearsOfExperience = ref.read(userUpdatedYearsOfExperienceProvider);
     final currentCategory = ref.read(userUpdatedCategoryProvider);
@@ -575,6 +577,9 @@ class DrawerHelpers {
     if (currentLatitude != userData.latitude.toString()) updatedData['latitude'] = currentLatitude;
     if (currentLongitude != userData.longitude.toString()) updatedData['longitude'] = currentLongitude;
     if (currentDob != userData.dob) updatedData['dob'] = currentDob;
+    if (currentGender != userData.gender) updatedData['gender'] = currentGender;
+    if (currentAge != userData.age) updatedData['age'] = currentAge;
+
     if (currentQualification != userData.qualification) updatedData['qualification'] = currentQualification;
     if (currentYearsOfExperience != userData.yearsOfExperience) updatedData['yearsOfExperience'] = currentYearsOfExperience;
     if (currentCategory != userData.category) updatedData['category'] = currentCategory;
@@ -583,6 +588,8 @@ class DrawerHelpers {
 
     final profileImageState = ref.read(profileImagePickerProvider);
     if (profileImageState.croppedImage != null) {
+      logDebug('publicId Image : ${userData.profileImagePublicId}');
+
       if (userData.profileImagePublicId.isNotEmpty) {
         await deleteImageFromCloudinary(userData.profileImagePublicId);
       }

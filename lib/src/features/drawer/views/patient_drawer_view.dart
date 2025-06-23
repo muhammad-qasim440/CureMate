@@ -17,13 +17,13 @@ import '../../../shared/widgets/custom_snackbar_widget.dart';
 import '../../../shared/widgets/custom_text_widget.dart';
 import '../../../theme/app_colors.dart';
 import '../../authentication/signin/providers/auth_provider.dart';
-import '../../authentication/signin/views/signin_view.dart';
 import '../widgets/patient_drawer_ratings_views_widget.dart';
 import '../widgets/drawer_feedback_widget.dart';
 import '../widgets/patient_drawer_medical_records.dart';
 import '../widgets/patient_drawer_my_doctors_view.dart';
 import '../widgets/drawer_privacy_policy_widget.dart';
 import '../widgets/patient_drawer_profile_view_widget.dart';
+import '../widgets/profile_image_full_screen_widget.dart';
 
 class PatientDrawerView extends ConsumerWidget {
   const PatientDrawerView({super.key});
@@ -62,10 +62,15 @@ class PatientDrawerView extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundImage: NetworkImage(
-                              user.profileImageUrl,
+                          GestureDetector(
+                            onTap:(){
+                              AppNavigation.push(ProfileImageFullScreenWidget(imageURL:user.profileImageUrl));
+                            },
+                            child: CircleAvatar(
+                              radius: 28,
+                              backgroundImage: NetworkImage(
+                                user.profileImageUrl,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
